@@ -1,6 +1,6 @@
-# contrast-chrome-extension
+# Contrast Security chrome Extension
 
-## Setup in developer mode
+## Local Setup
 1. Clone this repo
 2. Navigate to chrome://extensions
 3. Check the 'developer mode' checkbox in the top right corner
