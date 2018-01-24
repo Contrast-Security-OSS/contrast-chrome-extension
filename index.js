@@ -1,11 +1,16 @@
+function modifyString(value) {
+  return 'better ' + value;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  var inputBox = document.getElementById('contrast-input');
-  var submitButton = document.getElementById('contrast-submit')
   console.log('hello world');
+  var inputBox = document.getElementById('contrast-input');
+  var submitButton = document.getElementById('contrast-submit');
 
   submitButton.addEventListener('click', function() {
-    var value = inputBox.value;
-    console.log(value);
+    value = inputBox.value;
+    newValue = modifyString(value);
+    console.log(newValue);
   }, false);
 
 }, false);
