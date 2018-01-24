@@ -1,3 +1,5 @@
-"scripts": {
-  "test": "qunit"
+{
+  "scripts": {
+    "test": "qunit"
+  }
 }
