@@ -9,7 +9,17 @@ document.addEventListener('DOMContentLoaded', function() {
       $.each(activities, function(idx, activity){
         console.log(activity)
         var text = activity["description"]["text"]
-        var desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14, text.lastIndexOf("$$LINK_DELIM$$"))
+        
+
+        var desc = ""
+
+        if(activity["type"] == "NEW_TRACE") {
+          desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14, text.lastIndexOf("$$LINK_DELIM$$"))
+        } else {
+          desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14)
+        } 
+        
+
         var li = $('<li/>')
           .addClass('list-group-item')
           .appendTo($("#contrast-events"));
