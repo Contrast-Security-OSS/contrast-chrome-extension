@@ -1,4 +1,4 @@
-# Contrast Security chrome Extension
+# Contrast Security Chrome Extension
 
 ## Local Setup
 1. Clone this repo
