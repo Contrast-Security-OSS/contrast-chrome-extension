@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css"/>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <script src="jquery-3.3.1.js"></script>
   <script src="util.js"></script>
@@ -19,13 +20,14 @@
 
   <section id="activity-feed">
     <h1>Contrast Activity Feed</h1>
-    <button type="submit" id="configure" class="btn btn-primary">configure</button>
+    <div id="container">
+      <button type="submit" id="configure" class="btn btn-primary">configure</button>
 
-    <div>
-      <ul class="list-group" id="contrast-events">
-      </ul>
+      <div>
+        <ul class="list-group" id="contrast-events">
+        </ul>
+      </div>
     </div>
   </section>
 </body>
 </html>
-
