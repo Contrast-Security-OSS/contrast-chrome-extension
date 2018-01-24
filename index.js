@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (needsCredentials) {
       // if you need credentials, hide the activity feed
-      signInSection.style.visibility = 'visible';
-      activityFeedSection.style.visibility = 'hidden';
+      signInSection.style.display = ''
+      activityFeedSection.style.display = 'none'
 
       var signInButton = document.getElementById('sign-in');
       var extensionId = chrome.runtime.id;
@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }, false);
     } else {
       // if you don't need credentials, hide the signin functionality
-      signInSection.style.visibility = 'hidden';
-      activityFeedSection.style.visibility = 'visible';
+      signInSection.style.display = 'none'
+      activityFeedSection.style.display = ''
 
       var configureButton = document.getElementById('configure');
       var extensionId = chrome.runtime.id;
