@@ -7,7 +7,11 @@ h1 {
 }
 
 #container {
+  width: 300px;
   align-items: center;
-  display: flex;
   justify-content: space-between;
+}
+
+#container input {
+  width: 100%;
 }
