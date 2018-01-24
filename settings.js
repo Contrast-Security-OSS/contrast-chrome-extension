@@ -26,11 +26,10 @@ document.addEventListener('DOMContentLoaded', function() {
       'teamserver_url': teamserverUrlValue
     }, function() {
       console.log('Contrast values saved');
-      username.value = "";
-      serviceKey.value = "";
-      apiKey.value = "";
-      orgUuid.value = "";
-      teamserverUrl.value = "";
+      chrome.tabs.getCurrent(function(tab) {
+        chrome.tabs.remove(tab.id, function() { });
+      });
+
 
     });
   }, false);
