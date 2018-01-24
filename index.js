@@ -1,8 +1,55 @@
 document.addEventListener('DOMContentLoaded', function() {
-  var signInButton = document.getElementById('sign-in');
-  var extensionId = chrome.runtime.id;
-  signInButton.addEventListener('click', function() {
-    var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
-    chrome.tabs.create({url: settingsUrl});
-  }, false);
+  var needsCredentials;
+
+  chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key"], function(items) {
+    // check if any values are undefined
+    var noUsername = typeof items["contrast_username"] == 'undefined'
+    var noServiceKey = typeof items["contrast_service_key"] == 'undefined'
+    var noApiKey = typeof items["contrast_api_key"] == 'undefined'
+
+    // define var to check if we need to update our variables
+    needsCredentials = noUsername || noServiceKey || noApiKey;
+    //logging for debugging
+    console.log(items["contrast_username"]);
+    console.log(noUsername);
+    console.log(items["contrast_service_key"]);
+    console.log(noServiceKey);
+    console.log(items["contrast_api_key"]);
+    console.log(noApiKey);
+
+    // find sections
+    var signInSection = document.getElementById('sign-in');
+    var activityFeedSection = document.getElementById('activity-feed');
+
+    if (needsCredentials) {
+      // if you need credentials, hide the activity feed
+      signInSection.style.visibility = 'visible';
+      activityFeedSection.style.visibility = 'hidden';
+
+      var signInButton = document.getElementById('sign-in');
+      var extensionId = chrome.runtime.id;
+
+      //signin button opens up settings page in new tab
+      signInButton.addEventListener('click', function() {
+        var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
+        chrome.tabs.create({url: settingsUrl});
+      }, false);
+    } else {
+      // if you don't need credentials, hide the signin functionality
+      signInSection.style.visibility = 'hidden';
+      activityFeedSection.style.visibility = 'visible';
+
+      var configureButton = document.getElementById('configure');
+      var extensionId = chrome.runtime.id;
+
+      //configure button opens up settings page in new tab
+      configureButton.addEventListener('click', function() {
+        var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
+        chrome.tabs.create({url: settingsUrl});
+      }, false);
+    }
+  });
+
+
+
 }, false);
