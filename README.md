@@ -19,7 +19,7 @@ We're using QUnit: https://qunitjs.com/
 
 `npm install -g qunit`
 
-### Tests
+### Run Tests
 
 `qunit`
 
