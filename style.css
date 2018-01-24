@@ -6,12 +6,13 @@ h1 {
   font-size: 15px;
 }
 
-#container {
-  width: 300px;
+#sign-in, #activity-feed {
+  width: 500px;
+  padding: 40px;
   align-items: center;
   justify-content: space-between;
 }
 
-#container input {
+#activity-feed input {
   width: 100%;
 }
