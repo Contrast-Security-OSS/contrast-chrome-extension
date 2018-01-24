@@ -4,8 +4,10 @@ function ContrastFetch(uri, onReadyStateChangeCallback) {
 
     url = 'https://app.contrastsecurity.com/Contrast/api/' + uri
 
+    console.log(url)
     var authHeader = btoa(items["contrast_username"] + ":" + ["contrast_service_key"])
     console.log(authHeader)
+    console.log(items["contrast_api_key"])
     
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = onReadyStateChangeCallback(xhr)
