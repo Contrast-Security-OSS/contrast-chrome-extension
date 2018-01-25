@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
       signInSection.style.display = ''
       activityFeedSection.style.display = 'none'
 
-      var signInButton = document.getElementById('sign-in');
+      var signInButton = document.getElementById('sign-in-button');
       var extensionId = chrome.runtime.id;
 
       //signin button opens up settings page in new tab
