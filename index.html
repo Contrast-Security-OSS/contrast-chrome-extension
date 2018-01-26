@@ -9,27 +9,44 @@
   <script src="activity.js"></script>
   <script src="index.js"></script>
 </head>
-<body>
+<body class="normal">
 
   <section id="sign-in">
-    <h1>Welcome to Contrast!</h1>
-    <div id="container">
-      <button type="submit" id="sign-in-button" class="btn btn-primary">
-        <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span> Sign In
-      </button>
+    <div class="row">
+      <div id="header-container" align="center">
+        <img src="img/contrastLogoLarge.png" id="header-logo"/>
+      </div>
+      <div id="sign-in-button-container" align="center">
+        <button type="submit" id="sign-in-button" class="btn btn-primary btn-contrast-plugin">
+          <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span> Sign In
+        </button>
+      </div>
     </div>
   </section>
 
   <section id="activity-feed">
-    <h1>Contrast Activity Feed</h1>
-    <div id="container">
-      <button type="submit" id="configure" class="btn btn-primary">
-        <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Configure
-      </button>
+    <div class="row">
+      <div class="col-xs-9">
+        <h2 class="heading">Activity Feed</h2>
+      </div>
+      <div class="col-xs-3">
+        <button type="submit" id="configure" class="btn btn-primary pull-right btn-contrast-plugin">
+          <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
 
+    <div id="container">
       <div>
         <ul class="list-group" id="contrast-events">
         </ul>
+      </div>
+
+      <div id="get-started">
+        <img src="img/getStarted.png" id="get-started-img"/>
+        <div id="get-started-description" align="center">
+          <a href="https://app.contrastsecurity.com/Contrast">Visit your organization on Teamserver</a> to onboard some spplications.
+        </div>
       </div>
     </div>
   </section>
