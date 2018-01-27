@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (items["contrast_service_key"] != null) {
 
-      ContrastFetch("/ng/e264d365-25e4-409e-a129-ec4c684c9d50/events", function() { return function(e) {
+      getActivities(function() { return function(e) {
         xhr = e.currentTarget
         if (xhr.readyState == 4) {
           if(xhr.responseText == "" ) {

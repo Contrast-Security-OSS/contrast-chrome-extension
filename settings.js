@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var username = document.getElementById('contrast_username');
   var serviceKey = document.getElementById('contrast_service_key');
   var apiKey = document.getElementById('contrast_api_key');
-  var orgUuid = document.getElementById('contrast_org');
+  var orgUuid = document.getElementById('contrast_org_uuid');
   var teamserverUrl = document.getElementById('teamserver_url');
 
   var submitButton = document.getElementById('contrast-submit');
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
       'contrast_username': usernameValue,
       'contrast_service_key': serviceKeyValue,
       'contrast_api_key': apiKeyValue,
-      'contrast_org': orgUuidValue,
+      'contrast_org_uuid': orgUuidValue,
       'teamserver_url': teamserverUrlValue
     }, function() {
       console.log('Contrast values saved');

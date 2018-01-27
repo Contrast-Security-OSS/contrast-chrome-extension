@@ -1,8 +1,12 @@
-function ContrastFetch(uri, onReadyStateChangeCallback) {
+function getActivities(onReadyStateChangeCallback) {
 
-  chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key"], function(items) {
+  chrome.storage.sync.get(["contrast_username", 
+                           "contrast_service_key", 
+                           "contrast_api_key",
+                           "contrast_org_uuid", 
+                           "teamserver_url"], function(items) {
 
-    url = 'https://app.contrastsecurity.com/Contrast/api/' + uri
+    url = items["teamserver_url"] + '/api/ng/' + items["contrast_org_uuid"] + '/events'
 
     var authHeader = btoa(items["contrast_username"] + ":" + ["contrast_service_key"])
     

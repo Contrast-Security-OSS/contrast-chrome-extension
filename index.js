@@ -3,9 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key"], function(items) {
     // check if any values are undefined
-    var noUsername = typeof items["contrast_username"] == 'undefined'
-    var noServiceKey = typeof items["contrast_service_key"] == 'undefined'
-    var noApiKey = typeof items["contrast_api_key"] == 'undefined'
+    var noUsername = typeof items["contrast_username"] == 'undefined' || items["contrast_username"] == ''
+    var noServiceKey = typeof items["contrast_service_key"] == 'undefined' || items["contrast_service_key"] == ''
+    var noApiKey = typeof items["contrast_api_key"] == 'undefined' || items["contrast_api_key"] == ''
 
     // define var to check if we need to update our variables
     needsCredentials = noUsername || noServiceKey || noApiKey;
