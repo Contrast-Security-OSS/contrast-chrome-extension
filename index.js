@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.create({ url: settingsUrl });
       }, false);
 
-      var visitOrgLink = document.getElementById('visitOrg');
+      var visitOrgLink = document.getElementById('visit-org');
 
       visitOrgLink.addEventListener('click', function () {
         var teamserverUrl = items["teamserver_url"];
