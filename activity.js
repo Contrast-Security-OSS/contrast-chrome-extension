@@ -40,14 +40,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 var date = new Date(null);
                 date.setMilliseconds(activity["timestamp"]) // specify value for SECONDS here
                 var dateVal = date.toString();
-                li.append($('<h6/>').append(dateVal));
+                li.append($('<h6/>').addClass('activity-timestamp-header').append(dateVal));
 
                 var activityLink = text.substring(0, text.indexOf("$$LINK_DELIM$$"));
                 var activityLinkHtmlElement = $('<p/>').css("display", "none").append(activityLink);
                 li.append(activityLinkHtmlElement);
               })
 
-              $('#contrast-events').click(function (event) {
+              $('.activity-timestamp-header').click(function (event) {
                 var text = $(event.target).parent().find('p').text();
                 var teamserverUrl = items["teamserver_url"];
                 var activityLinkComplete = teamserverUrl.substring(0, teamserverUrl.indexOf("/Contrast")) + text;
