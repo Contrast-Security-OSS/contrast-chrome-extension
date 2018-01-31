@@ -6,9 +6,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var noUsername = typeof items["contrast_username"] == 'undefined' || items["contrast_username"] == ''
     var noServiceKey = typeof items["contrast_service_key"] == 'undefined' || items["contrast_service_key"] == ''
     var noApiKey = typeof items["contrast_api_key"] == 'undefined' || items["contrast_api_key"] == ''
+    var noTeamserverUrl = typeof items["teamserver_url"] == 'undefined' || items["teamserver_url"] == ''
 
     // define var to check if we need to update our variables
-    needsCredentials = noUsername || noServiceKey || noApiKey;
+    needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
     //logging for debugging
     console.log(items["contrast_username"]);
     console.log(noUsername);
@@ -16,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log(noServiceKey);
     console.log(items["contrast_api_key"]);
     console.log(noApiKey);
+    console.log(items["teamserver_url"]);
+    console.log(noTeamserverUrl);
 
     // find sections
     var signInSection = document.getElementById('sign-in');
