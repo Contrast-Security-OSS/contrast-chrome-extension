@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  chrome.storage.sync.get(["contrast_service_key"], function (items) {
+  chrome.storage.sync.get(["contrast_service_key", "teamserver_url"], function (items) {
 
     if (items["contrast_service_key"] != null) {
 
@@ -14,20 +14,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
               json = JSON.parse(xhr.responseText)
               //console.log(json["activities"])
-              console.log(xhr.responseText);
 
               activities = json["activities"]
               $.each(activities, function (idx, activity) {
                 console.log(activity)
                 var text = activity["description"]["text"]
 
-
                 var desc = ""
 
                 if (activity["type"] == "NEW_TRACE") {
-                  desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14, text.lastIndexOf("$$LINK_DELIM$$"))
+                  desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14, text.lastIndexOf(" "));
+                  desc += " " + text.substring(text.lastIndexOf("$$LINK_DELIM$$") + "$$LINK_DELIM$$".length);
                 } else {
-                  desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14)
+                  desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14);
                 }
 
 
@@ -41,13 +40,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 var date = new Date(null);
                 date.setMilliseconds(activity["timestamp"]) // specify value for SECONDS here
                 var dateVal = date.toString();
-
                 li.append($('<h6/>').append(dateVal));
+
+                var activityLink = text.substring(0, text.indexOf("$$LINK_DELIM$$"));
+                var activityLinkHtmlElement = $('<p/>').css("display", "none").append(activityLink);
+                li.append(activityLinkHtmlElement);
               })
 
               $('#contrast-events').click(function (event) {
-                var text = $(event.target).text();
-                console.log(text);
+                var text = $(event.target).parent().find('p').text();
+                var teamserverUrl = items["teamserver_url"];
+                var activityLinkComplete = teamserverUrl.substring(0, teamserverUrl.indexOf("/Contrast")) + text;
+                chrome.tabs.create({ url: activityLinkComplete });
               });
 
             }
