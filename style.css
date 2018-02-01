@@ -4,11 +4,13 @@ body {
   margin: 25px;
   background-image: url(img/loginBackground.png);
   font-family: 'Lato';
+  font-family: 'Lato', 'Helvetica', 'Neue','Arial', 'sans-serif';
+  font-size: 14px;
 }
 
 body.no-activity {
   background-image: url(img/404PageNotFound.jpg);
-  background-position: -800px;
+  background-position: -90px;
   background-size: cover;
 }
 
@@ -21,9 +23,16 @@ h1 {
 }
 
 button.btn-contrast-plugin {
-  border-radius: 0px;
+  border-radius: 3px;
   background-color: #3cc3b2 !important;
   border-color: #3cc3b2;
+  border-radius: 3px;
+  color: #fff;
+}
+
+button.btn-contrast-plugin:hover {
+  background-color: #0da1a9 !important;
+  border-color: #0da1a9;
 }
 
 #sign-in, #activity-feed {
@@ -61,10 +70,21 @@ img#header-logo {
 
 form.settings-form input {
   width: 100%;
-  height: 40px;
-  font-size: 20px;
+  height: 34px;
+  font-size: 14px;
+  border-width: 1px;
+  border-radius: 3px;
+  border-color: #cbcbcb;
 }
 
 h1, h2, h3, h4 {
   font-family: 'Roboto'
+}
+
+label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 2px;
+  font-weight: 700;
+  color: gray;
 }
