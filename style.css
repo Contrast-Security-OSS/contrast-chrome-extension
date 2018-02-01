@@ -10,7 +10,7 @@ body {
 
 body.no-activity {
   background-image: url(img/404PageNotFound.jpg);
-  background-position: -800px;
+  background-position: -90px;
   background-size: cover;
 }
 
