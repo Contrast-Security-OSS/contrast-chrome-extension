@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var date = new Date(null);
                 date.setMilliseconds(activity["timestamp"]) // specify value for SECONDS here
                 var dateVal = date.toString();
-                li.append($('<h6/>').addClass('activity-timestamp-header').append(dateVal));
+                li.append($('<a/>').attr("href", "").addClass('activity-timestamp-header').append(dateVal));
 
                 var activityLink = text.substring(0, text.indexOf("$$LINK_DELIM$$"));
                 var activityLinkHtmlElement = $('<p/>').css("display", "none").append(activityLink);
