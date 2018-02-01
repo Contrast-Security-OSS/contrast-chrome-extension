@@ -8,10 +8,7 @@ function getActivities(onReadyStateChangeCallback) {
     "teamserver_url"], function (items) {
 
       var url = items["teamserver_url"] + '/ng/' + items["contrast_org_uuid"] + '/events';
-      console.log(url);
-
       var authHeader = btoa(items["contrast_username"] + ":" + items["contrast_service_key"]);
-      console.log(authHeader);
 
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = onReadyStateChangeCallback(xhr);

@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var visitOrgLink = document.getElementById('visit-org');
 
       visitOrgLink.addEventListener('click', function () {
-        var teamserverUrl = items["teamserver_url"];
+        var teamserverUrl = items["teamserver_url"].substring(0, items["teamserver_url"].indexOf("/Contrast/api"));
         chrome.tabs.create({ url: teamserverUrl });
       }, false);
     }
