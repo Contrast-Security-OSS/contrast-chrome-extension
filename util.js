@@ -53,7 +53,7 @@ function getActivities(onReadyStateChangeCallback) {
     });
 }
 
-function getOrganizationVulnerabilityesIds(url, onReadyStateChangeCallback) {
+function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
 
   chrome.storage.sync.get([CONTRAST_USERNAME,
     CONTRAST_SERVICE_KEY,
@@ -63,7 +63,7 @@ function getOrganizationVulnerabilityesIds(url, onReadyStateChangeCallback) {
 
       var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]);
       var authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-      var params = "?urls=" + btoa(url);
+      var params = "?urls=" + btoa(urls);
       var xhr = getXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
 
       xhr.send();
