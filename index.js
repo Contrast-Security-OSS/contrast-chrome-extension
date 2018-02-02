@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+
   var needsCredentials;
 
   chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key"], function (items) {
