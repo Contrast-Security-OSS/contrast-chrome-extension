@@ -12,11 +12,11 @@ document.addEventListener('DOMContentLoaded', function () {
     "contrast_api_key",
     "contrast_org_uuid",
     "teamserver_url"], function (items) {
-      username.setAttribute("value", items["contrast_username"]);
-      serviceKey.setAttribute("value", items["contrast_service_key"]);
-      apiKey.setAttribute("value", items["contrast_api_key"]);
-      orgUuid.setAttribute("value", items["contrast_org_uuid"]);
-      teamserverUrl.setAttribute("value", items["teamserver_url"]);
+      username.setAttribute("value", items["contrast_username"] == undefined ? "" : items["contrast_username"]);
+      serviceKey.setAttribute("value", items["contrast_service_key"] == undefined ? "" : items["contrast_service_key"]);
+      apiKey.setAttribute("value", items["contrast_api_key"] == undefined ? "" : items["contrast_api_key"]);
+      orgUuid.setAttribute("value", items["contrast_org_uuid"] == undefined ? "" : items["contrast_org_uuid"]);
+      teamserverUrl.setAttribute("value", items["teamserver_url"] == undefined ? "" : items["teamserver_url"]);
     });
 
 
