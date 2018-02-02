@@ -1,7 +1,7 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   var needsCredentials;
 
-  chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key"], function(items) {
+  chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key"], function (items) {
     // check if any values are undefined
     var noUsername = typeof items["contrast_username"] == 'undefined' || items["contrast_username"] == ''
     var noServiceKey = typeof items["contrast_service_key"] == 'undefined' || items["contrast_service_key"] == ''
@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var extensionId = chrome.runtime.id;
 
       //signin button opens up settings page in new tab
-      signInButton.addEventListener('click', function() {
+      signInButton.addEventListener('click', function () {
         var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
-        chrome.tabs.create({url: settingsUrl});
+        chrome.tabs.create({ url: settingsUrl });
       }, false);
     } else {
       // if you don't need credentials, hide the signin functionality
@@ -43,9 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var extensionId = chrome.runtime.id;
 
       //configure button opens up settings page in new tab
-      configureButton.addEventListener('click', function() {
+      configureButton.addEventListener('click', function () {
         var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
-        chrome.tabs.create({url: settingsUrl});
+        chrome.tabs.create({ url: settingsUrl });
       }, false);
     }
   });

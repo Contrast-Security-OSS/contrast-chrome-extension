@@ -1,17 +1,23 @@
 {
   "manifest_version": 2,
-
   "name": "Contrast Extension",
   "description": "Allows the user to get information from TeamServer conveniently in a Chrome extension",
   "version": "1.0",
-
   "browser_action": {
     "default_icon": "icon.png",
     "default_popup": "index.html"
   },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
   "permissions": [
     "activeTab",
     "storage",
-    "https://*.contrastsecurity.com/"
+    "https://*.contrastsecurity.com/",
+    "tabs",
+    "background",
+    "notifications"
   ]
 }
