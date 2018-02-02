@@ -12,6 +12,18 @@
       "background.js"
     ]
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "util.js",
+        "content-script.js"
+      ]
+    }
+  ],
   "permissions": [
     "activeTab",
     "storage",
