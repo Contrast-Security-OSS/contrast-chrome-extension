@@ -1,3 +1,4 @@
+
 function getActivities(onReadyStateChangeCallback) {
 
   chrome.storage.sync.get(["contrast_username",
@@ -7,9 +8,7 @@ function getActivities(onReadyStateChangeCallback) {
     "teamserver_url"], function (items) {
 
       var url = items["teamserver_url"] + '/ng/' + items["contrast_org_uuid"] + '/events';
-
       var authHeader = btoa(items["contrast_username"] + ":" + items["contrast_service_key"]);
-
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = onReadyStateChangeCallback(xhr);
       xhr.open('GET', url, true);

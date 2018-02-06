@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
+
   chrome.storage.sync.get(["contrast_service_key", "teamserver_url"], function (items) {
+
 
     if (items["contrast_service_key"] != null) {
 
@@ -19,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
               $.each(activities, function (idx, activity) {
                 console.log(activity)
                 var text = activity["description"]["text"]
-
                 var desc = ""
 
                 if (activity["type"] == "NEW_TRACE") {
@@ -38,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 li.append($('<div/>').append(desc))
 
                 var date = new Date(null);
-                date.setMilliseconds(activity["timestamp"]) // specify value for SECONDS here
+                date.setMilliseconds(activity["timestamp"])
                 var dateVal = date.toString();
                 li.append($('<a/>').attr("href", "").addClass('activity-timestamp-header').append(dateVal));
 
