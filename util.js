@@ -5,7 +5,7 @@ const CONTRAST_ORG_UUID = "contrast_org_uuid";
 const TEAMSERVER_URL = "teamserver_url";
 
 // --------- HELPER FUNCTIONS -------------
-function getXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
+function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   var xhr = new XMLHttpRequest();
   var linkWithParams = url + params;
 
@@ -14,8 +14,7 @@ function getXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   xhr.setRequestHeader("API-Key", apiKey);
   xhr.setRequestHeader("Accept", "application/json");
   xhr.onreadystatechange = onReadyStateChangeCallback(xhr);
-
-  return xhr;
+  xhr.send();
 }
 
 function getAuthorizationHeader(username, serviceKey) {
@@ -47,9 +46,7 @@ function getActivities(onReadyStateChangeCallback) {
 
       var url = getActivitiesUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]);
       var authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-      var xhr = getXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-
-      xhr.send();
+      sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
 
@@ -64,9 +61,7 @@ function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
       var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]);
       var authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
       var params = "?urls=" + btoa(urls);
-      var xhr = getXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-
-      xhr.send();
+      sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
 
@@ -80,9 +75,6 @@ function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
 
       var url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid);
       var authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-      var xhr = getXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-
-      xhr.send();
+      sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
-
