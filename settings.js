@@ -25,11 +25,25 @@ document.addEventListener('DOMContentLoaded', function () {
   // Run when form is submitted
   submitButton.addEventListener('click', function () {
     // retrieve values form inputs
-    usernameValue = username.value;
-    serviceKeyValue = serviceKey.value;
-    apiKeyValue = apiKey.value;
-    orgUuidValue = orgUuid.value;
-    teamserverUrlValue = teamserverUrl.value;
+    var usernameValue = username.value;
+    var serviceKeyValue = serviceKey.value;
+    var apiKeyValue = apiKey.value;
+    var orgUuidValue = orgUuid.value;
+    var teamserverUrlValue = teamserverUrl.value;
+
+    while (teamserverUrlValue.endsWith("/")) {
+      teamserverUrlValue = teamserverUrlValue.slice(0, -1);
+    }
+
+    if (!teamserverUrlValue.endsWith("/api")) {
+      if (!teamserverUrlValue.endsWith("/Contrast")) {
+        teamserverUrlValue += "/Contrast";
+      }
+      teamserverUrlValue += "/api";
+    }
+    if (!teamserverUrlValue.startsWith("http")) {
+      teamserverUrlValue = "https://" + teamserverUrlValue;
+    }
 
     //save values to local storage
     chrome.storage.sync.set({

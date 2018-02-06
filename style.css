@@ -14,6 +14,12 @@ body.no-activity {
   background-size: cover;
 }
 
+body.configuration-problem {
+  background-image: url(img/403Unauthorized.jpg);
+  background-position: 0px 50px;
+  background-size: cover;
+}
+
 h1 {
   font-size: 15px;
 }
@@ -52,6 +58,11 @@ div#get-started {
   margin: 100px auto;
 }
 
+div#configuration-problem {
+  display: none;
+  margin: 100px auto;
+}
+
 #get-started-img {
   width: 300px;
 }
@@ -79,6 +90,12 @@ form.settings-form input {
 
 h1, h2, h3, h4 {
   font-family: 'Roboto'
+}
+
+a.activity-timestamp-header {
+  text-transform: uppercase;
+  color: #999;
+  font-size: 10px;
 }
 
 label {

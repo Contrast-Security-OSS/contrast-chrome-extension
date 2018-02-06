@@ -85,3 +85,4 @@ function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
       xhr.send();
     });
 }
+
