@@ -2,35 +2,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
   chrome.storage.sync.get(["contrast_service_key", "teamserver_url"], function (items) {
 
-
     if (items["contrast_service_key"] != null) {
 
       getActivities(function () {
         return function (e) {
-          xhr = e.currentTarget
+          xhr = e.currentTarget;
           if (xhr.readyState == 4) {
             if (xhr.status == 403) {
               //Configuration problem
-              $("body").addClass("configuration-problem")
-              $("#configuration-problem").show()
+              $("body").addClass("configuration-problem");
+              $("#configuration-problem").show();
             } else if (xhr.responseText == "") {
-              $("body").addClass("no-activity")
-              $("#get-started").show()
+              $("body").addClass("no-activity");
+              $("#get-started").show();
             } else {
               json = JSON.parse(xhr.responseText)
-              console.log(json["activities"])
+              console.log(json["activities"]);
 
-              activities = json["activities"]
+              activities = json["activities"];
 
               if (activities === "undefined" || activities.length == 0) {
-                $("body").addClass("no-activity")
-                $("#get-started").show()
+                $("body").addClass("no-activity");
+                $("#get-started").show();
               } else {
 
                 $.each(activities, function (idx, activity) {
-                  console.log(activity)
-                  var text = activity["description"]["text"]
-                  var desc = ""
+                  console.log(activity);
+                  var text = activity["description"]["text"];
+                  var desc = "";
 
                   if (activity["type"] == "NEW_TRACE") {
                     desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14, text.lastIndexOf(" "));
@@ -44,11 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     .addClass('list-group-item')
                     .appendTo($("#contrast-events"));
 
-                  li.append($('<h6/>').append(activity["type"].replace(/_/g, " ")))
-                  li.append($('<div/>').append(desc))
+                  li.append($('<h6/>').append(activity["type"].replace(/_/g, " ")));
+                  li.append($('<div/>').append(desc));
 
                   var date = new Date(null);
-                  date.setMilliseconds(activity["timestamp"])
+                  date.setMilliseconds(activity["timestamp"]);
                   var dateVal = date.toString();
                   li.append($('<a/>').attr("href", "").addClass('activity-timestamp-header').append(dateVal));
 

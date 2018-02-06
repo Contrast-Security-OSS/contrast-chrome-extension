@@ -41,7 +41,7 @@ button.btn-contrast-plugin:hover {
   border-color: #0da1a9;
 }
 
-#sign-in, #activity-feed {
+#sign-in, #activity-feed, #vulnerabilities-on-page {
   width: 400px;
   padding: 20px;
   height: 500px;
