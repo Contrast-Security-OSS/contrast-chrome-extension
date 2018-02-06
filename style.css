@@ -14,6 +14,12 @@ body.no-activity {
   background-size: cover;
 }
 
+body.configuration-problem {
+  background-image: url(img/403Unauthorized.jpg);
+  background-position: 0px 50px;
+  background-size: cover;
+}
+
 h1 {
   font-size: 15px;
 }
@@ -48,6 +54,11 @@ button.btn-contrast-plugin:hover {
 }
 
 div#get-started {
+  display: none;
+  margin: 100px auto;
+}
+
+div#configuration-problem {
   display: none;
   margin: 100px auto;
 }

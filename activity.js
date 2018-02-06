@@ -9,12 +9,11 @@ document.addEventListener('DOMContentLoaded', function () {
         return function (e) {
           xhr = e.currentTarget
           if (xhr.readyState == 4) {
-            console.log(xhr)
-            if (xhr.responseText == "") {
-              $("body").addClass("no-activity")
-              $("#get-started").show()
-            } else if (xhr.status == 403) {
+            if (xhr.status == 403) {
               //Configuration problem
+              $("body").addClass("configuration-problem")
+              $("#configuration-problem").show()
+            } else if (xhr.responseText == "") {
               $("body").addClass("no-activity")
               $("#get-started").show()
             } else {
