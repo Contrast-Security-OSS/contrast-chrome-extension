@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key", "teamserver_url"], function (items) {
     // check if any values are undefined
-    var noUsername = typeof items["contrast_username"] == 'undefined' || items["contrast_username"] == ''
-    var noServiceKey = typeof items["contrast_service_key"] == 'undefined' || items["contrast_service_key"] == ''
-    var noApiKey = typeof items["contrast_api_key"] == 'undefined' || items["contrast_api_key"] == ''
-    var noTeamserverUrl = typeof items["teamserver_url"] == 'undefined' || items["teamserver_url"] == ''
+    var noUsername = typeof items["contrast_username"] == 'undefined' || items["contrast_username"] == '';
+    var noServiceKey = typeof items["contrast_service_key"] == 'undefined' || items["contrast_service_key"] == '';
+    var noApiKey = typeof items["contrast_api_key"] == 'undefined' || items["contrast_api_key"] == '';
+    var noTeamserverUrl = typeof items["teamserver_url"] == 'undefined' || items["teamserver_url"] == '';
 
     // define var to check if we need to update our variables
     needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }, false);
     } else {
       // if you don't need credentials, hide the signin functionality
-      signInSection.style.display = 'none'
-      activityFeedSection.style.display = ''
+      signInSection.style.display = 'none';
+      activityFeedSection.style.display = '';
 
       var configureButton = document.getElementById('configure');
       var extensionId = chrome.runtime.id;
@@ -61,3 +61,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 }, false);
+

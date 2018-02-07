@@ -9,9 +9,10 @@
   },
   "background": {
     "scripts": [
-	"util.js",
+      "util.js",
       "background.js"
-    ]
+    ],
+    "persistent": false
   },
   "content_scripts": [
     {

@@ -1,3 +1,8 @@
+var onActivatedListener = function (activeInfo) {
+
+};
+chrome.tabs.onActivated.addListener(onActivatedListener);
+
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
 		if (request.traces.length > 0) {
@@ -6,5 +11,5 @@ chrome.runtime.onMessage.addListener(
 			chrome.browserAction.setBadgeText({ text: "" });
 		}
 		// sendResponse({message: "message"});
-	});
-
+	}
+);

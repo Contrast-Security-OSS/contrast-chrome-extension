@@ -33,6 +33,14 @@ function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
 }
 
+function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
+  var contrastURl = teamserverUrl;
+  if (teamserverUrl.endsWith("/api")) {
+    contrastURl = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
+  }
+  return contrastURl + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
+}
+
 // --------- HELPER FUNCTIONS -------------
 
 
