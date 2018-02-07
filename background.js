@@ -1,8 +1,3 @@
-var onActivatedListener = function (activeInfo) {
-
-};
-chrome.tabs.onActivated.addListener(onActivatedListener);
-
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
 		if (request.traces && request.traces.length > 0) {
