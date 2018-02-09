@@ -4,6 +4,18 @@ const CONTRAST_API_KEY = "contrast_api_key";
 const CONTRAST_ORG_UUID = "contrast_org_uuid";
 const TEAMSERVER_URL = "teamserver_url";
 
+const SEVERITY_NOTE = "Note";
+const SEVERITY_LOW = "Low";
+const SEVERITY_MEDIUM = "Medium";
+const SEVERITY_HIGH = "High";
+const SEVERITY_CRITICAL = "Critical";
+
+const SEVERITY_NOTE_ICON_PATH = "img/note.png";
+const SEVERITY_LOW_ICON_PATH = "img/low.png";
+const SEVERITY_MEDIUM_ICON_PATH = "img/medium.png";
+const SEVERITY_HIGH_ICON_PATH = "img/high.png";
+const SEVERITY_CRITICAL_ICON_PATH = "img/critical.png";
+
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   var xhr = new XMLHttpRequest();

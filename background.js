@@ -12,11 +12,13 @@ chrome.runtime.onMessage.addListener(
 					return;
 				}
 				if (tab.index >= 0) { // tab is visible
+					chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
 					chrome.browserAction.setBadgeText({ tabId: tab.id, text: request.traces.length.toString() });
 				} else {
 					var tabId = sender.tab.id, text = request.traces.length.toString();
 					chrome.webNavigation.onCommitted.addListener(function update(details) {
 						if (details.tabId == tabId) {
+							chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
 							chrome.browserAction.setBadgeText({ tabId: tabId, text: text });
 							chrome.webNavigation.onCommitted.removeListener(update);
 						}

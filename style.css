@@ -41,10 +41,17 @@ button.btn-contrast-plugin:hover {
   border-color: #0da1a9;
 }
 
-#sign-in, #activity-feed, #vulnerabilities-on-page {
+#sign-in, #activity-feed{
   width: 400px;
   padding: 20px;
   height: 500px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#vulnerabilities-on-page {
+  width: 400px;
+  padding: 20px;
   align-items: center;
   justify-content: space-between;
 }
@@ -96,6 +103,9 @@ a.activity-timestamp-header {
   text-transform: uppercase;
   color: #999;
   font-size: 10px;
+}
+.color-gray{
+  color: #999;
 }
 
 label {
