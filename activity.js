@@ -10,10 +10,10 @@ document.addEventListener('DOMContentLoaded', function () {
           if (xhr.readyState == 4) {
             if (xhr.status == 403) {
               //Configuration problem
-              $("body").addClass("configuration-problem");
+              $(HTML_BODY).addClass("configuration-problem");
               $("#configuration-problem").show();
             } else if (xhr.responseText == "") {
-              $("body").addClass("no-activity");
+              $(HTML_BODY).addClass("no-activity");
               $("#get-started").show();
             } else {
               json = JSON.parse(xhr.responseText)
@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
               activities = json["activities"];
 
-              if (activities === "undefined" || activities.length == 0) {
-                $("body").addClass("no-activity");
+              if (activities == null || activities.length == 0) {
+                $(HTML_BODY).addClass("no-activity");
                 $("#get-started").show();
               } else {
 

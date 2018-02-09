@@ -16,6 +16,8 @@ const SEVERITY_MEDIUM_ICON_PATH = "img/medium.png";
 const SEVERITY_HIGH_ICON_PATH = "img/high.png";
 const SEVERITY_CRITICAL_ICON_PATH = "img/critical.png";
 
+const HTML_BODY = "body";
+
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   var xhr = new XMLHttpRequest();
