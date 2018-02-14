@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
               $("#get-started").show();
             } else {
               json = JSON.parse(xhr.responseText)
-              console.log(json["activities"]);
 
               activities = json["activities"];
 
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function () {
               } else {
 
                 $.each(activities, function (idx, activity) {
-                  console.log(activity);
                   var text = activity["description"]["text"];
                   var desc = "";
 
