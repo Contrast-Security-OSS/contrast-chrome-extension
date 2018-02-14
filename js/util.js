@@ -10,11 +10,11 @@ const SEVERITY_MEDIUM = "Medium";
 const SEVERITY_HIGH = "High";
 const SEVERITY_CRITICAL = "Critical";
 
-const SEVERITY_NOTE_ICON_PATH = "img/note.png";
-const SEVERITY_LOW_ICON_PATH = "img/low.png";
-const SEVERITY_MEDIUM_ICON_PATH = "img/medium.png";
-const SEVERITY_HIGH_ICON_PATH = "img/high.png";
-const SEVERITY_CRITICAL_ICON_PATH = "img/critical.png";
+const SEVERITY_NOTE_ICON_PATH = "../img/note.png";
+const SEVERITY_LOW_ICON_PATH = "../img/low.png";
+const SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png";
+const SEVERITY_HIGH_ICON_PATH = "../img/high.png";
+const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
 
 const HTML_BODY = "body";
 
