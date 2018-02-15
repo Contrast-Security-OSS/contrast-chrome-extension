@@ -9,8 +9,8 @@
   },
   "background": {
     "scripts": [
-      "util.js",
-      "background.js"
+      "js/util.js",
+      "js/background.js"
     ],
     "persistent": false
   },
@@ -21,8 +21,8 @@
         "https://*/*"
       ],
       "js": [
-        "util.js",
-        "content-script.js"
+        "js/util.js",
+        "js/content-script.js"
       ]
     }
   ],

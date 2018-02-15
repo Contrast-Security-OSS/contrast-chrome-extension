@@ -11,15 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // define var to check if we need to update our variables
     needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
-    //logging for debugging
-    console.log(items["contrast_username"]);
-    console.log(noUsername);
-    console.log(items["contrast_service_key"]);
-    console.log(noServiceKey);
-    console.log(items["contrast_api_key"]);
-    console.log(noApiKey);
-    console.log(items["teamserver_url"]);
-    console.log(noTeamserverUrl);
 
     // find sections
     var signInSection = document.getElementById('sign-in');
