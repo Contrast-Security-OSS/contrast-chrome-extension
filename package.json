@@ -1,6 +1,5 @@
 {
   "scripts": {
-    "test": "qunit",
-    "lint": "jslint '**/*.js'"
+    "test": "qunit"
   }
 }
