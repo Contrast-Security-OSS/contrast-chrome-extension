@@ -3,3 +3,4 @@ node_js:
   - "7"
 before_script:
   - npm install -g qunit
+  - npm install -g jslint
