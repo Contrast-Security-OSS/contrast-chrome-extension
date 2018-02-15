@@ -1,28 +1,30 @@
+/*jslint white: true */
+/*global
+chrome, document
+*/
 document.addEventListener('DOMContentLoaded', function () {
 
-  var needsCredentials;
-
+  "use strict";
   chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key", "teamserver_url"], function (items) {
     // check if any values are undefined
-    var noUsername = typeof items["contrast_username"] == 'undefined' || items["contrast_username"] == '';
-    var noServiceKey = typeof items["contrast_service_key"] == 'undefined' || items["contrast_service_key"] == '';
-    var noApiKey = typeof items["contrast_api_key"] == 'undefined' || items["contrast_api_key"] == '';
-    var noTeamserverUrl = typeof items["teamserver_url"] == 'undefined' || items["teamserver_url"] == '';
-
-    // define var to check if we need to update our variables
-    needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
+    var noUsername = items.contrast_username === undefined || items.contrast_username === '',
+      noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
+      noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
+      noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
+      needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
 
     // find sections
-    var signInSection = document.getElementById('sign-in');
-    var activityFeedSection = document.getElementById('activity-feed');
+    var signInSection = document.getElementById('sign-in'),
+      activityFeedSection = document.getElementById('activity-feed'),
+      extensionId;
 
     if (needsCredentials) {
       // if you need credentials, hide the activity feed
-      signInSection.style.display = ''
-      activityFeedSection.style.display = 'none'
+      signInSection.style.display = '';
+      activityFeedSection.style.display = 'none';
 
       var signInButton = document.getElementById('sign-in-button');
-      var extensionId = chrome.runtime.id;
+      extensionId = chrome.runtime.id;
 
       //signin button opens up settings page in new tab
       signInButton.addEventListener('click', function () {
@@ -35,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
       activityFeedSection.style.display = '';
 
       var configureButton = document.getElementById('configure');
-      var extensionId = chrome.runtime.id;
+      extensionId = chrome.runtime.id;
 
       //configure button opens up settings page in new tab
       configureButton.addEventListener('click', function () {
@@ -46,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var visitOrgLink = document.getElementById('visit-org');
 
       visitOrgLink.addEventListener('click', function () {
-        var teamserverUrl = items["teamserver_url"].substring(0, items["teamserver_url"].indexOf("/Contrast/api"));
+        var teamserverUrl = items.teamserver_url.substring(0, items.teamserver_url.indexOf("/Contrast/api"));
         chrome.tabs.create({ url: teamserverUrl });
       }, false);
     }

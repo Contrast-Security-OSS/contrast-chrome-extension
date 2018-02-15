@@ -1,27 +1,32 @@
-const CONTRAST_USERNAME = "contrast_username";
-const CONTRAST_SERVICE_KEY = "contrast_service_key";
-const CONTRAST_API_KEY = "contrast_api_key";
-const CONTRAST_ORG_UUID = "contrast_org_uuid";
-const TEAMSERVER_URL = "teamserver_url";
+/*jslint white: true */
+/*global
+XMLHttpRequest, btoa, chrome
+*/
+var CONTRAST_USERNAME = "contrast_username",
+  CONTRAST_SERVICE_KEY = "contrast_service_key",
+  CONTRAST_API_KEY = "contrast_api_key",
+  CONTRAST_ORG_UUID = "contrast_org_uuid",
+  TEAMSERVER_URL = "teamserver_url",
 
-const SEVERITY_NOTE = "Note";
-const SEVERITY_LOW = "Low";
-const SEVERITY_MEDIUM = "Medium";
-const SEVERITY_HIGH = "High";
-const SEVERITY_CRITICAL = "Critical";
+  SEVERITY_NOTE = "Note",
+  SEVERITY_LOW = "Low",
+  SEVERITY_MEDIUM = "Medium",
+  SEVERITY_HIGH = "High",
+  SEVERITY_CRITICAL = "Critical",
 
-const SEVERITY_NOTE_ICON_PATH = "../img/note.png";
-const SEVERITY_LOW_ICON_PATH = "../img/low.png";
-const SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png";
-const SEVERITY_HIGH_ICON_PATH = "../img/high.png";
-const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
+  SEVERITY_NOTE_ICON_PATH = "../img/note.png",
+  SEVERITY_LOW_ICON_PATH = "../img/low.png",
+  SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png",
+  SEVERITY_HIGH_ICON_PATH = "../img/high.png",
+  SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png",
 
-const HTML_BODY = "body";
+  HTML_BODY = "body";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
-  var xhr = new XMLHttpRequest();
-  var linkWithParams = url + params;
+  "use strict";
+  var xhr = new XMLHttpRequest(),
+    linkWithParams = url + params;
 
   xhr.open('GET', linkWithParams, true);
   xhr.setRequestHeader("Authorization", authHeader);
@@ -32,22 +37,27 @@ function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
 }
 
 function getAuthorizationHeader(username, serviceKey) {
+  "use strict";
   return btoa(username + ":" + serviceKey);
 }
 
 function getActivitiesUrl(teamserverUrl, orgUuid) {
+  "use strict";
   return teamserverUrl + '/ng/' + orgUuid + '/events';
 }
 
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
+  "use strict";
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
 }
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
+  "use strict";
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
 }
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
+  "use strict";
   var contrastURl = teamserverUrl;
   if (teamserverUrl.endsWith("/api")) {
     contrastURl = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
@@ -59,44 +69,44 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
 
 function getActivities(onReadyStateChangeCallback) {
-
+  "use strict";
   chrome.storage.sync.get([CONTRAST_USERNAME,
     CONTRAST_SERVICE_KEY,
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL], function (items) {
 
-      var url = getActivitiesUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]);
-      var authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
+      var url = getActivitiesUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
+        authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
       sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
 
 function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
-
+  "use strict";
   chrome.storage.sync.get([CONTRAST_USERNAME,
     CONTRAST_SERVICE_KEY,
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL], function (items) {
 
-      var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]);
-      var authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-      var params = "?urls=" + btoa(urls);
+      var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
+        authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
+        params = "?urls=" + btoa(urls);
       sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
 
 function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
-
+  "use strict";
   chrome.storage.sync.get([CONTRAST_USERNAME,
     CONTRAST_SERVICE_KEY,
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL], function (items) {
 
-      var url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid);
-      var authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
+      var url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid),
+        authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
       sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }

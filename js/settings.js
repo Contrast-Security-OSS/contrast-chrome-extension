@@ -1,10 +1,15 @@
+/*jslint white: true */
+/*global
+chrome, document
+*/
 document.addEventListener('DOMContentLoaded', function () {
   // Inputs
-  var username = document.getElementById('contrast_username');
-  var serviceKey = document.getElementById('contrast_service_key');
-  var apiKey = document.getElementById('contrast_api_key');
-  var orgUuid = document.getElementById('contrast_org_uuid');
-  var teamserverUrl = document.getElementById('teamserver_url');
+  "use strict";
+  var username = document.getElementById('contrast_username'),
+    serviceKey = document.getElementById('contrast_service_key'),
+    apiKey = document.getElementById('contrast_api_key'),
+    orgUuid = document.getElementById('contrast_org_uuid'),
+    teamserverUrl = document.getElementById('teamserver_url');
 
 
   chrome.storage.sync.get(["contrast_username",
@@ -12,11 +17,11 @@ document.addEventListener('DOMContentLoaded', function () {
     "contrast_api_key",
     "contrast_org_uuid",
     "teamserver_url"], function (items) {
-      username.setAttribute("value", items["contrast_username"] == undefined ? "" : items["contrast_username"]);
-      serviceKey.setAttribute("value", items["contrast_service_key"] == undefined ? "" : items["contrast_service_key"]);
-      apiKey.setAttribute("value", items["contrast_api_key"] == undefined ? "" : items["contrast_api_key"]);
-      orgUuid.setAttribute("value", items["contrast_org_uuid"] == undefined ? "" : items["contrast_org_uuid"]);
-      teamserverUrl.setAttribute("value", items["teamserver_url"] == undefined ? "" : items["teamserver_url"]);
+      username.setAttribute("value", items.contrast_username === undefined ? "" : items.contrast_username);
+      serviceKey.setAttribute("value", items.contrast_service_key === undefined ? "" : items.contrast_service_key);
+      apiKey.setAttribute("value", items.contrast_api_key === undefined ? "" : items.contrast_api_key);
+      orgUuid.setAttribute("value", items.contrast_org_uuid === undefined ? "" : items.contrast_org_uuid);
+      teamserverUrl.setAttribute("value", items.teamserver_url === undefined ? "" : items.teamserver_url);
     });
 
 
@@ -25,11 +30,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // Run when form is submitted
   submitButton.addEventListener('click', function () {
     // retrieve values form inputs
-    var usernameValue = username.value;
-    var serviceKeyValue = serviceKey.value;
-    var apiKeyValue = apiKey.value;
-    var orgUuidValue = orgUuid.value;
-    var teamserverUrlValue = teamserverUrl.value;
+    var usernameValue = username.value,
+      serviceKeyValue = serviceKey.value,
+      apiKeyValue = apiKey.value,
+      orgUuidValue = orgUuid.value,
+      teamserverUrlValue = teamserverUrl.value;
 
     while (teamserverUrlValue.endsWith("/")) {
       teamserverUrlValue = teamserverUrlValue.slice(0, -1);
