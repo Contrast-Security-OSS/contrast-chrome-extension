@@ -5,4 +5,4 @@ before_script:
   - npm install -g qunit
   - npm install -g jslint
 
-script: npm test && jslint '**/*.js'
+script: npm test && jslint 'js/*.js'
