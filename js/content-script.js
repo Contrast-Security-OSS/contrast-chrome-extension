@@ -7,10 +7,7 @@ getOrganizationVulnerabilityesIds(document.URL, function () {
                 var traces = json["traces"];
 
                 chrome.runtime.sendMessage(json, function (response) {
-                    //console.log(response);
                 });
-
-                //console.log(traces);
             }
         }
     }

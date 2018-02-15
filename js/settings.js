@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
       'contrast_org_uuid': orgUuidValue,
       'teamserver_url': teamserverUrlValue
     }, function () {
-      console.log('Contrast values saved');
       chrome.tabs.getCurrent(function (tab) {
         chrome.tabs.remove(tab.id, function () { });
       });
