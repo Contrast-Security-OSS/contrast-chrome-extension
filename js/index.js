@@ -1,4 +1,3 @@
-/*jslint white: true */
 /*global
 chrome, document
 */
@@ -11,19 +10,24 @@ document.addEventListener('DOMContentLoaded', function () {
       noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
       noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
       noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
-      needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
+      needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl,
+      signInSection,
+      activityFeedSection,
+      extensionId,
+      signInButton,
+      configureButton,
+      visitOrgLink;
 
     // find sections
-    var signInSection = document.getElementById('sign-in'),
-      activityFeedSection = document.getElementById('activity-feed'),
-      extensionId;
+    signInSection = document.getElementById('sign-in');
+    activityFeedSection = document.getElementById('activity-feed');
 
     if (needsCredentials) {
       // if you need credentials, hide the activity feed
       signInSection.style.display = '';
       activityFeedSection.style.display = 'none';
 
-      var signInButton = document.getElementById('sign-in-button');
+      signInButton = document.getElementById('sign-in-button');
       extensionId = chrome.runtime.id;
 
       //signin button opens up settings page in new tab
@@ -36,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
       signInSection.style.display = 'none';
       activityFeedSection.style.display = '';
 
-      var configureButton = document.getElementById('configure');
+      configureButton = document.getElementById('configure');
       extensionId = chrome.runtime.id;
 
       //configure button opens up settings page in new tab
@@ -45,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.create({ url: settingsUrl });
       }, false);
 
-      var visitOrgLink = document.getElementById('visit-org');
+      visitOrgLink = document.getElementById('visit-org');
 
       visitOrgLink.addEventListener('click', function () {
         var teamserverUrl = items.teamserver_url.substring(0, items.teamserver_url.indexOf("/Contrast/api"));

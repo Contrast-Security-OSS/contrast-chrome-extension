@@ -1,4 +1,3 @@
-/*jslint white: true */
 /*global
 chrome, document, getActivities, $, HTML_BODY
 */
@@ -10,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       getActivities(function () {
         return function (e) {
-          var xhr = e.currentTarget;
+          var xhr = e.currentTarget, json, activities, text, desc, li, date, dateVal, activityLink, activityLinkHtmlElement, teamserverUrl, activityLinkComplete;
           if (xhr.readyState === 4) {
             if (xhr.status === 403) {
               //Configuration problem
@@ -20,17 +19,17 @@ document.addEventListener('DOMContentLoaded', function () {
               $(HTML_BODY).addClass("no-activity");
               $("#get-started").show();
             } else {
-              var json = JSON.parse(xhr.responseText),
-                activities = json.activities;
+              json = JSON.parse(xhr.responseText);
+              activities = json.activities;
 
               if (activities === null || activities.length === 0) {
                 $(HTML_BODY).addClass("no-activity");
                 $("#get-started").show();
               } else {
 
-                $.each(activities, function (idx, activity) {
-                  var text = activity.description.text,
-                    desc = "";
+                $.each(activities, function (ignore, activity) {
+                  text = activity.description.text;
+                  desc = "";
 
                   if (activity.type === "NEW_TRACE") {
                     desc = text.substring(text.indexOf("$$LINK_DELIM$$") + 14, text.lastIndexOf(" "));
@@ -40,29 +39,29 @@ document.addEventListener('DOMContentLoaded', function () {
                   }
 
 
-                  var li = $('<li/>')
+                  li = $('<li/>')
                     .addClass('list-group-item')
                     .appendTo($("#contrast-events"));
 
                   li.append($('<h6/>').append(activity.type.replace(/_/g, " ")));
                   li.append($('<div/>').append(desc));
 
-                  var date = new Date(null);
+                  date = new Date(null);
                   date.setMilliseconds(activity.timestamp);
-                  var dateVal = date.toString();
+                  dateVal = date.toString();
                   li.append($('<a/>').attr("href", "").addClass('activity-timestamp-header').append(dateVal));
 
-                  var activityLink = text.substring(0,
-                    text.indexOf("$$LINK_DELIM$$")),
-                    activityLinkHtmlElement = $('<p/>').css("display", "none").append(activityLink);
+                  activityLink = text.substring(0,
+                    text.indexOf("$$LINK_DELIM$$"));
+                  activityLinkHtmlElement = $('<p/>').css("display", "none").append(activityLink);
 
                   li.append(activityLinkHtmlElement);
                 });
 
                 $('.activity-timestamp-header').click(function (event) {
-                  var text = $(event.target).parent().find('p').text(),
-                    teamserverUrl = items.teamserver_url,
-                    activityLinkComplete = teamserverUrl.substring(0, teamserverUrl.indexOf("/Contrast")) + text;
+                  text = $(event.target).parent().find('p').text();
+                  teamserverUrl = items.teamserver_url;
+                  activityLinkComplete = teamserverUrl.substring(0, teamserverUrl.indexOf("/Contrast")) + text;
                   chrome.tabs.create({ url: activityLinkComplete });
                 });
               }

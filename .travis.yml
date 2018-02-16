@@ -1,8 +1,10 @@
 language: node_js
 node_js:
   - "7"
-before_script:
+before_install:
   - npm install -g qunit
+  # Supported configuration options for jslint: https://github.com/reid/node-jslint/blob/master/doc/jslint.md
   - npm install -g jslint
+  - npm install
 
 script: npm test && jslint 'js/*.js'

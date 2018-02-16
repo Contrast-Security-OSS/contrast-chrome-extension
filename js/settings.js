@@ -1,4 +1,3 @@
-/*jslint white: true */
 /*global
 chrome, document
 */
@@ -9,7 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
     serviceKey = document.getElementById('contrast_service_key'),
     apiKey = document.getElementById('contrast_api_key'),
     orgUuid = document.getElementById('contrast_org_uuid'),
-    teamserverUrl = document.getElementById('teamserver_url');
+    teamserverUrl = document.getElementById('teamserver_url'),
+    submitButton;
 
 
   chrome.storage.sync.get(["contrast_username",
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
-  var submitButton = document.getElementById('contrast-submit');
+  submitButton = document.getElementById('contrast-submit');
 
   // Run when form is submitted
   submitButton.addEventListener('click', function () {
@@ -59,7 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
       'teamserver_url': teamserverUrlValue
     }, function () {
       chrome.tabs.getCurrent(function (tab) {
-        chrome.tabs.remove(tab.id, function () { });
+        chrome.tabs.remove(tab.id, function () {
+          return;
+        });
       });
 
 

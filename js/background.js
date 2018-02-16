@@ -1,4 +1,3 @@
-/*jslint white: true */
 /*global
 chrome
 */
