@@ -19,7 +19,10 @@ var CONTRAST_USERNAME = "contrast_username",
   SEVERITY_HIGH_ICON_PATH = "../img/high.png",
   SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png",
 
-  HTML_BODY = "body";
+  HTML_BODY = "body",
+  TEAMSERVER_INDEX_PATH_SUFFIX = "/Contrast/static/ng/index.html#/",
+  TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account",
+  TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {

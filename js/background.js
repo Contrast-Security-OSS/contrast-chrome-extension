@@ -1,5 +1,5 @@
 /*global
-chrome
+chrome, TEAMSERVER_INDEX_PATH_SUFFIX, TEAMSERVER_ACCOUNT_PATH_SUFFIX
 */
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
@@ -28,3 +28,26 @@ chrome.runtime.onMessage.addListener(
 		}
 	}
 );
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+	"use strict";
+	if (changeInfo.status === "complete" && tab.url.startsWith("http") && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
+
+		chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key", "teamserver_url"], function (items) {
+			// check if any values are undefined
+			var noUsername = items.contrast_username === undefined || items.contrast_username === '',
+				noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
+				noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
+				noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
+				needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
+
+			if (!needsCredentials) {
+				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+					chrome.tabs.sendMessage(tabs[0].id, { url: tab.url }, function () {
+						return;
+					});
+				});
+			}
+		});
+	}
+});
