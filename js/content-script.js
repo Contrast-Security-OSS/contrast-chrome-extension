@@ -24,11 +24,15 @@ chrome.runtime.onMessage.addListener(
             var teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX,
                 orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
                     request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX)),
-                profileEmail = document.getElementsByClassName('profile-email');
+                profileEmail, ;
 
             console.log(teamServerUrl);
             console.log(orgUuid);
             // console.log(profileEmail);
+            window.setTimeout(function () {
+                profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
+                console.log(profileEmail);
+            }, 2000);
         }
     }
 );
