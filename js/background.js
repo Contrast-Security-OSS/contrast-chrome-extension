@@ -41,7 +41,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 				noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
 				needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
 
-			if (!needsCredentials) {
+			if (needsCredentials) {
 				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 					chrome.tabs.sendMessage(tabs[0].id, { url: tab.url }, function () {
 						return;

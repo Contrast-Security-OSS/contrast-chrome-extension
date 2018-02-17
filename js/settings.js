@@ -36,19 +36,22 @@ document.addEventListener('DOMContentLoaded', function () {
       orgUuidValue = orgUuid.value,
       teamserverUrlValue = teamserverUrl.value;
 
-    while (teamserverUrlValue.endsWith("/")) {
-      teamserverUrlValue = teamserverUrlValue.slice(0, -1);
+    if (teamserverUrlValue.length > 0) {
+      while (teamserverUrlValue.endsWith("/")) {
+        teamserverUrlValue = teamserverUrlValue.slice(0, -1);
+      }
+
+      if (!teamserverUrlValue.endsWith("/api")) {
+        if (!teamserverUrlValue.endsWith("/Contrast")) {
+          teamserverUrlValue += "/Contrast";
+        }
+        teamserverUrlValue += "/api";
+      }
+      if (!teamserverUrlValue.startsWith("http")) {
+        teamserverUrlValue = "https://" + teamserverUrlValue;
+      }
     }
 
-    if (!teamserverUrlValue.endsWith("/api")) {
-      if (!teamserverUrlValue.endsWith("/Contrast")) {
-        teamserverUrlValue += "/Contrast";
-      }
-      teamserverUrlValue += "/api";
-    }
-    if (!teamserverUrlValue.startsWith("http")) {
-      teamserverUrlValue = "https://" + teamserverUrlValue;
-    }
 
     //save values to local storage
     chrome.storage.sync.set({
@@ -63,9 +66,8 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         });
       });
-
-
     });
+
   }, false);
 
 }, false);
