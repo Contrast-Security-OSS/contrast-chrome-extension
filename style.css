@@ -115,3 +115,7 @@ label {
   font-weight: 700;
   color: gray;
 }
+
+#logo-icon{
+  max-width:85%;
+}

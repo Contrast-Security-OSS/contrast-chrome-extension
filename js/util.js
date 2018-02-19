@@ -43,11 +43,6 @@ function getAuthorizationHeader(username, serviceKey) {
   return btoa(username + ":" + serviceKey);
 }
 
-function getActivitiesUrl(teamserverUrl, orgUuid) {
-  "use strict";
-  return teamserverUrl + '/ng/' + orgUuid + '/events';
-}
-
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
   "use strict";
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
@@ -68,21 +63,6 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 }
 
 // --------- HELPER FUNCTIONS -------------
-
-
-function getActivities(onReadyStateChangeCallback) {
-  "use strict";
-  chrome.storage.sync.get([CONTRAST_USERNAME,
-    CONTRAST_SERVICE_KEY,
-    CONTRAST_API_KEY,
-    CONTRAST_ORG_UUID,
-    TEAMSERVER_URL], function (items) {
-
-      var url = getActivitiesUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
-        authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-      sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-    });
-}
 
 function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
   "use strict";

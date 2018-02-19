@@ -20,12 +20,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // find sections
     signInSection = document.getElementById('sign-in');
-    activityFeedSection = document.getElementById('activity-feed');
 
     if (needsCredentials) {
       // if you need credentials, hide the activity feed
       signInSection.style.display = '';
-      activityFeedSection.style.display = 'none';
 
       signInButton = document.getElementById('sign-in-button');
       extensionId = chrome.runtime.id;
@@ -38,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       // if you don't need credentials, hide the signin functionality
       signInSection.style.display = 'none';
-      activityFeedSection.style.display = '';
 
       configureButton = document.getElementById('configure');
       extensionId = chrome.runtime.id;
@@ -58,4 +55,3 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 }, false);
-
