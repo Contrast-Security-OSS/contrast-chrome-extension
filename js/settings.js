@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // Run when form is submitted
   submitButton.addEventListener('click', function () {
     // retrieve values form inputs
-    var usernameValue = username.value,
-      serviceKeyValue = serviceKey.value,
-      apiKeyValue = apiKey.value,
-      orgUuidValue = orgUuid.value,
-      teamserverUrlValue = teamserverUrl.value;
+    var usernameValue = username.value.trim(),
+      serviceKeyValue = serviceKey.value.trim(),
+      apiKeyValue = apiKey.value.trim(),
+      orgUuidValue = orgUuid.value.trim(),
+      teamserverUrlValue = teamserverUrl.value.trim();
 
     if (teamserverUrlValue.length > 0) {
       while (teamserverUrlValue.endsWith("/")) {

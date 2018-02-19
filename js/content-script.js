@@ -57,10 +57,10 @@ chrome.runtime.onMessage.addListener(
                     serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
 
                     chrome.storage.sync.set({
-                        'contrast_username': profileEmail,
-                        'contrast_service_key': serviceKey,
-                        'contrast_api_key': apiKey,
-                        'contrast_org_uuid': orgUuid,
+                        'contrast_username': profileEmail.trim(),
+                        'contrast_service_key': serviceKey.trim(),
+                        'contrast_api_key': apiKey.trim(),
+                        'contrast_org_uuid': orgUuid.trim(),
                         'teamserver_url': teamServerUrl
                     }, function () {
                         return;
