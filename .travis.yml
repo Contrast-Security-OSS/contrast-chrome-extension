@@ -1,5 +1,8 @@
 language: node_js
 node_js:
   - "7"
-before_script:
+before_install:
   - npm install -g qunit
+  - npm install -g jslint
+
+script: npm test && jslint 'js/*.js'

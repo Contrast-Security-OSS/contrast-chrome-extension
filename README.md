@@ -26,3 +26,8 @@ We're using QUnit: https://qunitjs.com/
 ### Travis
 
 We're running on Travis here: https://travis-ci.org/Contrast-Security-OSS/contrast-chrome-extension
+
+### Linting
+* Linting is done by node-jslint (https://github.com/reid/node-jslint). Configuration options: https://github.com/reid/node-jslint/blob/master/doc/jslint.md
+* Travis build includes jslint task, so there should be no warnings for the build to succeed.
+* To run jslint on all files in the js folder of the project: ``` jslint 'js/*.js' ```.
