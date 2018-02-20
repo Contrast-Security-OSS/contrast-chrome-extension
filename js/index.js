@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
       signInSection,
       activityFeedSection,
       extensionId,
-      signInButton,
       configureButton,
       visitOrgLink;
 
@@ -26,15 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
       // if you need credentials, hide the activity feed
       signInSection.style.display = '';
       activityFeedSection.style.display = 'none';
-
-      signInButton = document.getElementById('sign-in-button');
-      extensionId = chrome.runtime.id;
-
-      //signin button opens up settings page in new tab
-      signInButton.addEventListener('click', function () {
-        var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
-        chrome.tabs.create({ url: settingsUrl });
-      }, false);
     } else {
       // if you don't need credentials, hide the signin functionality
       signInSection.style.display = 'none';
