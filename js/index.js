@@ -4,7 +4,9 @@ CONTRAST_USERNAME,
   CONTRAST_SERVICE_KEY,
   CONTRAST_API_KEY,
   CONTRAST_ORG_UUID,
-  TEAMSERVER_URL
+  TEAMSERVER_URL,
+  HTML_BODY,
+  $
 */
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -23,8 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
       visitOrgLink,
       vulnerabilitySection,
       userEmail,
-      signInButtonConfigurationProblem,
-      noResultsSection;
+      signInButtonConfigurationProblem;
 
     // find sections
     signInSection = document.getElementById('sign-in');
