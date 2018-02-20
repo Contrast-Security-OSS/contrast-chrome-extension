@@ -32,57 +32,68 @@
   </section>
 
 
-  <section id="vulnerabilities-on-page">
-    <div class="row">
-      <div class="col-xs-3">
-        <img class="heading" src="icon.png" alt="" id="logo-icon">
+  <section id="vulnerabilities" class="panel panel-default">
+
+    <div class="panel-heading container-fluid">
+
+      <div class="row">
+        <div class="col-xs-3">
+          <img src="icon.png" alt="" id="logo-icon">
+        </div>
+        <div class="col-xs-9">
+          <h4>
+            <strong>Contrast</strong>
+          </h4>
+          <h4 class="">Discovered Vulnerabilities</h4>
+        </div>
       </div>
-      <div class="col-xs-9">
-        <h4 class="heading">
-          <strong>Contrast</strong>
-        </h4>
-        <h4 class="heading">Discovered Vulnerabilities</h4>
+    </div>
+
+    <div class="color-gray panel-body" id="no-vulnerabilities-found-on-page">
+      <h5>No vulnerabilities were found.</h5>
+    </div>
+
+    <div style="display: none;" id="vulnerabilities-found-on-page" class="panel-body">
+      <ul class="list-group" id="vulnerabilities-found-on-page-list">
+      </ul>
+    </div>
+
+    <div class="panel-footer container-fluid">
+      <div class="row">
+        <div class="col-xs-10" id="user-email">
+        </div>
+        <div class="col-xs-2">
+          <a href="#" id="configure">
+            <i class="glyphicon glyphicon-cog color-gray"></i>
+          </a>
+        </div>
       </div>
-      <!-- <div class="col-xs-3">
-        <button type="submit" id="configure" class="btn btn-primary pull-right btn-contrast-plugin">
-          <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+    </div>
+
+  </section>
+
+  <section style="display:none;" id="no-results">
+    <div id="get-started" style="display:none">
+      <img src="img/getStarted.png" id="get-started-img" />
+      <div id="get-started-description" align="center">
+        <a id="visit-org">Visit your organization on Teamserver</a> to onboard some spplications.
+      </div>
+    </div>
+
+    <div id="configuration-problem">
+      <img src="img/getStarted.png" id="get-started-img" />
+      <div id="get-started-description" align="center">
+        We could not contact Teamserver.
+        <br/> Sorry about that.
+        <br/> Please check your configration and try again.
+
+        <br>
+        <br>
+        <button id="sign-in-button-configuration-problem" class="btn btn-primary btn-contrast-plugin">
+          <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span> Sign In
         </button>
-      </div> -->
-    </div>
-
-    <div class="row" id="container">
-      <div>
-        <ul class="list-group" id="vulnerabilities-found-on-page-list">
-        </ul>
-      </div>
-      <div id="get-started">
-        <img src="img/getStarted.png" id="get-started-img" />
-        <div id="get-started-description" align="center">
-          <a id="visit-org">Visit your organization on Teamserver</a> to onboard some spplications.
-        </div>
-      </div>
-
-      <div id="configuration-problem">
-        <img src="img/getStarted.png" id="get-started-img" />
-        <div id="get-started-description" align="center">
-          We could not contact Teamserver.
-          <br/> Sorry about that.
-          <br/> Please check your configration and try again.
-        </div>
       </div>
     </div>
-
-    <div class="row">
-      <div class="col-xs-9">
-        <h6 class="heading">email@email.com</h6>
-      </div>
-      <div class="col-xs-3">
-        <a href="#" id="configure">
-          <i class="glyphicon glyphicon-cog"></i>
-        </a>
-      </div>
-    </div>
-
   </section>
 </body>
 

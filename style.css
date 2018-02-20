@@ -1,11 +1,14 @@
-
-
 body {
-  margin: 25px;
-  background-image: url(img/loginBackground.png);
+  /* margin: 25px; */
+  /* background-image: url(img/loginBackground.png); */
   font-family: 'Lato';
   font-family: 'Lato', 'Helvetica', 'Neue','Arial', 'sans-serif';
   font-size: 14px;
+}
+
+#settings-body {
+  margin: 25px;
+  background-image: url(img/loginBackground.png);
 }
 
 body.no-activity {
@@ -24,10 +27,6 @@ h1 {
   font-size: 15px;
 }
 
-.heading {
-  margin-top: 0px;
-}
-
 button.btn-contrast-plugin {
   border-radius: 3px;
   background-color: #3cc3b2 !important;
@@ -41,7 +40,7 @@ button.btn-contrast-plugin:hover {
   border-color: #0da1a9;
 }
 
-#sign-in, #activity-feed{
+#sign-in {
   width: 400px;
   padding: 20px;
   height: 500px;
@@ -49,11 +48,19 @@ button.btn-contrast-plugin:hover {
   justify-content: space-between;
 }
 
-#vulnerabilities-on-page {
+#no-results {
   width: 400px;
-  padding: 20px;
   align-items: center;
   justify-content: space-between;
+}
+
+#vulnerabilities{
+  width: 400px;
+  padding: 0px;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  margin-bottom: 0px;
 }
 
 #activity-feed input {
@@ -66,16 +73,19 @@ div#get-started {
 }
 
 div#configuration-problem {
-  display: none;
   margin: 100px auto;
 }
 
 #get-started-img {
   width: 300px;
+  display: block;
+  margin: 0 auto;
 }
 
 #get-started-description {
   width: 300px;
+  display: block;
+  margin: 0 auto;
 }
 
 img#header-logo {
@@ -117,5 +127,13 @@ label {
 }
 
 #logo-icon{
-  max-width:85%;
+  max-width:100%;
+}
+
+.no-border {
+  border: 0;
+}
+
+.vulnerability-rule-name, .vulnerability-rule-name:hover {
+  color: black;
 }

@@ -1,10 +1,15 @@
 /*global
 chrome, getOrganizationVulnerabilityesIds, document, TEAMSERVER_INDEX_PATH_SUFFIX, 
 TEAMSERVER_API_PATH_SUFFIX,
-TEAMSERVER_ACCOUNT_PATH_SUFFIX, MutationObserver, HTML_BODY
+TEAMSERVER_ACCOUNT_PATH_SUFFIX, MutationObserver, HTML_BODY,
+CONTRAST_USERNAME,
+  CONTRAST_SERVICE_KEY,
+  CONTRAST_API_KEY,
+  CONTRAST_ORG_UUID,
+  TEAMSERVER_URL
 */
 
-chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key", "teamserver_url"], function (items) {
+chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
     // check if any values are undefined
     "use strict";
     var noUsername = items.contrast_username === undefined || items.contrast_username === '',

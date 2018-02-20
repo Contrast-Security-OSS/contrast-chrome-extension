@@ -1,5 +1,10 @@
 /*global
-chrome, TEAMSERVER_INDEX_PATH_SUFFIX, TEAMSERVER_ACCOUNT_PATH_SUFFIX
+chrome, TEAMSERVER_INDEX_PATH_SUFFIX, TEAMSERVER_ACCOUNT_PATH_SUFFIX,
+CONTRAST_USERNAME,
+  CONTRAST_SERVICE_KEY,
+  CONTRAST_API_KEY,
+  CONTRAST_ORG_UUID,
+  TEAMSERVER_URL
 */
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
@@ -33,7 +38,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	"use strict";
 	if (changeInfo.status === "complete" && tab.url.startsWith("http") && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
 
-		chrome.storage.sync.get(["contrast_username", "contrast_service_key", "contrast_api_key", "teamserver_url"], function (items) {
+		chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
 			// check if any values are undefined
 			var noUsername = items.contrast_username === undefined || items.contrast_username === '',
 				noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
