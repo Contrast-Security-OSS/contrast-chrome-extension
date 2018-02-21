@@ -30,25 +30,28 @@ document.addEventListener('DOMContentLoaded', function () {
   // Run when form is submitted
   submitButton.addEventListener('click', function () {
     // retrieve values form inputs
-    var usernameValue = username.value,
-      serviceKeyValue = serviceKey.value,
-      apiKeyValue = apiKey.value,
-      orgUuidValue = orgUuid.value,
-      teamserverUrlValue = teamserverUrl.value;
+    var usernameValue = username.value.trim(),
+      serviceKeyValue = serviceKey.value.trim(),
+      apiKeyValue = apiKey.value.trim(),
+      orgUuidValue = orgUuid.value.trim(),
+      teamserverUrlValue = teamserverUrl.value.trim();
 
-    while (teamserverUrlValue.endsWith("/")) {
-      teamserverUrlValue = teamserverUrlValue.slice(0, -1);
-    }
-
-    if (!teamserverUrlValue.endsWith("/api")) {
-      if (!teamserverUrlValue.endsWith("/Contrast")) {
-        teamserverUrlValue += "/Contrast";
+    if (teamserverUrlValue.length > 0) {
+      while (teamserverUrlValue.endsWith("/")) {
+        teamserverUrlValue = teamserverUrlValue.slice(0, -1);
       }
-      teamserverUrlValue += "/api";
+
+      if (!teamserverUrlValue.endsWith("/api")) {
+        if (!teamserverUrlValue.endsWith("/Contrast")) {
+          teamserverUrlValue += "/Contrast";
+        }
+        teamserverUrlValue += "/api";
+      }
+      if (!teamserverUrlValue.startsWith("http")) {
+        teamserverUrlValue = "https://" + teamserverUrlValue;
+      }
     }
-    if (!teamserverUrlValue.startsWith("http")) {
-      teamserverUrlValue = "https://" + teamserverUrlValue;
-    }
+
 
     //save values to local storage
     chrome.storage.sync.set({
@@ -63,9 +66,8 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         });
       });
-
-
     });
+
   }, false);
 
 }, false);
