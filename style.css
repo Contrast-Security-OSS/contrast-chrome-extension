@@ -127,7 +127,7 @@ label {
 }
 
 #logo-icon{
-  max-width:100%;
+  max-width:130%;
 }
 
 .no-border {
@@ -137,3 +137,7 @@ label {
 .vulnerability-rule-name, .vulnerability-rule-name:hover {
   color: black;
 }
+.discovered-vulnerabilities-h{
+  margin-top: 0px;
+}
+
