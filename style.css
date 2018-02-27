@@ -114,6 +114,10 @@ label {
   border: 0;
 }
 
+.vulnerability-li {
+  padding: 2px 15px;
+}
+
 .vulnerability-rule-name, .vulnerability-rule-name:hover {
   color: black;
 }
@@ -130,4 +134,8 @@ label {
 
 #vulnerabilities-found-on-page {
   padding: 0px;
+}
+
+#vulnerabilities-found-on-page-list{
+  margin-top:10px;
 }
