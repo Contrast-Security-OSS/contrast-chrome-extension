@@ -18,40 +18,32 @@ document.addEventListener('DOMContentLoaded', function () {
       noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
       noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
       needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl,
-      signInSection,
       extensionId,
       configureButton,
       visitOrgLink,
-      vulnerabilitySection,
       userEmail,
-      signInButtonConfigurationProblem;
+      signInButtonConfigurationProblem,
+      notConfiguredSection,
+      noVulnerabilitiesFoundOnPageSection,
+      vulnerabilitiesFoundOnPageSection;
 
     // find sections
-    signInSection = document.getElementById('sign-in');
-    vulnerabilitySection = document.getElementById('vulnerabilities');
+    notConfiguredSection = document.getElementById('not-configured');
+    vulnerabilitiesFoundOnPageSection = document.getElementById('vulnerabilities-found-on-page');
+    noVulnerabilitiesFoundOnPageSection = document.getElementById('no-vulnerabilities-found-on-page');
 
     if (needsCredentials) {
       // if you need credentials, hide the activity feed
-      $(HTML_BODY).addClass("no-activity");
-      signInSection.style.display = '';
-      vulnerabilitySection.style.display = 'none';
+      notConfiguredSection.style.display = '';
+      vulnerabilitiesFoundOnPageSection.style.display = 'none';
+      noVulnerabilitiesFoundOnPageSection.style.display = 'none';
     } else {
       // if you don't need credentials, hide the signin functionality
-      signInSection.style.display = 'none';
-      vulnerabilitySection.style.display = '';
-
+      notConfiguredSection.style.display = 'none';
+      noVulnerabilitiesFoundOnPageSection.style.display = '';
 
       userEmail = document.getElementById('user-email');
       userEmail.textContent = items.contrast_username;
-
-      configureButton = document.getElementById('configure');
-      extensionId = chrome.runtime.id;
-
-      //configure button opens up settings page in new tab
-      configureButton.addEventListener('click', function () {
-        var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
-        chrome.tabs.create({ url: settingsUrl });
-      }, false);
 
       visitOrgLink = document.getElementById('visit-org');
 
@@ -67,5 +59,14 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.create({ url: settingsUrl });
       }, false);
     }
+
+    configureButton = document.getElementById('configure');
+    extensionId = chrome.runtime.id;
+
+    //configure button opens up settings page in new tab
+    configureButton.addEventListener('click', function () {
+      var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
+      chrome.tabs.create({ url: settingsUrl });
+    }, false);
   });
 }, false);

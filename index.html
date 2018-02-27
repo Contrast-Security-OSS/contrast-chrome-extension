@@ -16,19 +16,6 @@
 
 <body class="normal">
 
-  <section id="sign-in">
-    <div class="row">
-      <div id="header-container" align="center">
-        <img src="img/contrastLogoLarge.png" id="header-logo" />
-      </div>
-
-      <div id="sign-in-button-container" align="center">
-        <h4>To start using the extension, please log into Teamserver and navigate to "Your Account"</h4>
-      </div>
-    </div>
-  </section>
-
-
   <section id="vulnerabilities" class="panel panel-default">
 
     <div class="panel-heading container-fluid">
@@ -41,13 +28,17 @@
           <h4 class="discovered-vulnerabilities-h">
             <strong>Contrast</strong>
           </h4>
-          <h4 class="discovered-vulnerabilities-h">Discovered Vulnerabilities</h4>
+          <h4 class="no-margin">Discovered Vulnerabilities</h4>
         </div>
       </div>
     </div>
 
     <div class="color-gray panel-body" id="no-vulnerabilities-found-on-page">
       <h5>No vulnerabilities were found.</h5>
+    </div>
+
+    <div style="display: none;" class="color-gray panel-body" id="not-configured">
+      <h5>To start using the extension, please log into Teamserver and navigate to "Your Account"</h5>
     </div>
 
     <div style="display: none;" id="vulnerabilities-found-on-page" class="panel-body">
@@ -73,7 +64,7 @@
     <div id="get-started" style="display:none">
       <img src="img/getStarted.png" id="get-started-img" />
       <div id="get-started-description" align="center">
-        <a id="visit-org">Visit your organization on Teamserver</a> to onboard some spplications.
+        <a id="visit-org">Visit your organization on Teamserver</a> to onboard some applications.
       </div>
     </div>
 
