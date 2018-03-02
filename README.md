@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/Contrast-Security-OSS/contrast-chrome-extension.svg?branch=master)](https://travis-ci.org/Contrast-Security-OSS/contrast-chrome-extension)
 
+## Experimental Software
+
+Hi! Thanks for checking out the extension. Please note that this is pre-alpha software and it is under active development. There might be bugs. We may add new features and discard other features. Feel free to let us know what you like and what you don't like through Github Issues. Thanks!
+
 ## Local Setup and Installation
 
 1. Clone this repo
