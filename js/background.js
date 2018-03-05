@@ -5,7 +5,11 @@ CONTRAST_USERNAME,
   CONTRAST_API_KEY,
   CONTRAST_ORG_UUID,
   TEAMSERVER_URL,
-  VALID_TEAMSERVER_HOSTNAMES
+  VALID_TEAMSERVER_HOSTNAMES,
+  CONFIGURATION_NOTIFICATION_TITLE,
+  CONFIGURATION_NOTIFICATION_MESSAGE,
+  CONFIGURATION_NOTIFICATION_BUTTON_TITLE,
+  CONFIGURATION_NOTIFICATION_ID
 */
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
@@ -39,7 +43,8 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	"use strict";
 
 	var url = new URL(tab.url);
-	if (changeInfo.status === "complete" && tab.url.startsWith("http") && VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname) && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
+	if (changeInfo.status === "complete" && tab.url.startsWith("http") && VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname)
+		&& tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
 
 		chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
 			// check if any values are undefined
@@ -47,16 +52,38 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 				noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
 				noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
 				noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
-				needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
+				needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl, options;
 
 
 			if (needsCredentials) {
-				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-					chrome.tabs.sendMessage(tabs[0].id, { url: tab.url }, function () {
-						return;
-					});
+
+
+				options = {
+					type: 'basic',
+					priority: 2,
+					message: CONFIGURATION_NOTIFICATION_MESSAGE,
+					title: CONFIGURATION_NOTIFICATION_TITLE,
+					iconUrl: 'icon.png',
+					buttons: [
+						{ title: CONFIGURATION_NOTIFICATION_BUTTON_TITLE }
+					],
+					requireInteraction: true
+
+				};
+
+				chrome.notifications.create(CONFIGURATION_NOTIFICATION_ID, options);
+				chrome.notifications.onButtonClicked.addListener(function (notificationId, buttonIndex) {
+					if (notificationId === CONFIGURATION_NOTIFICATION_ID && buttonIndex === 0) {
+						chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+							chrome.tabs.sendMessage(tabs[0].id, { url: tab.url }, function () {
+								return;
+							});
+						});
+						chrome.notifications.clear(notificationId);
+					}
 				});
 			}
 		});
 	}
+
 });

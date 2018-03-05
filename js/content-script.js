@@ -44,36 +44,21 @@ chrome.runtime.onMessage.addListener(
             var teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX,
                 orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
                     request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX)),
-                profileEmail, apiKey, serviceKey,
-                body = document.getElementsByTagName(HTML_BODY).item(0), observer;
+                profileEmail, apiKey, serviceKey;
 
-            observer = new MutationObserver(function () {
-                if (document.getElementsByClassName('profile-email').item(0) !== null
-                    && document.getElementsByClassName('profile-email').item(0).textContent.length > 0
-                    && document.getElementsByClassName('org-key').item(0) !== null
-                    && document.getElementsByClassName('org-key').item(0).textContent.length > 0
-                    && document.getElementsByClassName('org-key').item(1) !== null
-                    && document.getElementsByClassName('org-key').item(1).textContent.length > 0) {
+            profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
+            apiKey = document.getElementsByClassName('org-key').item(0).textContent;
+            serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
 
-                    observer.disconnect();
-
-                    profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
-                    apiKey = document.getElementsByClassName('org-key').item(0).textContent;
-                    serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
-
-                    chrome.storage.sync.set({
-                        'contrast_username': profileEmail.trim(),
-                        'contrast_service_key': serviceKey.trim(),
-                        'contrast_api_key': apiKey.trim(),
-                        'contrast_org_uuid': orgUuid.trim(),
-                        'teamserver_url': teamServerUrl
-                    }, function () {
-                        return;
-                    });
-                }
-
+            chrome.storage.sync.set({
+                'contrast_username': profileEmail.trim(),
+                'contrast_service_key': serviceKey.trim(),
+                'contrast_api_key': apiKey.trim(),
+                'contrast_org_uuid': orgUuid.trim(),
+                'teamserver_url': teamServerUrl
+            }, function () {
+                return;
             });
-            observer.observe(body, { childList: true, characterData: true, subtree: true });
         }
     }
 );
