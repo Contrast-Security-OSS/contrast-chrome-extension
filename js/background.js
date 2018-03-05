@@ -1,10 +1,11 @@
 /*global
-chrome, TEAMSERVER_INDEX_PATH_SUFFIX, TEAMSERVER_ACCOUNT_PATH_SUFFIX,
+URL, chrome, TEAMSERVER_INDEX_PATH_SUFFIX, TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 CONTRAST_USERNAME,
   CONTRAST_SERVICE_KEY,
   CONTRAST_API_KEY,
   CONTRAST_ORG_UUID,
-  TEAMSERVER_URL
+  TEAMSERVER_URL,
+  VALID_TEAMSERVER_HOSTNAMES
 */
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
@@ -36,7 +37,9 @@ chrome.runtime.onMessage.addListener(
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	"use strict";
-	if (changeInfo.status === "complete" && tab.url.startsWith("http") && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
+
+	var url = new URL(tab.url);
+	if (changeInfo.status === "complete" && tab.url.startsWith("http") && VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname) && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
 
 		chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
 			// check if any values are undefined
@@ -45,6 +48,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 				noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
 				noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
 				needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
+
 
 			if (needsCredentials) {
 				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {

@@ -22,7 +22,8 @@ var CONTRAST_USERNAME = "contrast_username",
   HTML_BODY = "body",
   TEAMSERVER_INDEX_PATH_SUFFIX = "/Contrast/static/ng/index.html#/",
   TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account",
-  TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api";
+  TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api",
+  VALID_TEAMSERVER_HOSTNAMES = ['app.contrastsecurity.com', 'apptwo.contrastsecurity.com', 'eval.contratsecurity.com'];
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
