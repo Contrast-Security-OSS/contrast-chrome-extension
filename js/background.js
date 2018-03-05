@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener(
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	"use strict";
 
-	var url = new URL(tab.url)
+	var url = new window.URL(tab.url);
 	if (changeInfo.status === "complete" && tab.url.startsWith("http") && VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname) && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
 
 		chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
