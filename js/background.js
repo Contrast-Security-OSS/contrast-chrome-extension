@@ -62,7 +62,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 					type: 'basic',
 					priority: 2,
 					message: CONFIGURATION_NOTIFICATION_MESSAGE,
-					title: CONFIGURATION_NOTIFICATION_TITLE,
+					title: '',
 					iconUrl: 'icon.png',
 					buttons: [
 						{ title: CONFIGURATION_NOTIFICATION_BUTTON_TITLE }
