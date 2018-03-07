@@ -25,10 +25,8 @@ var CONTRAST_USERNAME = "contrast_username",
   TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api",
   VALID_TEAMSERVER_HOSTNAMES = ['app.contrastsecurity.com', 'apptwo.contrastsecurity.com', 'eval.contratsecurity.com'],
 
-  CONFIGURATION_NOTIFICATION_TITLE = "Configure extension",
-  CONFIGURATION_NOTIFICATION_MESSAGE = "Would you like to configure Contrast extension for Chrome?",
-  CONFIGURATION_NOTIFICATION_BUTTON_TITLE = "Configure",
-  CONFIGURATION_NOTIFICATION_ID = "save-configuration";
+  CONTRAST_ICON_BADGE_BACKGROUND = "red",
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {

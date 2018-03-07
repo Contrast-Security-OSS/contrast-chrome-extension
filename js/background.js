@@ -6,10 +6,8 @@ CONTRAST_USERNAME,
   CONTRAST_ORG_UUID,
   TEAMSERVER_URL,
   VALID_TEAMSERVER_HOSTNAMES,
-  CONFIGURATION_NOTIFICATION_TITLE,
-  CONFIGURATION_NOTIFICATION_MESSAGE,
-  CONFIGURATION_NOTIFICATION_BUTTON_TITLE,
-  CONFIGURATION_NOTIFICATION_ID
+  CONTRAST_ICON_BADGE_BACKGROUND,
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT
 */
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
@@ -21,13 +19,13 @@ chrome.runtime.onMessage.addListener(
 					return;
 				}
 				if (tab.index >= 0) { // tab is visible
-					chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
+					chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAST_ICON_BADGE_BACKGROUND });
 					chrome.browserAction.setBadgeText({ tabId: tab.id, text: request.traces.length.toString() });
 				} else {
 					var tabId = sender.tab.id, text = request.traces.length.toString();
 					chrome.webNavigation.onCommitted.addListener(function update(details) {
 						if (details.tabId === tabId) {
-							chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
+							chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAST_ICON_BADGE_BACKGROUND });
 							chrome.browserAction.setBadgeText({ tabId: tabId, text: text });
 							chrome.webNavigation.onCommitted.removeListener(update);
 						}
@@ -52,36 +50,18 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 				noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
 				noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
 				noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
-				needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl, options;
-
+				needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
 
 			if (needsCredentials) {
 
-
-				options = {
-					type: 'basic',
-					priority: 2,
-					message: CONFIGURATION_NOTIFICATION_MESSAGE,
-					title: '',
-					iconUrl: 'icon.png',
-					buttons: [
-						{ title: CONFIGURATION_NOTIFICATION_BUTTON_TITLE }
-					],
-					requireInteraction: true
-
-				};
-
-				chrome.notifications.create(CONFIGURATION_NOTIFICATION_ID, options);
-				chrome.notifications.onButtonClicked.addListener(function (notificationId, buttonIndex) {
-					if (notificationId === CONFIGURATION_NOTIFICATION_ID && buttonIndex === 0) {
-						chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-							chrome.tabs.sendMessage(tabs[0].id, { url: tab.url }, function () {
-								return;
-							});
-						});
-						chrome.notifications.clear(notificationId);
-					}
-				});
+				chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAST_ICON_BADGE_BACKGROUND });
+				chrome.browserAction.setBadgeText({ tabId: tab.id, text: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT });
+			}
+		});
+	} else {
+		chrome.browserAction.getBadgeText({ tabId: tab.id }, function (result) {
+			if (result === CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT) {
+				chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
 			}
 		});
 	}
