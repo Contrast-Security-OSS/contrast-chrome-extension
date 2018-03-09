@@ -26,6 +26,7 @@ var CONTRAST_USERNAME = "contrast_username",
   VALID_TEAMSERVER_HOSTNAMES = ['app.contrastsecurity.com', 'apptwo.contrastsecurity.com', 'eval.contratsecurity.com'],
 
   CONTRAST_ICON_BADGE_BACKGROUND = "red",
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*";
 
 // --------- HELPER FUNCTIONS -------------

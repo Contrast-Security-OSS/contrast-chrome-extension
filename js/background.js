@@ -7,7 +7,8 @@ CONTRAST_USERNAME,
   TEAMSERVER_URL,
   VALID_TEAMSERVER_HOSTNAMES,
   CONTRAST_ICON_BADGE_BACKGROUND,
-  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT,
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND
 */
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
@@ -54,7 +55,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
 			if (needsCredentials) {
 
-				chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAST_ICON_BADGE_BACKGROUND });
+				chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND });
 				chrome.browserAction.setBadgeText({ tabId: tab.id, text: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT });
 			}
 		});

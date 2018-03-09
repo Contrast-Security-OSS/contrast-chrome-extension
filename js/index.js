@@ -31,7 +31,8 @@ function indexFunction() {
       configureExtension,
       noVulnerabilitiesFoundOnPageSection,
       vulnerabilitiesFoundOnPageSection,
-      configureExtensionButton;
+      configureExtensionButton,
+      configureExtensionHost;
 
     // find sections
     notConfiguredSection = document.getElementById('not-configured');
@@ -50,11 +51,14 @@ function indexFunction() {
           && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
           configureExtension.style.display = '';
 
+          configureExtensionHost = document.getElementById('configure-extension-host');
+          configureExtensionHost.textContent = "Make sure you trust this site: " + url.hostname;
+
           configureExtensionButton = document.getElementById('configure-extension-button');
           configureExtensionButton.addEventListener('click', function () {
             chrome.tabs.sendMessage(tab.id, { url: tab.url }, function () {
-              indexFunction();
               chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
+              indexFunction();
               return;
             });
           }, false);
