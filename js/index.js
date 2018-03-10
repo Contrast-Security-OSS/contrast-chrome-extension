@@ -58,6 +58,7 @@ function indexFunction() {
           configureExtensionButton.addEventListener('click', function () {
             chrome.tabs.sendMessage(tab.id, { url: tab.url }, function () {
               chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
+              noVulnerabilitiesFoundOnPageSection.style.display = '';
               indexFunction();
               return;
             });
@@ -69,12 +70,12 @@ function indexFunction() {
       });
 
       vulnerabilitiesFoundOnPageSection.style.display = 'none';
-      noVulnerabilitiesFoundOnPageSection.style.display = 'none';
+      // noVulnerabilitiesFoundOnPageSection.style.display = 'none';
     } else {
       // if you don't need credentials, hide the signin functionality
       configureExtension.style.display = 'none';
       notConfiguredSection.style.display = 'none';
-      noVulnerabilitiesFoundOnPageSection.style.display = '';
+      // noVulnerabilitiesFoundOnPageSection.style.display = 'none';
 
       userEmail = document.getElementById('user-email');
       userEmail.textContent = items.contrast_username;
