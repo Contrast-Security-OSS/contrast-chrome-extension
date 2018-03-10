@@ -8,21 +8,21 @@ CONTRAST_USERNAME,
   VALID_TEAMSERVER_HOSTNAMES,
   CONTRAST_ICON_BADGE_BACKGROUND,
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT,
-  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND,
+  getOrganizationVulnerabilityesIds
 */
-
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	"use strict";
 
 	chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
 		// check if any values are undefined
-		"use strict";
 		var noUsername = items.contrast_username === undefined || items.contrast_username === '',
 			noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
 			noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
 			noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
-			needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
+			needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl,
+			url;
 
 		if (!needsCredentials) {
 			getOrganizationVulnerabilityesIds(tab.url, function () {
@@ -46,7 +46,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 				};
 			});
 		} else {
-			var url = new URL(tab.url);
+			url = new URL(tab.url);
 			if (changeInfo.status === "complete" && tab.url.startsWith("http") && VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname)
 				&& tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
 
