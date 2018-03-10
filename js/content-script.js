@@ -9,32 +9,6 @@ CONTRAST_USERNAME,
   TEAMSERVER_URL
 */
 
-chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-    // check if any values are undefined
-    "use strict";
-    var noUsername = items.contrast_username === undefined || items.contrast_username === '',
-        noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
-        noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
-        noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
-        needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl;
-
-    if (!needsCredentials) {
-        getOrganizationVulnerabilityesIds(document.URL, function () {
-            return function (e) {
-                var xhr = e.currentTarget, json;
-                if (xhr.readyState === 4) {
-                    if (xhr.responseText !== "") {
-                        json = JSON.parse(xhr.responseText);
-                        chrome.runtime.sendMessage(json, function () {
-                            return;
-                        });
-                    }
-                }
-            };
-        });
-    }
-});
-
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
 
