@@ -23,7 +23,11 @@ var CONTRAST_USERNAME = "contrast_username",
   TEAMSERVER_INDEX_PATH_SUFFIX = "/Contrast/static/ng/index.html#/",
   TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account",
   TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api",
-  VALID_TEAMSERVER_HOSTNAMES = ['app.contrastsecurity.com', 'apptwo.contrastsecurity.com', 'eval.contratsecurity.com'];
+  VALID_TEAMSERVER_HOSTNAMES = ['app.contrastsecurity.com', 'apptwo.contrastsecurity.com', 'eval.contratsecurity.com'],
+
+  CONTRAST_ICON_BADGE_BACKGROUND = "red",
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
