@@ -10,6 +10,7 @@ CONTRAST_USERNAME,
   VALID_TEAMSERVER_HOSTNAMES,
   TEAMSERVER_ACCOUNT_PATH_SUFFIX,
   TEAMSERVER_INDEX_PATH_SUFFIX,
+  TEAMSERVER_PROFILE_PATH_SUFFIX,
   URL
 */
 
@@ -48,7 +49,8 @@ function indexFunction() {
         var tab = tabs[0], url = new URL(tab.url);
 
         if (tab.url.startsWith("http") && VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname)
-          && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
+          && (tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) || tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX))
+          && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
           configureExtension.style.display = '';
 
           configureExtensionHost = document.getElementById('configure-extension-host');
