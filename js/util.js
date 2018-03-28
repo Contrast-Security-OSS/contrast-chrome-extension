@@ -28,14 +28,17 @@ var CONTRAST_USERNAME = "contrast_username",
 
   CONTRAST_ICON_BADGE_BACKGROUND = "red",
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
-  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*";
+  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*",
+
+  LISTENING_ON_DOMAIN = "http://localhost/*",
+  GATHER_FORMS_ACTION = "gatherForms";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   "use strict";
   var xhr = new XMLHttpRequest(),
     linkWithParams = url + params;
-
+    // console.log("linkWithParams", linkWithParams);
   xhr.open('GET', linkWithParams, true);
   xhr.setRequestHeader("Authorization", authHeader);
   xhr.setRequestHeader("API-Key", apiKey);
@@ -77,7 +80,6 @@ function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL], function (items) {
-
       var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
         authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
         params = "?urls=" + btoa(urls);

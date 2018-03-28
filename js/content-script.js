@@ -1,5 +1,5 @@
 /*global
-chrome, getOrganizationVulnerabilityesIds, document, TEAMSERVER_INDEX_PATH_SUFFIX, 
+chrome, getOrganizationVulnerabilityesIds, document, TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX, MutationObserver, HTML_BODY,
 CONTRAST_USERNAME,
@@ -9,8 +9,26 @@ CONTRAST_USERNAME,
   TEAMSERVER_URL
 */
 
+
+
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+        if (request.action === GATHER_FORMS_ACTION) {
+          var forms = document.getElementsByTagName('form'),
+              formActions = []
+
+          // collect form actions into an array
+          for (var i = 0; i < forms.length; i++) {
+            var action = forms[i].action
+            if (!!action) {
+              formActions.push(action)
+            }
+          }
+
+          // send response back to background with array of form actions
+          // form actions will be sent to Teamserver API for querying
+          sendResponse({ formActions: formActions })
+        }
 
         "use strict";
         if (request.url !== undefined) {
