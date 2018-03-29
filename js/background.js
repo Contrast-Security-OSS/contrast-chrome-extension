@@ -39,7 +39,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 			var formActions = response.formActions
 			if (formActions.length > 0) {
 				chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-					console.log(formActions);
+					// console.log(formActions);
 					evaluateVulnerabilities(checkCredentials(items), tab, formActions)
 				})
 			}

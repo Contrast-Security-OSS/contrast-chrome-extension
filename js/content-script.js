@@ -9,8 +9,6 @@ CONTRAST_USERNAME,
   TEAMSERVER_URL
 */
 
-
-
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         if (request.action === GATHER_FORMS_ACTION) {
