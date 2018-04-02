@@ -52,8 +52,10 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 			var formActions = response.formActions
 			if (formActions.length > 0) {
 				chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-					console.log(formActions);
-					evaluateXHRVulnerabilities(checkCredentials(items), tab, formActions)
+					// console.log(formActions);
+					for (var i = 0; i < formActions.length; i++) {
+						evaluateXHRVulnerabilities(checkCredentials(items), tab, formActions[i])
+					}
 				})
 			}
 		}
@@ -106,6 +108,7 @@ function evaluateXHRVulnerabilities(needsCredentials, tab, requestURL) {
 							if (vuln.length > 0) {
 								chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAST_ICON_BADGE_BACKGROUND });
 								chrome.browserAction.setBadgeText({ tabId: tab.id, text: vuln[0].count.toString() });
+								setVulnerabilityToStorage(vuln)
 							}
 						}
 					}
@@ -165,3 +168,37 @@ function getCredentials(tab) {
 		});
 	}
 }
+
+function setVulnerabilityToStorage(vulnerability) {
+	// var viewTabUrl = chrome.extension.getURL('index.html');
+	// var views = chrome.extension.getViews()
+	// console.log("views", views);
+	// console.log("viewTabUrl", viewTabUrl);
+
+
+	chrome.storage.sync.set({ "vulnerability": JSON.stringify(vulnerability[0]) }, function(result) {
+		console.log("vulnerability set", vulnerability[0]);
+	})
+	// chrome.runtime.sendMessage(null, vulnerability)
+	// chrome.extension.onConnect.addListener(function(port) {
+	//    port.onMessage.addListener(function(msg) {
+	// 		console.log("received msg", msg);
+	//     port.postMessage(vulnerability[0]);
+	//   });
+	// });
+}
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	if (request === "getXHRVulnerabilities") {
+		chrome.storage.sync.get("vulnerability", function(result) {
+			if (!!result) {
+				console.log("sending response");
+				sendResponse({ vulnerability: JSON.parse(result.vulnerability) })
+			}
+		})
+	}
+
+	// https://developer.chrome.com/extensions/runtime#event-onMessage
+	// This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
+	return true
+})
