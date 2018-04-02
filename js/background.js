@@ -14,6 +14,7 @@ CONTRAST_USERNAME,
 */
 
 // called before any sync or async request is sent
+// captures xhr and resource requests
 chrome.webRequest.onBeforeRequest.addListener(function(request) {
 	"use strict";
 
@@ -21,8 +22,14 @@ chrome.webRequest.onBeforeRequest.addListener(function(request) {
 		var tab = tabs[0]
 		if (!!tab && tab.status === "complete" && tab.url.startsWith("http")) {
 			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-				// console.log("1", request);
-				evaluateVulnerabilities(checkCredentials(items), tab, [request.url])
+
+				// only grab requests made from the domain we're monitoring
+				var url = new URL(tab.url);
+				if (!request.url.includes(url.hostname) || request.url.includes("Contrast")) {
+					return;
+				}
+				console.log("xhr request url", request.url);
+				evaluateVulnerabilities(checkCredentials(items), tab, request.url)
 			})
 		}
 	})
@@ -34,17 +41,17 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
 	// send message to content scripts that tab has updated
 	// get forms
-	chrome.tabs.sendMessage(tabId, { action: GATHER_FORMS_ACTION }, function(response) {
-		if (!!response) {
-			var formActions = response.formActions
-			if (formActions.length > 0) {
-				chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-					// console.log(formActions);
-					evaluateVulnerabilities(checkCredentials(items), tab, formActions)
-				})
-			}
-		}
-	});
+	// chrome.tabs.sendMessage(tabId, { action: GATHER_FORMS_ACTION }, function(response) {
+	// 	if (!!response) {
+	// 		var formActions = response.formActions
+	// 		if (formActions.length > 0) {
+	// 			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+	// 				console.log(formActions);
+	// 				evaluateVulnerabilities(checkCredentials(items), tab, formActions)
+	// 			})
+	// 		}
+	// 	}
+	// });
 
 	if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
 		chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
@@ -76,6 +83,7 @@ function evaluateVulnerabilities(needsCredentials, tab, uri) {
 				if (xhr.readyState === 4) {
 					if (xhr.responseText !== "") {
 						json = JSON.parse(xhr.responseText);
+						console.log("json response from TS", json);
 						if (json.traces && json.traces.length > 0) {
 							if (chrome.runtime.lastError) {
 								return;
@@ -90,7 +98,9 @@ function evaluateVulnerabilities(needsCredentials, tab, uri) {
 			};
 		});
 	} else {
-		url = new URL(tab.url);
+		var url = new URL(tab.url);
+		console.log("url.hostname includes valid ts hostname", VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname));
+		console.log(url.hostname);
 		if (VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname)
 			&& (tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) || tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX))
 			&& tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {

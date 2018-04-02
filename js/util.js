@@ -24,7 +24,12 @@ var CONTRAST_USERNAME = "contrast_username",
   TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account",
   TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile",
   TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api",
-  VALID_TEAMSERVER_HOSTNAMES = ['app.contrastsecurity.com', 'apptwo.contrastsecurity.com', 'eval.contratsecurity.com'],
+  VALID_TEAMSERVER_HOSTNAMES = [
+    'localhost',
+    // 'app.contrastsecurity.com',
+    // 'apptwo.contrastsecurity.com',
+    // 'eval.contratsecurity.com'
+  ],
 
   CONTRAST_ICON_BADGE_BACKGROUND = "red",
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
@@ -38,7 +43,7 @@ function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   "use strict";
   var xhr = new XMLHttpRequest(),
     linkWithParams = url + params;
-    // console.log("linkWithParams", linkWithParams);
+    console.log("url sent to teamserver", linkWithParams);
   xhr.open('GET', linkWithParams, true);
   xhr.setRequestHeader("Authorization", authHeader);
   xhr.setRequestHeader("API-Key", apiKey);
@@ -80,9 +85,12 @@ function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL], function (items) {
+      console.log("urls being sent to ts before btoa", urls);
+      urls = [urls].map(u => new URL(u).pathname)
+
       var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
         authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
-        params = "?urls=" + btoa(urls);
+        params = "?urls=" + urls // btoa(urls);
       sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }

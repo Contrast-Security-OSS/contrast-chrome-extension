@@ -9,23 +9,28 @@ CONTRAST_USERNAME,
   TEAMSERVER_URL
 */
 
+function collectFormActions(sendResponse) {
+  var forms = document.getElementsByTagName('form'),
+      formActions = []
+
+  // collect form actions into an array
+  for (var i = 0; i < forms.length; i++) {
+    var action = forms[i].action
+    if (!!action) {
+      formActions.push(action)
+    }
+  }
+  console.log("collected formActions in content", formActions);
+
+  // send response back to background with array of form actions
+  // form actions will be sent to Teamserver API for querying
+  sendResponse({ formActions: formActions })
+}
+
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         if (request.action === GATHER_FORMS_ACTION) {
-          var forms = document.getElementsByTagName('form'),
-              formActions = []
-
-          // collect form actions into an array
-          for (var i = 0; i < forms.length; i++) {
-            var action = forms[i].action
-            if (!!action) {
-              formActions.push(action)
-            }
-          }
-
-          // send response back to background with array of form actions
-          // form actions will be sent to Teamserver API for querying
-          sendResponse({ formActions: formActions })
+          collectFormActions(sendResponse)
         }
 
         "use strict";
