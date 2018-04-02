@@ -37,6 +37,7 @@ var CONTRAST_USERNAME = "contrast_username",
 
   LISTENING_ON_DOMAIN = "http://localhost/*",
   GATHER_FORMS_ACTION = "gatherForms";
+  FORM_OR_XHR_VULNERABILITY = "vulnerability";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {

@@ -22,14 +22,14 @@ chrome.webRequest.onBeforeRequest.addListener(function(request) {
 	if (request.type === "xmlhttprequest" && !request.url.includes("Contrast")) {
 	chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
 		var tab = tabs[0]
-		console.log("request object", request);
+		// console.log("request object", request);
 		// if (!!tab && tab.status === "complete" && tab.url.startsWith("http")) {
 			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
 
 				// only grab requests made from the domain we're monitoring
 				var url = new URL(tab.url);
 				// console.log("xhr request object", request);
-				console.log("tab url includes contrast", tab.url.includes("Contrast"));
+				// console.log("tab url includes contrast", tab.url.includes("Contrast"));
 				// console.log("url", url);
 				// !request.url.includes(url.hostname) ||
 				if (tab.url.includes("Contrast")) {
@@ -44,9 +44,11 @@ chrome.webRequest.onBeforeRequest.addListener(function(request) {
 // called when tab is updated including any changes to url
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	"use strict";
-
+	console.log("tab updated");
 	// send message to content scripts that tab has updated
 	// get forms
+	removeVulnerabilityFromStorage()
+
 	chrome.tabs.sendMessage(tabId, { action: GATHER_FORMS_ACTION }, function(response) {
 		if (!!response) {
 			var formActions = response.formActions
@@ -89,22 +91,22 @@ function evaluateXHRVulnerabilities(needsCredentials, tab, requestURL) {
 				if (xhr.readyState === 4) {
 					if (xhr.responseText !== "") {
 						json = JSON.parse(xhr.responseText);
-						console.log("json response from TS", json);
+						// console.log("json response from TS", json);
 						if (!!json.filters && json.filters.length > 0) {
 							if (chrome.runtime.lastError) {
 								return;
 							}
 							// received a list of filter objects containing a url, a base64 encoded url path (the keycode) and a count of vulnerabilities
 
-							console.log("url pathname", url.pathname);
-							console.log("url pathname btoa", btoa(url.pathname));
+							// console.log("url pathname", url.pathname);
+							// console.log("url pathname btoa", btoa(url.pathname));
 							var vuln = json.filters.filter(f => {
-								console.log("filter keycode", f.keycode);
-								console.log("filter label", f.label);
+								// console.log("filter keycode", f.keycode);
+								// console.log("filter label", f.label);
 								return f.keycode === btoa(url.pathname) || btoa(f.label) === btoa(url.pathname)
 							})
 
-							console.log("vulnerability found", vuln[0]);
+							// console.log("vulnerability found", vuln[0]);
 							if (vuln.length > 0) {
 								chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAST_ICON_BADGE_BACKGROUND });
 								chrome.browserAction.setBadgeText({ tabId: tab.id, text: vuln[0].count.toString() });
@@ -170,32 +172,40 @@ function getCredentials(tab) {
 }
 
 function setVulnerabilityToStorage(vulnerability) {
-	// var viewTabUrl = chrome.extension.getURL('index.html');
-	// var views = chrome.extension.getViews()
-	// console.log("views", views);
-	// console.log("viewTabUrl", viewTabUrl);
-
-
-	chrome.storage.sync.set({ "vulnerability": JSON.stringify(vulnerability[0]) }, function(result) {
-		console.log("vulnerability set", vulnerability[0]);
+	chrome.storage.sync.set({
+		vulnerability: JSON.stringify(vulnerability[0])
+	}, function(result) {
+		if (chrome.runtime.lastError) {
+			console.log(chrome.runtime.lastError);
+		} else {
+			console.log(result);
+			console.log("vulnerability set", vulnerability[0]);
+		}
 	})
-	// chrome.runtime.sendMessage(null, vulnerability)
-	// chrome.extension.onConnect.addListener(function(port) {
-	//    port.onMessage.addListener(function(msg) {
-	// 		console.log("received msg", msg);
-	//     port.postMessage(vulnerability[0]);
-	//   });
-	// });
+}
+
+function removeVulnerabilityFromStorage() {
+	chrome.storage.sync.remove("vulnerability", function() {
+		console.log("vulnerability removed");
+	})
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	console.log("request", request);
 	if (request === "getXHRVulnerabilities") {
 		chrome.storage.sync.get("vulnerability", function(result) {
-			if (!!result) {
+			console.log(result);
+			if (!!result && !!result.vulnerability) {
 				console.log("sending response");
-				sendResponse({ vulnerability: JSON.parse(result.vulnerability) })
+				sendResponse({
+					vulnerability: JSON.parse(result.vulnerability)
+				})
 			}
 		})
+	}
+
+	else if (request === "removeVulnerabilityFromStorage") {
+		removeVulnerabilityFromStorage()
 	}
 
 	// https://developer.chrome.com/extensions/runtime#event-onMessage
