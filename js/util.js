@@ -59,7 +59,18 @@ function getAuthorizationHeader(username, serviceKey) {
 
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
   "use strict";
+
+  // not returing for xhr
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
+}
+
+function getOrganizationVulnerabiliesByFilterUrl(teamserverUrl, orgUuid) {
+  "use strict";
+
+  // prefer but returns 404
+  // return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/url/' + keycode + '/search'
+
+  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/url/listing'
 }
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
@@ -78,6 +89,20 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
 // --------- HELPER FUNCTIONS -------------
 
+function getAllOrganizationVulnerabilties(url, onReadyStateChangeCallback) {
+  "use strict";
+  chrome.storage.sync.get([CONTRAST_USERNAME,
+    CONTRAST_SERVICE_KEY,
+    CONTRAST_API_KEY,
+    CONTRAST_ORG_UUID,
+    TEAMSERVER_URL], function (items) {
+      var url = getOrganizationVulnerabiliesByFilterUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
+        authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
+        params = "";
+      sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
+    });
+}
+
 function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
   "use strict";
   chrome.storage.sync.get([CONTRAST_USERNAME,
@@ -85,12 +110,9 @@ function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL], function (items) {
-      console.log("urls being sent to ts before btoa", urls);
-      urls = [urls].map(u => new URL(u).pathname)
-
       var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
         authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
-        params = "?urls=" + urls // btoa(urls);
+        params = "?urls=" + btoa(urls);
       sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
