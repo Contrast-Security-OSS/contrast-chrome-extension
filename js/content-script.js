@@ -29,11 +29,13 @@ function collectFormActions(sendResponse) {
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+      "use strict";
+      
         if (request.action === GATHER_FORMS_ACTION) {
           collectFormActions(sendResponse)
+          return;
         }
 
-        "use strict";
         if (request.url !== undefined) {
 
             var teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX,

@@ -15,31 +15,31 @@ CONTRAST_USERNAME,
 
 // called before any sync or async request is sent
 // captures xhr and resource requests
-chrome.webRequest.onBeforeRequest.addListener(function(request) {
-	"use strict";
-	// only permit xhr requests
-	// don't monitor xhr requests made by extension
-	if (request.type === "xmlhttprequest" && !request.url.includes("Contrast")) {
-	chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-		var tab = tabs[0]
-		// console.log("request object", request);
-		// if (!!tab && tab.status === "complete" && tab.url.startsWith("http")) {
-			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-
-				// only grab requests made from the domain we're monitoring
-				var url = new URL(tab.url);
-				// console.log("xhr request object", request);
-				// console.log("tab url includes contrast", tab.url.includes("Contrast"));
-				// console.log("url", url);
-				// !request.url.includes(url.hostname) ||
-				if (tab.url.includes("Contrast")) {
-					return;
-				}
-				evaluateXHRVulnerabilities(checkCredentials(items), tab, request.url)
-			})
-		})
-	}
-}, { urls: [LISTENING_ON_DOMAIN] })
+// chrome.webRequest.onBeforeRequest.addListener(function(request) {
+// 	"use strict";
+// 	// only permit xhr requests
+// 	// don't monitor xhr requests made by extension
+// 	if (request.type === "xmlhttprequest" && !request.url.includes("Contrast")) {
+// 	chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+// 		var tab = tabs[0]
+// 		// console.log("request object", request);
+// 		// if (!!tab && tab.status === "complete" && tab.url.startsWith("http")) {
+// 			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+//
+// 				// only grab requests made from the domain we're monitoring
+// 				var url = new URL(tab.url);
+// 				// console.log("xhr request object", request);
+// 				// console.log("tab url includes contrast", tab.url.includes("Contrast"));
+// 				// console.log("url", url);
+// 				// !request.url.includes(url.hostname) ||
+// 				if (tab.url.includes("Contrast")) {
+// 					return;
+// 				}
+// 				evaluateXHRVulnerabilities(checkCredentials(items), tab, request.url)
+// 			})
+// 		})
+// 	}
+// }, { urls: [LISTENING_ON_DOMAIN] })
 
 // called when tab is updated including any changes to url
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
@@ -47,28 +47,30 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	console.log("tab updated");
 	// send message to content scripts that tab has updated
 	// get forms
-	removeVulnerabilityFromStorage()
-
-	chrome.tabs.sendMessage(tabId, { action: GATHER_FORMS_ACTION }, function(response) {
-		if (!!response) {
-			var formActions = response.formActions
-			if (formActions.length > 0) {
-				chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-					// console.log(formActions);
-					for (var i = 0; i < formActions.length; i++) {
-						evaluateXHRVulnerabilities(checkCredentials(items), tab, formActions[i])
-					}
-				})
+	removeVulnerabilityFromStorage().then(function() {
+		chrome.tabs.sendMessage(tabId, { action: GATHER_FORMS_ACTION }, function(response) {
+			if (!!response) {
+				var formActions = response.formActions
+				if (formActions.length > 0) {
+					chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+						// console.log(formActions);
+						for (var i = 0; i < formActions.length; i++) {
+							// evaluateXHRVulnerabilities(checkCredentials(items), tab, formActions[i])
+							evaluateVulnerabilities(checkCredentials(items), tab, formActions[i])
+						}
+					})
+				}
 			}
-		}
-	});
-
-	if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
-		chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-			// check if any values are undefined
-			evaluateVulnerabilities(checkCredentials(items), tab, tab.url)
 		});
-	}
+
+		if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
+			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+				// check if any values are undefined
+				// console.log("items", items);
+				evaluateVulnerabilities(checkCredentials(items), tab, tab.url)
+			});
+		}
+	})
 });
 
 function checkCredentials(items) {
@@ -85,6 +87,7 @@ function checkCredentials(items) {
 function evaluateXHRVulnerabilities(needsCredentials, tab, requestURL) {
 	if (!needsCredentials) {
 		var url = new URL(requestURL);
+		// console.log("requestURL", url);
 		getAllOrganizationVulnerabilties(url.href, function() {
 			return function (e) {
 				var xhr = e.currentTarget, json;
@@ -123,11 +126,16 @@ function evaluateXHRVulnerabilities(needsCredentials, tab, requestURL) {
 }
 
 
-function evaluateVulnerabilities(needsCredentials, tab, uri) {
+function evaluateVulnerabilities(needsCredentials, tab, requestURL) {
 	"use strict";
 
-	if (!needsCredentials) {
-		getOrganizationVulnerabilityesIds(uri, function () {
+	if (requestURL.includes("Contrast/api/ng")) {
+		return;
+	}
+	else if (!needsCredentials) {
+		var url = new URL(requestURL)
+		console.log("request url", url);
+		getOrganizationVulnerabilityesIds(url.pathname, function () {
 			return function (e) {
 				var xhr = e.currentTarget, json;
 				if (xhr.readyState === 4) {
@@ -153,8 +161,8 @@ function evaluateVulnerabilities(needsCredentials, tab, uri) {
 
 function getCredentials(tab) {
 	var url = new URL(tab.url);
-	console.log("url.hostname includes valid ts hostname", VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname));
-	console.log(url.hostname);
+	// console.log("url.hostname includes valid ts hostname", VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname));
+	// console.log(url.hostname);
 	if (VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname)
 		&& (tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) || tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX))
 		&& tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
@@ -178,15 +186,26 @@ function setVulnerabilityToStorage(vulnerability) {
 		if (chrome.runtime.lastError) {
 			console.log(chrome.runtime.lastError);
 		} else {
-			console.log(result);
 			console.log("vulnerability set", vulnerability[0]);
 		}
 	})
 }
 
-function removeVulnerabilityFromStorage() {
-	chrome.storage.sync.remove("vulnerability", function() {
-		console.log("vulnerability removed");
+function removeVulnerabilityFromStorage(tab) {
+	console.log("removing vulnerabilities");
+	return new Promise(function(resolve, reject) {
+		chrome.storage.sync.remove("vulnerability", function() {
+			chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+				try {
+					chrome.browserAction.setBadgeBackgroundColor({ color: 'transparent' });
+					chrome.browserAction.setBadgeText({ tabId: tabs[0].id, text: '' });
+				} catch (e) {
+					console.log(chrome.runtime.lastError);
+				}
+				console.log("vulnerability removed");
+				resolve()
+			})
+		})
 	})
 }
 
@@ -197,18 +216,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			console.log(result);
 			if (!!result && !!result.vulnerability) {
 				console.log("sending response");
-				sendResponse({
-					vulnerability: JSON.parse(result.vulnerability)
-				})
+				sendResponse({ vulnerability: JSON.parse(result.vulnerability) })
 			}
 		})
-	}
-
-	else if (request === "removeVulnerabilityFromStorage") {
-		removeVulnerabilityFromStorage()
 	}
 
 	// https://developer.chrome.com/extensions/runtime#event-onMessage
 	// This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
 	return true
 })
+
+
+
+
+
+// https://app.contrastsecurity.com/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/orgtraces/ids?urls=%2FWebGoat%2Fsqlinjection

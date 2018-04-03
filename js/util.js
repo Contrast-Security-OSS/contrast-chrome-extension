@@ -97,9 +97,12 @@ function getAllOrganizationVulnerabilties(url, onReadyStateChangeCallback) {
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL], function (items) {
-      var url = getOrganizationVulnerabiliesByFilterUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
+      // var url = getOrganizationVulnerabiliesByFilterUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
+      var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
         authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
-        params = "";
+        params = "?urls=" + btoa(url);
+      console.log("url", url);
+      console.log("url params", params);
       sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
