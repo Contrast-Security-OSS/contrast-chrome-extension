@@ -1,6 +1,7 @@
 /*global
 XMLHttpRequest, btoa, chrome
 */
+"use strict";
 const CONTRAST_USERNAME = "contrast_username",
       CONTRAST_SERVICE_KEY = "contrast_service_key",
       CONTRAST_API_KEY = "contrast_api_key",
@@ -38,14 +39,15 @@ const CONTRAST_USERNAME = "contrast_username",
       LISTENING_ON_DOMAIN = "http://localhost/*",
       GATHER_FORMS_ACTION = "gatherForms",
       STORED_TRACES_KEY   = "traces",
+      STORED_URLS_KEY     = "urls",
       TRACES_REQUEST      = "getStoredTraces";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
-  "use strict";
-  var xhr = new XMLHttpRequest(),
-    linkWithParams = url + params;
-    // console.log("url sent to teamserver", linkWithParams);
+
+  const xhr = new XMLHttpRequest()
+  const linkWithParams = url + params
+  // console.log("url with params sent to teamserver", linkWithParams);
   xhr.open('GET', linkWithParams, true);
   xhr.setRequestHeader("Authorization", authHeader);
   xhr.setRequestHeader("API-Key", apiKey);
@@ -55,33 +57,20 @@ function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
 }
 
 function getAuthorizationHeader(username, serviceKey) {
-  "use strict";
+
   return btoa(username + ":" + serviceKey);
 }
 
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
-  "use strict";
-
-  // not returing for xhr
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
 }
 
-function getOrganizationVulnerabiliesByFilterUrl(teamserverUrl, orgUuid) {
-  "use strict";
-
-  // prefer but returns 404
-  // return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/url/' + keycode + '/search'
-
-  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/url/listing'
-}
-
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
-  "use strict";
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
 }
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
-  "use strict";
+
   var contrastURl = teamserverUrl;
   if (teamserverUrl.endsWith("/api")) {
     contrastURl = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
@@ -91,22 +80,32 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
 // --------- HELPER FUNCTIONS -------------
 
+/**
+ * getOrganizationVulnerabilityesIds - sets up the teamserver request
+ *
+ * @param  {String} urls - string of base64 encoded urls to send to TS as params
+ * @param  {Function} onReadyStateChangeCallback description
+ * @return {void}
+ */
 function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
-  "use strict";
-  chrome.storage.sync.get([CONTRAST_USERNAME,
+  // console.log(onReadyStateChangeCallback);
+  chrome.storage.sync.get([
+    CONTRAST_USERNAME,
     CONTRAST_SERVICE_KEY,
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
-    TEAMSERVER_URL], function (items) {
-      var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
-        authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
-        params = "?urls=" + btoa(urls);
+    TEAMSERVER_URL
+  ], function (items) {
+      const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
+      const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
+      const params = "?urls=" + urls
+        // params = "?urls=" + btoa(urls);
       sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
 
 function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
-  "use strict";
+
   chrome.storage.sync.get([CONTRAST_USERNAME,
     CONTRAST_SERVICE_KEY,
     CONTRAST_API_KEY,

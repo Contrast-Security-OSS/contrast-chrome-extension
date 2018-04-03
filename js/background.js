@@ -13,17 +13,14 @@ CONTRAST_USERNAME,
   TEAMSERVER_PROFILE_PATH_SUFFIX
 */
 "use strict";
-
-// called before any sync or async request is sent
-// captures xhr and resource requests
-
+window.TRACE_URLS = []
 /**
- * chrome - description
+ * called before any sync or async request is sent
+ * captures xhr and resource requests
  *
  * @param  {Function} function - callback
  * @param {Object} filter - allows limiting the requests for which events are triggered in various dimensions including urls
  * @return {void}
- * Called before any web request takes place XHR or otherwise
  */
 chrome.webRequest.onBeforeRequest.addListener(function(request) {
 
@@ -32,14 +29,26 @@ chrome.webRequest.onBeforeRequest.addListener(function(request) {
 	if (request.type === "xmlhttprequest" && !request.url.includes("Contrast")) {
 	chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
 		var tab = tabs[0]
+		console.log("request, tab", request, tab);
 
-			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+			chrome.storage.sync.get([
+				CONTRAST_USERNAME,
+				CONTRAST_SERVICE_KEY,
+				CONTRAST_API_KEY,
+				TEAMSERVER_URL
+			], function (items) {
 
 				if (tab.url.includes("Contrast/api")) {
 					return;
 				}
 
-				evaluateVulnerabilities(isCredentialed(items), tab, request.url)
+				// POST requests should be evaluated immediately
+				// GET requests, assuming they are on page load, can be stored and sent to TS with other urls
+				if (request.method === "GET") {
+					setToStorage([request.url], tab, false)
+				} else {
+					evaluateVulnerabilities(isCredentialed(items), tab, [request.url])
+				}
 			})
 		})
 	}
@@ -53,31 +62,45 @@ chrome.webRequest.onBeforeRequest.addListener(function(request) {
  * @param  {Object} tab        Gives the state of the tab that was updated.
  * @return {void}
  */
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 
 	// send message to content scripts that tab has updated
 	removeVulnerabilitiesFromStorage().then(function() {
+
 		if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
 
 			chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
-				var credentialed = isCredentialed(items)
+				const credentialed = isCredentialed(items)
+
 				if (credentialed) {
 
 					// check form actions for vulnerabilities
 					chrome.tabs.sendMessage(tabId, { action: GATHER_FORMS_ACTION, tabUrl: tab.url }, function(response) {
 
+						let traceUrls = []
+
 						if (!!response && !!response.formActions) {
-							var formActions = response.formActions
+							const formActions = response.formActions
 							if (formActions.length > 0) {
-									for (var i = 0; i < formActions.length; i++) {
-										evaluateVulnerabilities(credentialed, tab, formActions[i])
-									}
+								for (var i = 0; i < formActions.length; i++) {
+									traceUrls.push(formActions[i])
+									// evaluateVulnerabilities(credentialed, tab, formActions[i])
+								}
 							}
 						}
+						// concat formAction TRACE_URLS with tab url
+						traceUrls = traceUrls.concat(tab.url)
+						setToStorage(traceUrls, tab, false)
+						.then(urls => {
+							console.log("evaluating urls", urls);
+							if (!!urls) {
+								evaluateVulnerabilities(credentialed, tab, urls)
+							}
+						})
+						.catch(error => {
+							console.log("error on tab update in setToStorage promise", error);
+						})
 					});
-
-					// check tab url for vulnerabilities
-					evaluateVulnerabilities(credentialed, tab, tab.url)
 				} else {
 					getCredentials(tab)
 				}
@@ -87,23 +110,44 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 });
 
 /**
+ * generateURLString - creates a string of base64 encoded urls to send to TS as params
+ *
+ * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
+ * @return {String} - string of base64 encoded urls to send to TS as params
+ */
+function generateURLString(traceUrls) {
+	if (!traceUrls || traceUrls.length === 0) {
+		console.log("traceUrls in generateURLString", traceUrls);
+		return ""
+	}
+	const urls = traceUrls.map(u => {
+		let url;
+		// first make an array of url paths
+		url = new URL(u).pathname
+
+		// second convert each path to base64 and return
+		return btoa(url)
+	})
+	// return each base64 encoded url path with a common in between
+	return urls.join(',')
+}
+
+/**
  * evaluateVulnerabilities - method used by tab url, xhr and form actions to check TS for vulnerabilities
  *
  * @param  {Boolean} hasCredentials if the user has credentialed the extension
  * @param  {Object} tab            Gives the state of the current tab
- * @param  {String} requestURL     the url that will be queried to TS
+ * @param  {Array} traceUrls     the urls that will be queried to TS
  * @return {void}
  */
-function evaluateVulnerabilities(hasCredentials, tab, requestURL) {
-
-	if (requestURL.includes("Contrast/api/ng")) {
-		return;
-	}
-	else if (hasCredentials) {
-		var url = new URL(requestURL)
-
-		getOrganizationVulnerabilityesIds(url.pathname, function() {
-			return function (e) {
+function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
+	// console.log(traceUrls.length);
+	if (hasCredentials) {
+		// generate an array of only pathnames
+		const urlQueryString = generateURLString(traceUrls)
+		console.log("url query string", urlQueryString);
+		getOrganizationVulnerabilityesIds(urlQueryString, function() {
+			return function(e) {
 				var xhr = e.currentTarget;
 				if (xhr.readyState === 4 && xhr.responseText !== "") {
 
@@ -146,27 +190,75 @@ function updateTabBadge(tab, count) {
  * setToStorage - syncs the trace ids of found vulnerabilities to storage
  *
  * @param  {Array} foundTraces - trace ids of vulnerabilities found
- * @param  {Object} tab             Gives the state of the current tab
- * @return {void}
+ * @param  {Object} tab - Gives the state of the current tab
+ * @param {Boolean} isTraces - if saving traces or urls
+ * @return {Promise}
  */
-function setToStorage(foundTraces, tab) {
-	buildVulnerabilitiesArray(foundTraces)
-	.then(function(vulnerabilities) {
-		updateTabBadge(tab, vulnerabilities.length)
+function setToStorage(foundTraces, tab, isTraces) {
+	if (!isTraces) {
+		console.log(foundTraces);
+	}
+	const key = isTraces ? STORED_TRACES_KEY : STORED_URLS_KEY
+	let promise;
+	if (isTraces) {
+		promise = function() {
+			return new Promise((resolve, reject) => {
+				resolve(buildVulnerabilitiesArray(foundTraces))
+			})
+		}
+	} else {
+		promise = (function() {
+			return new Promise((resolve, reject) => {
+				resolve(buildURLsArray(foundTraces))
+			})
+		})()
+	}
 
-		let traces = {}
-		traces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
+	return promise.then(function(vulnerabilities) {
+		if (isTraces) {
+			updateTabBadge(tab, vulnerabilities.length)
+		}
 
-		chrome.storage.sync.set(traces, function(result) {
+		let obj = {}
+		obj[key] = JSON.stringify(vulnerabilities)
+
+		chrome.storage.sync.set(obj, function(result) {
 			if (chrome.runtime.lastError) {
-				console.log("error storing vulnerabilities");
+				console.log("error storing " + key);
 			} else {
-				console.log("vulnerabilities stored");
+				console.log(key + " stored");
 			}
 		})
 	})
 	.catch(function(error) {
 		console.log("caught promise in setToStorage");
+	})
+}
+
+function buildURLsArray(foundURLs) {
+	return new Promise(function(resolve, reject) {
+
+		// first check if there are already vulnerabilities in storage
+		chrome.storage.sync.get(STORED_URLS_KEY, function(result) {
+			var results;
+
+			// results have not been set yet so just pass on foundURLs
+			if (!result[STORED_URLS_KEY] || (!!result[STORED_URLS_KEY] && JSON.parse(result[STORED_URLS_KEY]).length === 0)) {
+				resolve(removeDuplicatesFromArray(foundURLs))
+			} else {
+				try {
+					// add existing foundURLs to passed in array
+					results = JSON.parse(result[STORED_URLS_KEY])
+					results = results.concat(foundURLs)
+					resolve(removeDuplicatesFromArray(results))
+				} catch (e) {
+					// if this errors then remove all the vulnerabilities from storage and start over
+					removeVulnerabilitiesFromStorage().then(function() {
+						resolve([])
+					})
+				}
+			}
+		})
 	})
 }
 
@@ -209,8 +301,12 @@ function buildVulnerabilitiesArray(foundTraces) {
  * @return {Promise} - returns a promise for synchronous execution
  */
 function removeVulnerabilitiesFromStorage() {
+
+	// reset global TRACE_URLS to empty
+	// TRACE_URLS = []
+
 	return new Promise(function(resolve, reject) {
-		chrome.storage.sync.remove(STORED_TRACES_KEY, function() {
+		chrome.storage.sync.remove([STORED_TRACES_KEY, STORED_URLS_KEY], function() {
 			try {
 				chrome.browserAction.setBadgeBackgroundColor({
 					color: '#00FFFFFF' // transparent
