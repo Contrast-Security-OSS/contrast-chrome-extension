@@ -37,14 +37,13 @@ var CONTRAST_USERNAME = "contrast_username",
 
   LISTENING_ON_DOMAIN = "http://localhost/*",
   GATHER_FORMS_ACTION = "gatherForms";
-  FORM_OR_XHR_VULNERABILITY = "vulnerability";
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   "use strict";
   var xhr = new XMLHttpRequest(),
     linkWithParams = url + params;
-    console.log("url sent to teamserver", linkWithParams);
+    // console.log("url sent to teamserver", linkWithParams);
   xhr.open('GET', linkWithParams, true);
   xhr.setRequestHeader("Authorization", authHeader);
   xhr.setRequestHeader("API-Key", apiKey);
@@ -101,8 +100,8 @@ function getAllOrganizationVulnerabilties(url, onReadyStateChangeCallback) {
       var url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]),
         authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]),
         params = "?urls=" + btoa(url);
-      console.log("url", url);
-      console.log("url params", params);
+      // console.log("url", url);
+      // console.log("url params", params);
       sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
 }
