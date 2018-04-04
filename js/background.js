@@ -102,7 +102,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
  */
 function generateURLString(traceUrls) {
 	if (!traceUrls || traceUrls.length === 0) {
-		console.log("traceUrls in generateURLString", traceUrls);
+		// console.log("traceUrls in generateURLString", traceUrls);
 		return ""
 	}
 	const urls = traceUrls.map(u => {
