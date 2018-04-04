@@ -51,7 +51,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     apiKey = document.getElementsByClassName('org-key').item(0).textContent;
     serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
 
-    chrome.storage.sync.set({
+    chrome.storage.local.set({
       'contrast_username': profileEmail.trim(),
       'contrast_service_key': serviceKey.trim(),
       'contrast_api_key': apiKey.trim(),

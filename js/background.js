@@ -95,29 +95,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 });
 
 /**
- * generateURLString - creates a string of base64 encoded urls to send to TS as params
- *
- * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
- * @return {String} - string of base64 encoded urls to send to TS as params
- */
-function generateURLString(traceUrls) {
-	if (!traceUrls || traceUrls.length === 0) {
-		// console.log("traceUrls in generateURLString", traceUrls);
-		return ""
-	}
-	const urls = traceUrls.map(u => {
-		let url;
-		// first make an array of url paths
-		url = new URL(u).pathname
-
-		// second convert each path to base64 and return
-		return btoa(url)
-	})
-	// return each base64 encoded url path with a common in between
-	return urls.join(',')
-}
-
-/**
  * evaluateVulnerabilities - method used by tab url, xhr and form actions to check TS for vulnerabilities
  *
  * @param  {Boolean} hasCredentials if the user has credentialed the extension

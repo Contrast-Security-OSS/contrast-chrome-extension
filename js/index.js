@@ -16,7 +16,7 @@ CONTRAST_USERNAME,
 
 function indexFunction() {
   "use strict";
-  chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+  chrome.storage.local.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
     // check if any values are undefined
     var noUsername = items.contrast_username === undefined || items.contrast_username === '',
       noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
