@@ -39,8 +39,8 @@ const CONTRAST_USERNAME = "contrast_username",
       LISTENING_ON_DOMAIN = "http://localhost/*",
       GATHER_FORMS_ACTION = "gatherForms",
       STORED_TRACES_KEY   = "traces",
-      STORED_URLS_KEY     = "urls",
       TRACES_REQUEST      = "getStoredTraces";
+      // STORED_URLS_KEY     = "urls",
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
@@ -57,7 +57,6 @@ function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
 }
 
 function getAuthorizationHeader(username, serviceKey) {
-
   return btoa(username + ":" + serviceKey);
 }
 
@@ -71,7 +70,7 @@ function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
-  var contrastURl = teamserverUrl;
+  let contrastURl = teamserverUrl;
   if (teamserverUrl.endsWith("/api")) {
     contrastURl = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
   }
@@ -95,7 +94,7 @@ function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
     TEAMSERVER_URL
-  ], function (items) {
+  ], (items) => {
       const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
       const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
       const params = "?urls=" + urls
@@ -106,13 +105,14 @@ function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
 
 function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
 
-  chrome.storage.sync.get([CONTRAST_USERNAME,
+  chrome.storage.sync.get([
+    CONTRAST_USERNAME,
     CONTRAST_SERVICE_KEY,
     CONTRAST_API_KEY,
     CONTRAST_ORG_UUID,
-    TEAMSERVER_URL], function (items) {
+    TEAMSERVER_URL], (items) => {
 
-      var url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid),
+      const url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid),
         authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
       sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
     });
