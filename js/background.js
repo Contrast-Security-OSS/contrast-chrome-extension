@@ -23,7 +23,7 @@ CONTRAST_USERNAME,
  */
 
 let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
-chrome.webRequest.onBeforeRequest.addListener(function(request) {
+chrome.webRequest.onBeforeRequest.addListener((request) => {
 
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
@@ -65,6 +65,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		})
 	}
 
+	// else if (request.sender === "REMOVE_VULNERABILITIES") {
+	// 	removeVulnerabilitiesFromStorage(sender.tab)
+	// 	.then(() => sendResponse("removed"))
+	// }
+
 	else if (request.sender === GATHER_FORMS_ACTION) {
 		getStoredCredentials()
 		.then(creds => {
@@ -91,18 +96,28 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	XHR_REQUESTS = []
 	if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
 		removeVulnerabilitiesFromStorage(tab).then(() => {
-
 			getStoredCredentials().then(items => {
 				let evaluated = false
 				const credentialed = isCredentialed(items)
 				if (credentialed && !evaluated) {
-					evaluated = true
-					evaluateVulnerabilities(credentialed, tab, [tab.url])
+					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
+						console.log(response);
+						evaluated = true
+						if (!!response) {
+							const { formActions } = response
+							if (!!formActions && formActions.length > 0) {
+								const traceUrls = [tab.url].concat(formActions)
+								evaluateVulnerabilities(credentialed, tab, traceUrls)
+							}
+						} else {
+							evaluateVulnerabilities(credentialed, tab, [tab.url])
+						}
+					})
 				} else {
 					getCredentials(tab)
 				}
-			})
-		})
+			}).catch(error => console.log("error getting stored credentials"))
+		}).catch(error => console.log("error removing vulnerabilities"))
 		return;
 	}
 })
@@ -143,8 +158,8 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 		// generate an array of only pathnames
 		console.log("evaluating vulnerabilities");
 		const urlQueryString = generateURLString(traceUrls)
-		getOrganizationVulnerabilityesIds(urlQueryString, function() {
-			return function(e) {
+		getOrganizationVulnerabilityesIds(urlQueryString, () => {
+			return (e) => {
 				const xhr = e.currentTarget;
 				if (xhr.readyState === 4 && xhr.responseText !== "") {
 
@@ -207,7 +222,7 @@ function setToStorage(foundTraces, tab, isTraces) {
 			}
 		})
 	})
-	.catch(function(error) {
+	.catch((error) => {
 		console.log("caught promise in setToStorage");
 	})
 }
@@ -279,10 +294,11 @@ function removeVulnerabilitiesFromStorage(tab) {
  */
 function getCredentials(tab) {
 	const url = new URL(tab.url);
-	if (VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname)
-		&& (tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) || tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX))
-		&& tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1) {
-
+	const conditions = [
+		VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname) && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX),
+		tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1
+	]
+	if (conditions.some(c => !!c)) {
 		chrome.browserAction.setBadgeBackgroundColor({
 			color: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND
 		});
@@ -292,9 +308,7 @@ function getCredentials(tab) {
 		});
 
 	} else {
-		chrome.browserAction.getBadgeText({
-			tabId: tab.id
-		}, function (result) {
+		chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
 			if (result === CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT) {
 				chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
 			}

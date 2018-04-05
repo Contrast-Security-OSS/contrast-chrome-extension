@@ -10,130 +10,152 @@ TEAMSERVER_URL
 */
 "use strict";
 
+// window.addEventListener('load', collectFormActions)
 
-// const body = document.getElementsByTagName('body')[0]
-// document.addEventListener("load", function(e) {
-//   console.log("gathering forms after window loaded", e);
-//   // setTimeout(() => {
-//     const forms = document.getElementsByTagName('form')
-//     let formActions = []
-//
-//     // collect form actions into an array
-//     for (let i = 0; i < forms.length; i++) {
-//       let action = forms[i].action
-//       if (!!action) {
-//         formActions.push(action)
-//       }
+// function removeVulnerabilities() {
+//   chrome.runtime.sendMessage({ sender: "REMOVE_VULNERABILITIES" }, (response) => {
+//     console.log("response in removeVulnerabilities", response);
+//     if (response === "removed") {
+//       collectFormActions()
 //     }
-//     console.log("window forms sent", formActions);
-//     chrome.runtime.sendMessage({ formActions })
-//   // }, 10000)
-//
-// })
-
+//   })
+// }
+window.LOADING_ASYNC = false
 /**
- * getFormActions - description
+ * extractActionsFromForm - gets the form actions from each form in a collection
  *
  * @param  {HTMLCollection} forms collection of forms extracted from DOM
  * @return {Array<String>} array of form actions
  */
-function getFormActions(forms) {
+function extractActionsFromForm(forms) {
   let actions = []
   for (let i = 0; i < forms.length; i++) {
     let form = forms[i]
-    if (!!form && !!form.action && form.action.length > 0) {
+    let conditions = [
+      !!form,
+      !!form.action,
+      form.action.length > 0
+    ]
+    if (conditions.every(c => !!c)) {
       actions.push(form.action)
     }
   }
   return actions
 }
 
-window.addEventListener('load', (event) => {
+function parentHasDisplayNone(element) {
+  while (element.tagName !== "BODY") {
+    console.log(element);
+    if (element.style.display === "none") {
+      return true
+    }
+    element = element.parentNode
+  }
+  return false
+}
 
-    let messageSent = false
+function HTMLCollectionToArray(collection) {
+  return Array.prototype.slice.call(collection)
+}
 
-    // MutationObserver watches for changes in DOM elements
-    // takes a callback reporting on mutations observed
-    const obs = new MutationObserver((mutations, observer) => {
+function scrapeDOMForForms() {
+  let formActions = []
+  let forms = HTMLCollectionToArray(document.getElementsByTagName("form"))
+  for (let i = 0; i < forms.length; i++) {
+    // console.log("mutation test", mutationHasDisplayNone(forms[i]));
+    if (parentHasDisplayNone(forms[i])) {
+      forms.splice(i, 1)
+    }
+    addToggleListenerToForm(forms[i])
+  }
+  if (forms.length > 0) {
+    formActions = formActions.concat(extractActionsFromForm(forms))
+  }
+  return formActions
+}
 
-      // if forms have already been sent to backgroun for processing, don't repeat this
-      if (messageSent) return;
-      
-      let formActions = []
+/**
+ * sendFormActionsToBackground - sends the array for form actions to background
+ *
+ * @param  {Array<String>} formActions - actions from forms, scraped from DOM
+ * @return {void}
+ */
+function sendFormActionsToBackground(formActions) {
+  chrome.runtime.sendMessage({
+    sender: GATHER_FORMS_ACTION,
+    formActions: deDupeArray(formActions)
+  })
+}
 
-      // first check can we grab any forms using the simple html query methods
-      const docForms = document.getElementsByTagName("form")
-      const qForms   = document.querySelectorAll("form")
-      if (docForms.length > 0) {
-        formActions = formActions.concat(getFormActions(docForms))
-      }
-      if (qForms.length > 0) {
-        formActions = formActions.concat(getFormActions(qForms))
-      }
+/**
+ * collectFormActions - scrapes DOM for forms and collects their actions
+ *
+ * @return {void}
+ */
+function collectFormActions() {
+  let messageSent = false
+  console.log("collecting forms");
+  // MutationObserver watches for changes in DOM elements
+  // takes a callback reporting on mutations observed
+  const obs = new MutationObserver((mutations, observer) => {
+    console.log("new observer");
+    // console.log(messageSent);
+    // if forms have already been sent to backgroun for processing, don't repeat this
+    if (messageSent) return;
 
-      // if no formActions were found using regular methods, check for them by diving into the mutated elements themselves
-      if (formActions.length === 0) {
-        for (let i = 0; i < mutations.length; i++) {
-          let mutation = mutations[i]
-          if (mutation.type === "attributes" && mutation.attributeName === "style") {
-            let mutatedForms = mutation.target.getElementsByTagName("form")
-            if (!!mutatedForms && mutatedForms.length > 0) {
-              console.log("found deep forms");
-              formActions = formActions.concat(getFormActions(mutatedForms))
-            }
+    // let formActions = scrapeDOMForForms()
+
+    // first check can we grab any forms using the simple html query methods
+
+    // if no formActions were found using regular methods, check for them by diving into the mutated elements themselves
+    if (formActions.length === 0) {
+      const mLength = mutations.length
+      for (let i = 0; i < mLength; i++) {
+        let mutation = mutations[i]
+        if (mutation.type === "attributes" && mutation.attributeName === "style" && mutation.target.style.display !== "none") {
+
+          let mutatedForms = mutation.target.getElementsByTagName("form")
+          if (!!mutatedForms && mutatedForms.length > 0) {
+            console.log("found deep forms");
+            formActions = formActions.concat(extractActionsFromForm(mutatedForms))
           }
         }
       }
+    }
+    // console.log("formActions", formActions);
+    // send formActions to background and stop observation
+    if (formActions.length > 0) {
+      console.log("sending forms");
+      messageSent = true
+      // window.removeEventListener('load', collectFormActions)
+      sendFormActionsToBackground(formActions)
+    }
+  });
+  // console.log(obs);
+  let formActions = scrapeDOMForForms()
 
-      // send formActions to background and stop observation
-      if (formActions.length > 0) {
-        console.log("sending forms");
-        messageSent = true
-        window.removeEventListener('load', event)
-        chrome.runtime.sendMessage({
-          sender: GATHER_FORMS_ACTION,
-          formActions: deDupeArray(formActions)
-        })
-      }
-
-    });
-
+  if (!!formActions && formActions.length > 0) {
+    messageSent = true
+    sendFormActionsToBackground(formActions)
+    return;
+  } else {
     obs.observe(document.body, {
       childList: true,
       subtree: true,
       attributes: true,
       characterData: true
     })
-})
-
-// sender is tabId
-function collectFormActions(request, sender, sendResponse) {
-  // console.log("collecting forms");
-  // make sure new html is loaded before collecting forms
-  // document.addEventListener('DOMContentLoaded', () => {
-
-    var forms = document.getElementsByTagName('form'),
-    formActions = []
-
-    // collect form actions into an array
-    for (var i = 0; i < forms.length; i++) {
-      var action = forms[i].action
-      if (!!action) {
-        formActions.push(action)
-      }
-    }
-    // console.log("formActions", formActions);
-
-    // send response back to background with array of form actions
-    // form actions will be sent to Teamserver API for querying
-    // sendResponse({ formActions: formActions })
-  // })
+  }
 }
 
 // sender is tabId
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === GATHER_FORMS_ACTION) {
-    collectFormActions(request, sender, sendResponse)
+    if (document.getElementsByTagName("form").length > 0) {
+      setTimeout(() => collectFormActions(), 1000)
+    } else {
+      collectFormActions()
+    }
     return;
   }
 
