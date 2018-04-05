@@ -79,6 +79,18 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
 // --------- HELPER FUNCTIONS -------------
 
+function getStoredCredentials() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get([
+      CONTRAST_USERNAME,
+      CONTRAST_SERVICE_KEY,
+      CONTRAST_API_KEY,
+      CONTRAST_ORG_UUID,
+      TEAMSERVER_URL
+    ], items => resolve(items))
+  })
+}
+
 /**
  * getOrganizationVulnerabilityesIds - sets up the teamserver request
  *
@@ -88,34 +100,22 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
  */
 function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
   // console.log(onReadyStateChangeCallback);
-  chrome.storage.sync.get([
-    CONTRAST_USERNAME,
-    CONTRAST_SERVICE_KEY,
-    CONTRAST_API_KEY,
-    CONTRAST_ORG_UUID,
-    TEAMSERVER_URL
-  ], (items) => {
-      const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
-      const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
-      const params = "?urls=" + urls
-        // params = "?urls=" + btoa(urls);
-      sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-    });
+  getStoredCredentials().then(items => {
+    const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
+    const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
+    const params = "?urls=" + urls
+      // params = "?urls=" + btoa(urls);
+    sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
+  });
 }
 
 function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
 
-  chrome.storage.sync.get([
-    CONTRAST_USERNAME,
-    CONTRAST_SERVICE_KEY,
-    CONTRAST_API_KEY,
-    CONTRAST_ORG_UUID,
-    TEAMSERVER_URL], (items) => {
-
-      const url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid),
-        authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-      sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-    });
+  getStoredCredentials().then(items => {
+    const url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid),
+      authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
+    sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
+  });
 }
 
 function isCredentialed(credentials) {
@@ -132,6 +132,10 @@ function isCredentialed(credentials) {
   return values.length > 0 && values.every(item => !!item)
 }
 
-function removeDuplicatesFromArray(array) {
+function deDupeArray(array) {
   return array.filter((item, position, self) => self.indexOf(item) === position)
+}
+
+function notContrastRequest(url) {
+  !url.includes(TEAMSERVER_API_PATH_SUFFIX) && !url.includes(TEAMSERVER_INDEX_PATH_SUFFIX)
 }

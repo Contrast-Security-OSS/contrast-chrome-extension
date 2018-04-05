@@ -13,10 +13,9 @@ CONTRAST_USERNAME,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
   URL
 */
-
+"use strict";
 function indexFunction() {
-  "use strict";
-  chrome.storage.sync.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+  getStoredCredentials().then(items => {
     // check if any values are undefined
     var noUsername = items.contrast_username === undefined || items.contrast_username === '',
       noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',

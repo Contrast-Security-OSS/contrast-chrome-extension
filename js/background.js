@@ -13,7 +13,6 @@ CONTRAST_USERNAME,
   TEAMSERVER_PROFILE_PATH_SUFFIX
 */
 "use strict";
-// window.TRACE_URLS = [] // NOTE: Use with storing XHR
 /**
  * called before any local or alocal request is sent
  * captures xhr and resource requests
@@ -22,32 +21,63 @@ CONTRAST_USERNAME,
  * @param {Object} filter - allows limiting the requests for which events are triggered in various dimensions including urls
  * @return {void}
  */
+
+let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
 chrome.webRequest.onBeforeRequest.addListener(function(request) {
 
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
 	if (request.type === "xmlhttprequest" && !request.url.includes("Contrast")) {
-	chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
 		const tab = tabs[0]
 		if (tab.url.includes(TEAMSERVER_API_PATH_SUFFIX) || request.url.includes(TEAMSERVER_API_PATH_SUFFIX)) {
 			return;
 		}
 
-			chrome.storage.local.get([
-				CONTRAST_USERNAME,
-				CONTRAST_SERVICE_KEY,
-				CONTRAST_API_KEY,
-				TEAMSERVER_URL
-			], function (items) {
+			getStoredCredentials().then(items => {
 				const credentialed = isCredentialed(items)
-				if (credentialed) {
+				if (credentialed && !XHR_REQUESTS.includes(request.url)) {
+					XHR_REQUESTS.push(request.url)
 					evaluateVulnerabilities(credentialed, tab, [request.url])
 				}
 			})
 		})
 	}
 }, { urls: [LISTENING_ON_DOMAIN] })
+
+/**
+ * chrome - description
+ *
+ * @param  {Object} request a request object
+ * @param  {Object} sender  which script sent the request
+ * @param  {Function} sendResponse return information to sender, must be JSON serializable
+ * @return {Boolean} - From the documentation:
+ * https://developer.chrome.com/extensions/runtime#event-onMessage
+ * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
+ */
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request === TRACES_REQUEST) {
+		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
+			if (!!result && !!result.traces) {
+				sendResponse({ traces: JSON.parse(result.traces) })
+			}
+		})
+	}
+
+	else if (request.sender === GATHER_FORMS_ACTION) {
+		getStoredCredentials()
+		.then(creds => {
+			const { formActions } = request
+			if (!!formActions && formActions.length > 0) {
+				evaluateVulnerabilities(isCredentialed(creds), sender.tab, formActions)
+			}
+		})
+	}
+
+	return true
+})
+
 
 /**
  * anonymous function - called when tab is updated including any changes to url
@@ -57,42 +87,25 @@ chrome.webRequest.onBeforeRequest.addListener(function(request) {
  * @param  {Object} tab        Gives the state of the tab that was updated.
  * @return {void}
  */
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	XHR_REQUESTS = []
+	if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
+		removeVulnerabilitiesFromStorage(tab).then(() => {
 
-	// send message to content scripts that tab has updated
-	removeVulnerabilitiesFromStorage(tab).then(function() {
-
-		if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
-
-			chrome.storage.local.get([CONTRAST_USERNAME, CONTRAST_SERVICE_KEY, CONTRAST_API_KEY, TEAMSERVER_URL], function (items) {
+			getStoredCredentials().then(items => {
+				let evaluated = false
 				const credentialed = isCredentialed(items)
-
-				if (credentialed) {
-
-					// check form actions for vulnerabilities
-					chrome.tabs.sendMessage(tabId, { action: GATHER_FORMS_ACTION, tabUrl: tab.url }, function(response) {
-
-						let traceUrls = []
-
-						if (!!response && !!response.formActions) {
-							const formActions = response.formActions
-							if (formActions.length > 0) {
-								for (let i = 0; i < formActions.length; i++) {
-									traceUrls.push(formActions[i])
-								}
-							}
-						}
-						// concat formAction TRACE_URLS with tab url
-						traceUrls = traceUrls.concat(tab.url)
-						evaluateVulnerabilities(credentialed, tab, traceUrls)
-					});
+				if (credentialed && !evaluated) {
+					evaluated = true
+					evaluateVulnerabilities(credentialed, tab, [tab.url])
 				} else {
 					getCredentials(tab)
 				}
-			});
-		}
-	})
-});
+			})
+		})
+		return;
+	}
+})
 
 /**
  * generateURLString - creates a string of base64 encoded urls to send to TS as params
@@ -126,9 +139,9 @@ function generateURLString(traceUrls) {
  * @return {void}
  */
 function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
-	// console.log(traceUrls.length);
-	if (hasCredentials) {
+	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
 		// generate an array of only pathnames
+		console.log("evaluating vulnerabilities");
 		const urlQueryString = generateURLString(traceUrls)
 		getOrganizationVulnerabilityesIds(urlQueryString, function() {
 			return function(e) {
@@ -180,6 +193,7 @@ function updateTabBadge(tab, count) {
  */
 function setToStorage(foundTraces, tab, isTraces) {
 	buildVulnerabilitiesArray(foundTraces, tab).then((vulnerabilities) => {
+		// console.log("vulnerabilities after buildVulnerabilitiesArray", vulnerabilities);
 		updateTabBadge(tab, vulnerabilities.length)
 
 		let traces = {}
@@ -213,13 +227,13 @@ function buildVulnerabilitiesArray(foundTraces, tab) {
 
 			// results have not been set yet so just pass on foundTraces
 			if (!result[STORED_TRACES_KEY] || (!!result[STORED_TRACES_KEY] && JSON.parse(result[STORED_TRACES_KEY]).length === 0)) {
-				resolve(removeDuplicatesFromArray(foundTraces))
+				resolve(deDupeArray(foundTraces))
 			} else {
 				try {
 					// add existing foundTraces to passed in array
 					results = JSON.parse(result[STORED_TRACES_KEY])
 					results = results.concat(foundTraces)
-					resolve(removeDuplicatesFromArray(results))
+					resolve(deDupeArray(results))
 				} catch (e) {
 					// if this errors then remove all the vulnerabilities from storage and start over
 					removeVulnerabilitiesFromStorage(tab).then(() => {
@@ -256,28 +270,6 @@ function removeVulnerabilitiesFromStorage(tab) {
 		})
 	})
 }
-
-/**
- * chrome - description
- *
- * @param  {Object} request a request object
- * @param  {Object} sender  which script sent the request
- * @param  {Function} sendResponse return information to sender, must be JSON serializable
- * @return {Boolean} - From the documentation:
- * https://developer.chrome.com/extensions/runtime#event-onMessage
- * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
- */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request === TRACES_REQUEST) {
-		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
-			if (!!result && !!result.traces) {
-				sendResponse({ traces: JSON.parse(result.traces) })
-			}
-		})
-	}
-
-	return true
-})
 
 /**
  * getCredentials - retrieves and stores credentials for user extension
