@@ -57,6 +57,7 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
  * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log("runtime on message", request, sender);
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result.traces) {
@@ -75,6 +76,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		.then(creds => {
 			const { formActions } = request
 			if (!!formActions && formActions.length > 0) {
+				console.log("evaluating form actions from runtime onMessage");
 				evaluateVulnerabilities(isCredentialed(creds), sender.tab, formActions)
 			}
 		})
@@ -82,6 +84,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	return true
 })
+
 
 
 /**
@@ -101,7 +104,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 				const credentialed = isCredentialed(items)
 				if (credentialed && !evaluated) {
 					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
-						console.log(response);
+						console.log("response to send GATHER_FORMS_ACTION", response);
 						evaluated = true
 						if (!!response) {
 							const { formActions } = response
@@ -133,13 +136,26 @@ function generateURLString(traceUrls) {
 		// console.log("traceUrls in generateURLString", traceUrls);
 		return ""
 	}
-	const urls = traceUrls.map(u => {
+
+	// add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
+	// http://localhost:3000/login vs /login
+	const prefixedUrls = traceUrls.map(u => {
+		let prefix = new URL(document.URL).origin
+		return prefix + "/" + u
+	})
+
+	const urls = traceUrls.concat(prefixedUrls).map(u => {
 		let url;
 		// first make an array of url paths
-		url = new URL(u).pathname
+		if (u.includes("http")) {
+			return btoa(u)
+		} else {
+			return btoa(new URL(u).pathname)
+		}
 
 		// second convert each path to base64 and return
-		return btoa(url)
+		// return btoa(url)
+		// return "aHR0cDovL2xvY2FsaG9zdDozMDAwL2xvZ2lu"
 	})
 	// return each base64 encoded url path with a common in between
 	return urls.join(',')
@@ -164,6 +180,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 				if (xhr.readyState === 4 && xhr.responseText !== "") {
 
 					const json = JSON.parse(xhr.responseText);
+					console.log("json and query string", json, urlQueryString);
 					if (json.traces && json.traces.length > 0) {
 						if (chrome.runtime.lastError) {
 							return;

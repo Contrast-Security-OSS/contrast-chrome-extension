@@ -10,17 +10,6 @@ TEAMSERVER_URL
 */
 "use strict";
 
-// window.addEventListener('load', collectFormActions)
-
-// function removeVulnerabilities() {
-//   chrome.runtime.sendMessage({ sender: "REMOVE_VULNERABILITIES" }, (response) => {
-//     console.log("response in removeVulnerabilities", response);
-//     if (response === "removed") {
-//       collectFormActions()
-//     }
-//   })
-// }
-window.LOADING_ASYNC = false
 /**
  * extractActionsFromForm - gets the form actions from each form in a collection
  *
@@ -45,7 +34,6 @@ function extractActionsFromForm(forms) {
 
 function parentHasDisplayNone(element) {
   while (element.tagName !== "BODY") {
-    console.log(element);
     if (element.style.display === "none") {
       return true
     }
@@ -66,7 +54,7 @@ function scrapeDOMForForms() {
     if (parentHasDisplayNone(forms[i])) {
       forms.splice(i, 1)
     }
-    addToggleListenerToForm(forms[i])
+    // addToggleListenerToForm(forms[i])
   }
   if (forms.length > 0) {
     formActions = formActions.concat(extractActionsFromForm(forms))
@@ -104,6 +92,7 @@ function collectFormActions() {
     if (messageSent) return;
 
     // let formActions = scrapeDOMForForms()
+    let formActions = []
 
     // first check can we grab any forms using the simple html query methods
 
@@ -124,6 +113,7 @@ function collectFormActions() {
     }
     // console.log("formActions", formActions);
     // send formActions to background and stop observation
+    console.log("form actions", formActions);
     if (formActions.length > 0) {
       console.log("sending forms");
       messageSent = true
@@ -133,9 +123,11 @@ function collectFormActions() {
   });
   // console.log(obs);
   let formActions = scrapeDOMForForms()
+  console.log("formactions scraped", formActions);
 
   if (!!formActions && formActions.length > 0) {
     messageSent = true
+    console.log("sending form actions from scrape");
     sendFormActionsToBackground(formActions)
     return;
   } else {
