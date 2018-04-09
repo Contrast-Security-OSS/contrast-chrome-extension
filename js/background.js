@@ -57,7 +57,7 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
  * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("runtime on message", request, sender);
+	// console.log("runtime on message", request, sender);
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result.traces) {
@@ -86,7 +86,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 })
 
 
-
 /**
  * anonymous function - called when tab is updated including any changes to url
  *
@@ -96,34 +95,67 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	XHR_REQUESTS = []
-	if (changeInfo.status === "complete" && tab.url.startsWith("http")) {
-		removeVulnerabilitiesFromStorage(tab).then(() => {
-			getStoredCredentials().then(items => {
-				let evaluated = false
-				const credentialed = isCredentialed(items)
-				if (credentialed && !evaluated) {
-					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
-						console.log("response to send GATHER_FORMS_ACTION", response);
-						evaluated = true
-						if (!!response) {
-							const { formActions } = response
-							if (!!formActions && formActions.length > 0) {
-								const traceUrls = [tab.url].concat(formActions)
-								evaluateVulnerabilities(credentialed, tab, traceUrls)
-							}
-						} else {
-							evaluateVulnerabilities(credentialed, tab, [tab.url])
-						}
-					})
-				} else {
-					getCredentials(tab)
-				}
-			}).catch(error => console.log("error getting stored credentials"))
-		}).catch(error => console.log("error removing vulnerabilities"))
-		return;
-	}
+	// console.log("tab updated", tabId, changeInfo, tab);
+	console.log("tab updated");
+	chrome.tabs.sendMessage(tab.id, { action: "URL_CHANGED?" }, (response) => {
+
+		// console.log("response", response.urlChanged && changeInfo.status === "complete" && tab.url.startsWith("http"));
+
+		if ((!response || response.refreshed) && tabUpdateComplete(changeInfo, tab)) {
+			resetUrlChanged(tab)
+			updateVulnerabilities(tab)
+		} else if (!!response && response.urlChanged && tabUpdateComplete(changeInfo, tab)) {
+			resetUrlChanged(tab)
+			updateVulnerabilities(tab)
+		}
+		//  else {
+		// 	removeVulnerabilitiesFromStorage(tab)
+		// }
+	})
 })
+
+function resetUrlChanged(tab) {
+	chrome.tabs.sendMessage(tab.id, { action: "RESET_URL_CHANGED" })
+}
+
+function tabUpdateComplete(changeInfo, tab) {
+	return changeInfo.status === "complete" && tab.url.startsWith("http")
+}
+
+function updateVulnerabilities(tab) {
+	// reset XHR request array to empty, now accepting new requests
+	XHR_REQUESTS = []
+
+	// first remove old vulnerabilities since tab has updated
+	removeVulnerabilitiesFromStorage(tab).then(() => {
+
+		// set color of badge for until update is complete
+		setBadgeLoading(tab)
+
+		getStoredCredentials().then(items => {
+			let evaluated = false
+			const credentialed = isCredentialed(items)
+			if (credentialed && !evaluated) {
+				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
+					// console.log("response to send GATHER_FORMS_ACTION", response);
+					evaluated = true
+					if (!!response) {
+						const { formActions } = response
+						if (!!formActions && formActions.length > 0) {
+							const traceUrls = [tab.url].concat(formActions)
+							evaluateVulnerabilities(credentialed, tab, traceUrls)
+						}
+					} else {
+						evaluateVulnerabilities(credentialed, tab, [tab.url])
+					}
+				})
+			} else {
+				getCredentials(tab)
+			}
+		}).catch(error => console.log("error getting stored credentials"))
+	}).catch(error => console.log("error removing vulnerabilities"))
+	return;
+}
 
 /**
  * generateURLString - creates a string of base64 encoded urls to send to TS as params
@@ -133,30 +165,23 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  */
 function generateURLString(traceUrls) {
 	if (!traceUrls || traceUrls.length === 0) {
-		// console.log("traceUrls in generateURLString", traceUrls);
 		return ""
 	}
 
 	// add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
 	// http://localhost:3000/login vs /login
-	const prefixedUrls = traceUrls.map(u => {
-		let prefix = new URL(document.URL).origin
-		return prefix + "/" + u
-	})
+	const prefix = new URL(document.URL).origin
+	const prefixedUrls = traceUrls.map(u => prefix + "/" + u)
 
-	const urls = traceUrls.concat(prefixedUrls).map(u => {
-		let url;
-		// first make an array of url paths
-		if (u.includes("http")) {
-			return btoa(u)
-		} else {
-			return btoa(new URL(u).pathname)
-		}
+	let urls = traceUrls.concat(prefixedUrls).map(u => {
+		// return the full url
+		// and the path / endpoint of the url
+		return [
+			btoa(u),
+			btoa(new URL(u).pathname)
+		]
+	}).flatten()
 
-		// second convert each path to base64 and return
-		// return btoa(url)
-		// return "aHR0cDovL2xvY2FsaG9zdDozMDAwL2xvZ2lu"
-	})
 	// return each base64 encoded url path with a common in between
 	return urls.join(',')
 }
@@ -180,7 +205,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 				if (xhr.readyState === 4 && xhr.responseText !== "") {
 
 					const json = JSON.parse(xhr.responseText);
-					console.log("json and query string", json, urlQueryString);
+					// console.log("json and query string", json, urlQueryString);
 					if (json.traces && json.traces.length > 0) {
 						if (chrome.runtime.lastError) {
 							return;
@@ -212,6 +237,25 @@ function updateTabBadge(tab, count) {
 			tabId: tab.id,
 			text: count.toString(),
 		});
+	}
+}
+
+/**
+ * setBadgeLoading - set badge to a loading indicator, especially useful with settimeout thing in the content script
+ *
+ * @param  {type} tab Gives the state of the current tab
+ * @return {void}
+ */
+ // https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
+function setBadgeLoading(tab) {
+	if (tab.index >= 0) {
+		chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAT_GREEN })
+
+		// &#x21bb; is unicode clockwise circular arrow
+		chrome.browserAction.setBadgeText({
+			tabId: tab.id,
+			text: "↻"
+		})
 	}
 }
 

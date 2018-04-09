@@ -33,6 +33,7 @@ const CONTRAST_USERNAME = "contrast_username",
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "red",
+      CONTRAT_GREEN = "#65C0B2",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*",
 
@@ -41,6 +42,19 @@ const CONTRAST_USERNAME = "contrast_username",
       STORED_TRACES_KEY   = "traces",
       TRACES_REQUEST      = "getStoredTraces";
       // STORED_URLS_KEY     = "urls",
+
+
+/**
+ * Array.prototype.flatten - reduce multi-dimensional arrays to single dimension
+ *
+ * add the .flatten() method to Array instances
+ * the empty array is the initial value of the new array
+ *
+ * @return {Array}
+ */
+Array.prototype.flatten = function() {
+	return this.reduce((newArray, val) => newArray.concat(val), []);
+}
 
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {

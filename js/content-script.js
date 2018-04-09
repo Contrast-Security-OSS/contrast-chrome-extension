@@ -69,9 +69,12 @@ function scrapeDOMForForms() {
  * @return {void}
  */
 function sendFormActionsToBackground(formActions) {
-  chrome.runtime.sendMessage({
-    sender: GATHER_FORMS_ACTION,
-    formActions: deDupeArray(formActions)
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({
+      sender: GATHER_FORMS_ACTION,
+      formActions: deDupeArray(formActions)
+    })
+    resolve()
   })
 }
 
@@ -87,63 +90,82 @@ function collectFormActions() {
   // takes a callback reporting on mutations observed
   const obs = new MutationObserver((mutations, observer) => {
     console.log("new observer");
-    // console.log(messageSent);
     // if forms have already been sent to backgroun for processing, don't repeat this
-    if (messageSent) return;
+    if (messageSent) {
+      observer.disconnect()
+      return
+    }
 
-    // let formActions = scrapeDOMForForms()
     let formActions = []
+    const mLength = mutations.length
 
-    // first check can we grab any forms using the simple html query methods
+    // go through each mutation, looking for elements that have changed in a specific manner
+    for (let i = 0; i < mLength; i++) {
+      let mutation = mutations[i]
+      if (!mutation.oldValue) continue;
 
-    // if no formActions were found using regular methods, check for them by diving into the mutated elements themselves
-    if (formActions.length === 0) {
-      const mLength = mutations.length
-      for (let i = 0; i < mLength; i++) {
-        let mutation = mutations[i]
-        if (mutation.type === "attributes" && mutation.attributeName === "style" && mutation.target.style.display !== "none") {
+      // mutation must be a style attribute mutation
+      // and the style must change from display: none to display: <shown>
+      let conditions = [
+        mutation.type === "attributes",
+        mutation.attributeName === "style",
+        mutation.oldValue.includes("display"),
+        mutation.oldValue.includes("none")
+      ]
 
-          let mutatedForms = mutation.target.getElementsByTagName("form")
-          if (!!mutatedForms && mutatedForms.length > 0) {
-            console.log("found deep forms");
-            formActions = formActions.concat(extractActionsFromForm(mutatedForms))
-          }
+      if (conditions.every(c => !!c)) {
+
+        let mutatedForms;
+        if (mutation.target.tagName === "FORM") {
+          mutatedForms = mutation.target
+        } else {
+          mutatedForms = mutation.target.getElementsByTagName("form")
+        }
+
+        // if the mutated element has child forms
+        if (!!mutatedForms && mutatedForms.length > 0) {
+          let extractedActions = extractActionsFromForm(mutatedForms)
+          formActions = formActions.concat(extractedActions)
         }
       }
     }
-    // console.log("formActions", formActions);
+
     // send formActions to background and stop observation
-    console.log("form actions", formActions);
     if (formActions.length > 0) {
       console.log("sending forms");
       messageSent = true
-      // window.removeEventListener('load', collectFormActions)
       sendFormActionsToBackground(formActions)
     }
-  });
-  // console.log(obs);
-  let formActions = scrapeDOMForForms()
-  console.log("formactions scraped", formActions);
+  })
 
-  if (!!formActions && formActions.length > 0) {
-    messageSent = true
-    console.log("sending form actions from scrape");
-    sendFormActionsToBackground(formActions)
+  const actions = scrapeDOMForForms()
+  if (!!actions && actions.length > 0) {
+    sendFormActionsToBackground(actions)
     return;
-  } else {
-    obs.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      characterData: true
-    })
   }
+
+  obs.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["style"],
+    attributeOldValue: true,
+    childList: true,
+    characterData: true,
+  })
 }
+
+// check if url has changed
+let URL_CHANGED = false
+window.addEventListener('hashchange', (e) => URL_CHANGED = true)
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === GATHER_FORMS_ACTION) {
+
+    // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
+    // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
     if (document.getElementsByTagName("form").length > 0) {
+      console.log("waiting one");
       setTimeout(() => collectFormActions(), 1000)
     } else {
       collectFormActions()
@@ -151,7 +173,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return;
   }
 
-  if (request.url !== undefined) {
+  else if (request.action === "URL_CHANGED?") {
+    // URL_CHANGED use window listener with global var
+    // window.performance.navigation.type === 1 detects refresh
+    // https://stackoverflow.com/a/36444134/6410635
+    //
+    console.log("URL_CHANGED", URL_CHANGED);
+    const refreshed = window.performance.navigation.type === 1
+    sendResponse({ urlChanged: URL_CHANGED, refreshed })
+  }
+
+  else if (request.action === "RESET_URL_CHANGED") {
+    URL_CHANGED = false
+  }
+
+  else if (request.url !== undefined) {
 
     var teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX,
     orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
@@ -168,9 +204,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       'contrast_api_key': apiKey.trim(),
       'contrast_org_uuid': orgUuid.trim(),
       'teamserver_url': teamServerUrl
-    }, function () {
-      return;
-    });
+    }, () => {})
   }
-}
-);
+})
