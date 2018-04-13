@@ -33,7 +33,6 @@
     "webRequest",
     "activeTab",
     "storage",
-    "http://localhost/*",
     "https://*.contrastsecurity.com/",
     "tabs",
     "background",

@@ -26,10 +26,9 @@ const CONTRAST_USERNAME = "contrast_username",
       TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile",
       TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api",
       VALID_TEAMSERVER_HOSTNAMES = [
-        'localhost',
-        // 'app.contrastsecurity.com',
-        // 'apptwo.contrastsecurity.com',
-        // 'eval.contratsecurity.com'
+        'app.contrastsecurity.com',
+        'apptwo.contrastsecurity.com',
+        'eval.contratsecurity.com'
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "red",
@@ -37,11 +36,10 @@ const CONTRAST_USERNAME = "contrast_username",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*",
 
-      LISTENING_ON_DOMAIN = "http://localhost/*",
+      LISTENING_ON_DOMAIN = "<all_urls>"
       GATHER_FORMS_ACTION = "gatherForms",
       STORED_TRACES_KEY   = "traces",
       TRACES_REQUEST      = "getStoredTraces";
-      // STORED_URLS_KEY     = "urls",
 
 
 /**
