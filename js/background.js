@@ -57,7 +57,6 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
  * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	// console.log("runtime on message", request, sender);
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result.traces) {
@@ -66,17 +65,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		})
 	}
 
-	// else if (request.sender === "REMOVE_VULNERABILITIES") {
-	// 	removeVulnerabilitiesFromStorage(sender.tab)
-	// 	.then(() => sendResponse("removed"))
-	// }
-
 	else if (request.sender === GATHER_FORMS_ACTION) {
 		getStoredCredentials()
 		.then(creds => {
 			const { formActions } = request
 			if (!!formActions && formActions.length > 0) {
-				console.log("evaluating form actions from runtime onMessage");
 				evaluateVulnerabilities(isCredentialed(creds), sender.tab, formActions)
 			}
 		})
@@ -95,33 +88,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	// console.log("tab updated", tabId, changeInfo, tab);
-	console.log("tab updated");
-	chrome.tabs.sendMessage(tab.id, { action: "URL_CHANGED?" }, (response) => {
-
-		// console.log("response", response.urlChanged && changeInfo.status === "complete" && tab.url.startsWith("http"));
-
-		if ((!response || response.refreshed) && tabUpdateComplete(changeInfo, tab)) {
-			resetUrlChanged(tab)
-			updateVulnerabilities(tab)
-		} else if (!!response && response.urlChanged && tabUpdateComplete(changeInfo, tab)) {
-			resetUrlChanged(tab)
-			updateVulnerabilities(tab)
-		}
-		//  else {
-		// 	removeVulnerabilitiesFromStorage(tab)
-		// }
-	})
+	if (tabUpdateComplete(changeInfo, tab)) {
+		updateVulnerabilities(tab)
+	}
 })
-
-function resetUrlChanged(tab) {
-	chrome.tabs.sendMessage(tab.id, { action: "RESET_URL_CHANGED" })
-}
 
 function tabUpdateComplete(changeInfo, tab) {
 	return changeInfo.status === "complete" && tab.url.startsWith("http")
 }
 
+/**
+ * updateVulnerabilities - updates the currenctly stored trace ids
+ *
+ * @param  {Object} tab Gives the state of the tab that was updated.
+ * @return {void}
+ */
 function updateVulnerabilities(tab) {
 	// reset XHR request array to empty, now accepting new requests
 	XHR_REQUESTS = []
@@ -137,7 +118,6 @@ function updateVulnerabilities(tab) {
 			const credentialed = isCredentialed(items)
 			if (credentialed && !evaluated) {
 				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
-					// console.log("response to send GATHER_FORMS_ACTION", response);
 					evaluated = true
 					if (!!response) {
 						const { formActions } = response
@@ -152,8 +132,8 @@ function updateVulnerabilities(tab) {
 			} else {
 				getCredentials(tab)
 			}
-		}).catch(error => console.log("error getting stored credentials"))
-	}).catch(error => console.log("error removing vulnerabilities"))
+		}).catch(error => false)
+	}).catch(error => false)
 	return;
 }
 
@@ -197,7 +177,6 @@ function generateURLString(traceUrls) {
 function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
 		// generate an array of only pathnames
-		console.log("evaluating vulnerabilities");
 		const urlQueryString = generateURLString(traceUrls)
 		getOrganizationVulnerabilityesIds(urlQueryString, () => {
 			return (e) => {
@@ -205,7 +184,6 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 				if (xhr.readyState === 4 && xhr.responseText !== "") {
 
 					const json = JSON.parse(xhr.responseText);
-					// console.log("json and query string", json, urlQueryString);
 					if (json.traces && json.traces.length > 0) {
 						if (chrome.runtime.lastError) {
 							return;
@@ -269,7 +247,6 @@ function setBadgeLoading(tab) {
  */
 function setToStorage(foundTraces, tab, isTraces) {
 	buildVulnerabilitiesArray(foundTraces, tab).then((vulnerabilities) => {
-		// console.log("vulnerabilities after buildVulnerabilitiesArray", vulnerabilities);
 		updateTabBadge(tab, vulnerabilities.length)
 
 		let traces = {}
@@ -277,14 +254,11 @@ function setToStorage(foundTraces, tab, isTraces) {
 
 		chrome.storage.local.set(traces, (result) => {
 			if (chrome.runtime.lastError) {
-				console.log("error storing " + STORED_TRACES_KEY);
 			} else {
-				console.log(STORED_TRACES_KEY + " stored");
 			}
 		})
 	})
 	.catch((error) => {
-		console.log("caught promise in setToStorage");
 	})
 }
 
@@ -338,9 +312,7 @@ function removeVulnerabilitiesFromStorage(tab) {
 					color: '#00FFFFFF' // transparent
 				});
 				chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
-				console.log("vulnerabilities removed");
 			} catch (e) {
-				console.log("error removing vulnerabilities");
 			}
 			resolve()
 		})

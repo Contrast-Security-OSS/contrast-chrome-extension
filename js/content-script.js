@@ -47,14 +47,16 @@ function HTMLCollectionToArray(collection) {
 }
 
 function scrapeDOMForForms() {
+  let forms = []
   let formActions = []
-  let forms = HTMLCollectionToArray(document.getElementsByTagName("form"))
-  for (let i = 0; i < forms.length; i++) {
-    // console.log("mutation test", mutationHasDisplayNone(forms[i]));
-    if (parentHasDisplayNone(forms[i])) {
-      forms.splice(i, 1)
+  let domForms = HTMLCollectionToArray(document.getElementsByTagName("form"))
+  for (let i = 0; i < domForms.length; i++) {
+
+    // only collect forms that are shown on DOM
+    // don't use `.splice()` because that mutates array we're running loop on
+    if (!parentHasDisplayNone(domForms[i])) {
+      forms.push(domForms[i])
     }
-    // addToggleListenerToForm(forms[i])
   }
   if (forms.length > 0) {
     formActions = formActions.concat(extractActionsFromForm(forms))
@@ -85,11 +87,9 @@ function sendFormActionsToBackground(formActions) {
  */
 function collectFormActions() {
   let messageSent = false
-  console.log("collecting forms");
   // MutationObserver watches for changes in DOM elements
   // takes a callback reporting on mutations observed
   const obs = new MutationObserver((mutations, observer) => {
-    console.log("new observer");
     // if forms have already been sent to backgroun for processing, don't repeat this
     if (messageSent) {
       observer.disconnect()
@@ -132,16 +132,19 @@ function collectFormActions() {
 
     // send formActions to background and stop observation
     if (formActions.length > 0) {
-      console.log("sending forms");
       messageSent = true
       sendFormActionsToBackground(formActions)
     }
   })
 
-  const actions = scrapeDOMForForms()
-  if (!!actions && actions.length > 0) {
-    sendFormActionsToBackground(actions)
-    return;
+  // don't run this when page has been refreshed, rely on mutation observer instead
+  if (!isRefreshed()) {
+    const actions = scrapeDOMForForms()
+    if (!!actions) {
+      messageSent = true
+      sendFormActionsToBackground(actions)
+      return;
+    }
   }
 
   obs.observe(document.body, {
@@ -154,9 +157,9 @@ function collectFormActions() {
   })
 }
 
-// check if url has changed
-let URL_CHANGED = false
-window.addEventListener('hashchange', (e) => URL_CHANGED = true)
+function isRefreshed() {
+  return window.performance.navigation.type === 1
+}
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -165,26 +168,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
     if (document.getElementsByTagName("form").length > 0) {
-      console.log("waiting one");
       setTimeout(() => collectFormActions(), 1000)
     } else {
       collectFormActions()
     }
     return;
-  }
-
-  else if (request.action === "URL_CHANGED?") {
-    // URL_CHANGED use window listener with global var
-    // window.performance.navigation.type === 1 detects refresh
-    // https://stackoverflow.com/a/36444134/6410635
-    //
-    console.log("URL_CHANGED", URL_CHANGED);
-    const refreshed = window.performance.navigation.type === 1
-    sendResponse({ urlChanged: URL_CHANGED, refreshed })
-  }
-
-  else if (request.action === "RESET_URL_CHANGED") {
-    URL_CHANGED = false
   }
 
   else if (request.url !== undefined) {
