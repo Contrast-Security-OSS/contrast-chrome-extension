@@ -33,6 +33,8 @@
     "webRequest",
     "activeTab",
     "storage",
+    "http://*/*",
+    "https://*/*",
     "https://*.contrastsecurity.com/",
     "tabs",
     "background",
