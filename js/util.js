@@ -36,7 +36,7 @@ const CONTRAST_USERNAME = "contrast_username",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*",
 
-      LISTENING_ON_DOMAIN = "<all_urls>"
+      LISTENING_ON_DOMAIN = "<all_urls>",
       GATHER_FORMS_ACTION = "gatherForms",
       STORED_TRACES_KEY   = "traces",
       TRACES_REQUEST      = "getStoredTraces";
