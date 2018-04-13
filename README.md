@@ -14,6 +14,7 @@ Hi! Thanks for checking out the extension. Please note that this is pre-alpha so
 4. Click the 'load unpacked extension' button
 5. Navigate to the clone repo and select the top level directory
 6. View chrome extension in top right corner of chrome
+7. Navigate to `Your Account` in Teamserver and load configuration.
 
 ## Testing
 
