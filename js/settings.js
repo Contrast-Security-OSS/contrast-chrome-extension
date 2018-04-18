@@ -6,6 +6,7 @@ CONTRAST_USERNAME,
   CONTRAST_ORG_UUID,
   TEAMSERVER_URL
 */
+"use strict";
 
 function setAttributeValue(element, value) {
   element.setAttribute("value", !value ? "" : value);
