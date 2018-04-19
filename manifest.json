@@ -12,7 +12,7 @@
       "js/util.js",
       "js/background.js"
     ],
-    "persistent": false
+    "persistent": true
   },
   "content_scripts": [
     {
@@ -30,8 +30,11 @@
            "48": "img/contrast48.png",
           "128": "img/contrast128.png" },
   "permissions": [
+    "webRequest",
     "activeTab",
     "storage",
+    "http://*/*",
+    "https://*/*",
     "https://*.contrastsecurity.com/",
     "tabs",
     "background",
