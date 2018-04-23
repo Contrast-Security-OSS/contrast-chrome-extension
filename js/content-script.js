@@ -1,12 +1,12 @@
 /*global
-chrome, getOrganizationVulnerabilityesIds, document, TEAMSERVER_INDEX_PATH_SUFFIX,
+chrome,
+document,
+TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
-TEAMSERVER_ACCOUNT_PATH_SUFFIX, MutationObserver, HTML_BODY,
-CONTRAST_USERNAME,
-CONTRAST_SERVICE_KEY,
-CONTRAST_API_KEY,
-CONTRAST_ORG_UUID,
-TEAMSERVER_URL
+TEAMSERVER_ACCOUNT_PATH_SUFFIX,
+MutationObserver,
+GATHER_FORMS_ACTION,
+deDupeArray
 */
 "use strict";
 
@@ -70,13 +70,10 @@ function scrapeDOMForForms() {
  * @param  {Array<String>} formActions - actions from forms, scraped from DOM
  * @return {void}
  */
-function sendFormActionsToBackground(formActions) {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({
-      sender: GATHER_FORMS_ACTION,
-      formActions: deDupeArray(formActions)
-    })
-    resolve()
+function sendFormActionsToBackground(formActions, sendResponse) {
+  sendResponse({
+    sender: GATHER_FORMS_ACTION,
+    formActions: deDupeArray(formActions)
   })
 }
 
@@ -85,7 +82,7 @@ function sendFormActionsToBackground(formActions) {
  *
  * @return {void}
  */
-function collectFormActions() {
+function collectFormActions(sendResponse) {
   let messageSent = false
   // MutationObserver watches for changes in DOM elements
   // takes a callback reporting on mutations observed
@@ -133,7 +130,7 @@ function collectFormActions() {
     // send formActions to background and stop observation
     if (formActions.length > 0) {
       messageSent = true
-      sendFormActionsToBackground(formActions)
+      sendFormActionsToBackground(formActions, sendResponse)
     }
   })
 
@@ -142,7 +139,7 @@ function collectFormActions() {
     const actions = scrapeDOMForForms()
     if (!!actions) {
       messageSent = true
-      sendFormActionsToBackground(actions)
+      sendFormActionsToBackground(actions, sendResponse)
       return;
     }
   }
@@ -168,9 +165,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
     if (document.getElementsByTagName("form").length > 0) {
-      setTimeout(() => collectFormActions(), 1000)
+      setTimeout(() => collectFormActions(sendResponse), 1000)
     } else {
-      collectFormActions()
+      collectFormActions(sendResponse)
     }
     return;
   }

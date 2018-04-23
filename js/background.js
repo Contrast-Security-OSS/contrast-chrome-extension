@@ -1,17 +1,40 @@
 /*global
-URL, chrome, TEAMSERVER_INDEX_PATH_SUFFIX, TEAMSERVER_ACCOUNT_PATH_SUFFIX,
-CONTRAST_USERNAME,
-  CONTRAST_SERVICE_KEY,
-  CONTRAST_API_KEY,
-  CONTRAST_ORG_UUID,
-  TEAMSERVER_URL,
+	URL,
+	chrome,
+	TEAMSERVER_INDEX_PATH_SUFFIX,
+	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
   VALID_TEAMSERVER_HOSTNAMES,
   CONTRAST_ICON_BADGE_BACKGROUND,
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT,
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND,
   getOrganizationVulnerabilityesIds,
-  TEAMSERVER_PROFILE_PATH_SUFFIX
+  TEAMSERVER_PROFILE_PATH_SUFFIX,
+	TEAMSERVER_API_PATH_SUFFIX,
+	getStoredCredentials,
+	isCredentialed,
+	LISTENING_ON_DOMAIN,
+	TRACES_REQUEST,
+	STORED_TRACES_KEY,
+	GATHER_FORMS_ACTION,
+	getStoredCredentials,
+	isCredentialed,
+	getStoredCredentials,
+	isCredentialed,
+	GATHER_FORMS_ACTION,
+	CONTRAT_GREEN,
+	STORED_TRACES_KEY,
+	STORED_TRACES_KEY,
+	STORED_TRACES_KEY,
+	STORED_TRACES_KEY,
+	STORED_TRACES_KEY,
+	deDupeArray,
+	STORED_TRACES_KEY,
+	deDupeArray,
+	STORED_TRACES_KEY
 */
+
+
+
 "use strict";
 /**
  * called before any local or alocal request is sent
@@ -132,8 +155,8 @@ function updateVulnerabilities(tab) {
 			} else {
 				getCredentials(tab)
 			}
-		}).catch(error => false)
-	}).catch(error => false)
+		}).catch(error => error)
+	}).catch(error => error)
 	return;
 }
 
@@ -242,24 +265,19 @@ function setBadgeLoading(tab) {
  *
  * @param  {Array} foundTraces - trace ids of vulnerabilities found
  * @param  {Object} tab - Gives the state of the current tab
- * @param {Boolean} isTraces - if saving traces or urls
  * @return {Promise}
  */
-function setToStorage(foundTraces, tab, isTraces) {
+function setToStorage(foundTraces, tab) {
 	buildVulnerabilitiesArray(foundTraces, tab).then((vulnerabilities) => {
 		updateTabBadge(tab, vulnerabilities.length)
 
 		let traces = {}
 		traces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
 
-		chrome.storage.local.set(traces, (result) => {
-			if (chrome.runtime.lastError) {
-			} else {
-			}
-		})
+		// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
+		chrome.storage.local.set(traces)
 	})
-	.catch((error) => {
-	})
+	.catch(error => error)
 }
 
 /**
@@ -291,6 +309,7 @@ function buildVulnerabilitiesArray(foundTraces, tab) {
 					})
 				}
 			}
+			reject(Error("Rejected buildVulnerabilitiesArray"))
 		})
 	})
 }
@@ -313,6 +332,7 @@ function removeVulnerabilitiesFromStorage(tab) {
 				});
 				chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
 			} catch (e) {
+				reject(e)
 			}
 			resolve()
 		})

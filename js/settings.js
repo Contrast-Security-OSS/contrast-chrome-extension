@@ -1,10 +1,7 @@
 /*global
-chrome, document,
-CONTRAST_USERNAME,
-  CONTRAST_SERVICE_KEY,
-  CONTRAST_API_KEY,
-  CONTRAST_ORG_UUID,
-  TEAMSERVER_URL
+  chrome,
+  document,
+  getStoredCredentials
 */
 "use strict";
 
@@ -24,8 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   getStoredCredentials().then(items => {
-    const credentialed = isCredentialed(items)
-
     setAttributeValue(username, items.contrast_username)
     setAttributeValue(serviceKey, items.contrast_service_key)
     setAttributeValue(apiKey, items.contrast_api_key)
