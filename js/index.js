@@ -1,17 +1,12 @@
 /*global
-chrome, document,
-CONTRAST_USERNAME,
-  CONTRAST_SERVICE_KEY,
-  CONTRAST_API_KEY,
-  CONTRAST_ORG_UUID,
-  TEAMSERVER_URL,
-  HTML_BODY,
-  $,
+  chrome,
+  document,
   VALID_TEAMSERVER_HOSTNAMES,
   TEAMSERVER_ACCOUNT_PATH_SUFFIX,
   TEAMSERVER_INDEX_PATH_SUFFIX,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
-  URL
+  URL,
+  getStoredCredentials
 */
 "use strict";
 function indexFunction() {
