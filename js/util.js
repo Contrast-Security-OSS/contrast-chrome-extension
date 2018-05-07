@@ -70,7 +70,7 @@ String.prototype.titleize = function() {
 }
 
 // --------- HELPER FUNCTIONS -------------
-function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
+function sendXhr(url, params, authHeader, apiKey) {
 
   const xhr = new XMLHttpRequest()
   const linkWithParams = url + params
@@ -83,6 +83,29 @@ function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
   xhr.send();
 }
 
+function fetchTeamserver(url, params, authHeader, apiKey) {
+  const fetchOptions = {
+    method: "GET",
+    headers: new Headers({
+      "Authorization": authHeader,
+      "API-Key": apiKey,
+      "Accept": "application/json"
+    })
+  }
+  const requestUrl = url + params
+  return(
+    fetch(requestUrl, fetchOptions)
+    .then(response => {
+      if (response.status === 200 && response.ok) {
+        return response.json()
+      } else {
+        return false
+      }
+    })
+    .catch(error => console.log("error fetching from teamserver"))
+  )
+}
+
 function getAuthorizationHeader(username, serviceKey) {
   return btoa(username + ":" + serviceKey);
 }
@@ -93,6 +116,10 @@ function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
+}
+
+function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
+  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid;
 }
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
@@ -125,19 +152,20 @@ function getStoredCredentials() {
  * @param  {Function} onReadyStateChangeCallback description
  * @return {void}
  */
-function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
+function getOrganizationVulnerabilityesIds(urls) {
   // console.log(onReadyStateChangeCallback);
-  getStoredCredentials().then(items => {
+  return getStoredCredentials()
+  .then(items => {
     const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
     const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
     const params = "?urls=" + urls
       // params = "?urls=" + btoa(urls);
-    sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
+    return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });
 }
 
-function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
-  getStoredCredentials()
+function getVulnerabilityShort(traceUuid) {
+  return getStoredCredentials()
   .then(items => {
     const url = getVulnerabilityShortUrl(
       items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
@@ -146,7 +174,21 @@ function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
       items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
     );
 
-    sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
+    return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
+  })
+}
+
+function getVulnerabilityFilter(traceUuid) {
+  return getStoredCredentials()
+  .then(items => {
+    const url = getVulnerabilityFilterUrl(
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
+    )
+    const authHeader = getAuthorizationHeader(
+      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+    );
+
+    return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
   })
 }
 

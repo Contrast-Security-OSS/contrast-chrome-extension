@@ -201,22 +201,9 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
 		// generate an array of only pathnames
 		const urlQueryString = generateURLString(traceUrls)
-		getOrganizationVulnerabilityesIds(urlQueryString, () => {
-			return (e) => {
-				const xhr = e.currentTarget;
-				if (xhr.readyState === 4 && xhr.responseText !== "") {
-
-					const json = JSON.parse(xhr.responseText);
-					if (json.traces && json.traces.length > 0) {
-						if (chrome.runtime.lastError) {
-							return;
-						}
-						setToStorage(json.traces, tab)
-					}
-
-				}
-			};
-		});
+		getOrganizationVulnerabilityesIds(urlQueryString)
+		.then(json => setToStorage(json.traces, tab))
+		.catch(error => error)
 	} else {
 		getCredentials(tab)
 	}
