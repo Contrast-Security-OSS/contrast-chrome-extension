@@ -75,7 +75,7 @@ function indexFunction() {
       // noVulnerabilitiesFoundOnPageSection.style.display = 'none';
 
       userEmail = document.getElementById('user-email');
-      userEmail.textContent = items.contrast_username;
+      userEmail.textContent = "User: " + items.contrast_username;
 
       visitOrgLink = document.getElementById('visit-org');
 

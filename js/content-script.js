@@ -21,8 +21,8 @@ function extractActionsFromForm(forms) {
   for (let i = 0; i < forms.length; i++) {
     let form = forms[i]
     let conditions = [
-      !!form,
-      !!form.action,
+      form,
+      form.action,
       form.action.length > 0
     ]
     if (conditions.every(c => !!c)) {
@@ -165,14 +165,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   else if (request.url !== undefined) {
 
-    var teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX,
-    orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
-    request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX)),
-    profileEmail, apiKey, serviceKey;
+    const teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX
+    const orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
+    request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX))
 
-    profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
-    apiKey = document.getElementsByClassName('org-key').item(0).textContent;
-    serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
+    const profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
+    const apiKey = document.getElementsByClassName('org-key').item(0).textContent;
+    const serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
 
     chrome.storage.local.set({
       'contrast_username': profileEmail.trim(),

@@ -57,6 +57,18 @@ Array.prototype.flatten = function() {
 	return this.reduce((newArray, val) => newArray.concat(val), []);
 }
 
+
+/**
+ * String.prototype.titleize - capitalize the first letter of each word in a string, regardless of special characters
+ *
+ * @return {String} titleized string
+ */
+String.prototype.titleize = function() {
+  return this.replace(/\b([a-z])/g, function(captured) {
+    return captured.charAt(0).toUpperCase() + captured.substr(1).toLowerCase()
+  })
+}
+
 // --------- HELPER FUNCTIONS -------------
 function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
 
