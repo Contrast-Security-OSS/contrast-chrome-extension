@@ -11,11 +11,12 @@
 "use strict";
 function indexFunction() {
   getStoredCredentials().then(items => {
+
     // check if any values are undefined
-    var noUsername = items.contrast_username === undefined || items.contrast_username === '',
-      noServiceKey = items.contrast_service_key === undefined || items.contrast_service_key === '',
-      noApiKey = items.contrast_api_key === undefined || items.contrast_api_key === '',
-      noTeamserverUrl = items.teamserver_url === undefined || items.teamserver_url === '',
+    var noUsername = !items.contrast_username,
+      noServiceKey = !items.contrast_service_key,
+      noApiKey = !items.contrast_api_key,
+      noTeamserverUrl = !items.teamserver_url,
       needsCredentials = noUsername || noServiceKey || noApiKey || noTeamserverUrl,
       extensionId,
       configureButton,
@@ -38,7 +39,7 @@ function indexFunction() {
     if (needsCredentials) {
       // if you need credentials, hide the activity feed
 
-      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
         var tab = tabs[0], url = new URL(tab.url);
 
@@ -51,8 +52,8 @@ function indexFunction() {
           configureExtensionHost.textContent = "Make sure you trust this site: " + url.hostname;
 
           configureExtensionButton = document.getElementById('configure-extension-button');
-          configureExtensionButton.addEventListener('click', function () {
-            chrome.tabs.sendMessage(tab.id, { url: tab.url }, function () {
+          configureExtensionButton.addEventListener('click', () => {
+            chrome.tabs.sendMessage(tab.id, { url: tab.url }, () => {
               chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
               noVulnerabilitiesFoundOnPageSection.style.display = '';
               indexFunction();
@@ -78,14 +79,14 @@ function indexFunction() {
 
       visitOrgLink = document.getElementById('visit-org');
 
-      visitOrgLink.addEventListener('click', function () {
+      visitOrgLink.addEventListener('click', () => {
         var teamserverUrl = items.teamserver_url.substring(0, items.teamserver_url.indexOf("/Contrast/api"));
         chrome.tabs.create({ url: teamserverUrl });
       }, false);
 
       signInButtonConfigurationProblem = document.getElementById('sign-in-button-configuration-problem');
 
-      signInButtonConfigurationProblem.addEventListener('click', function () {
+      signInButtonConfigurationProblem.addEventListener('click', () => {
         var settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
         chrome.tabs.create({ url: settingsUrl });
       }, false);

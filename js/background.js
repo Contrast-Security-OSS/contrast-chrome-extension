@@ -111,6 +111,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	console.log(tabUpdateComplete(changeInfo, tab), tab);
 	if (tabUpdateComplete(changeInfo, tab)) {
 		updateVulnerabilities(tab)
 	}
@@ -141,6 +142,7 @@ function updateVulnerabilities(tab) {
 			const credentialed = isCredentialed(items)
 			if (credentialed && !evaluated) {
 				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
+
 					evaluated = true
 					if (!!response) {
 						const { formActions } = response
@@ -151,13 +153,15 @@ function updateVulnerabilities(tab) {
 					} else {
 						evaluateVulnerabilities(credentialed, tab, [tab.url])
 					}
+
+					return true
 				})
 			} else {
 				getCredentials(tab)
 			}
-		}).catch(error => error)
-	}).catch(error => error)
-	return;
+		}).catch(error => console.log(error))
+	}).catch(error => console.log(error))
+	return true
 }
 
 /**

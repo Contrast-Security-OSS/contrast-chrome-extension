@@ -30,7 +30,8 @@ const CONTRAST_USERNAME = "contrast_username",
       VALID_TEAMSERVER_HOSTNAMES = [
         'app.contrastsecurity.com',
         'apptwo.contrastsecurity.com',
-        'eval.contratsecurity.com'
+        'eval.contratsecurity.com',
+        'localhost'
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "red",
@@ -124,12 +125,17 @@ function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
 }
 
 function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
+  getStoredCredentials()
+  .then(items => {
+    const url = getVulnerabilityShortUrl(
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
+    )
+    const authHeader = getAuthorizationHeader(
+      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+    );
 
-  getStoredCredentials().then(items => {
-    const url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid),
-      authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
     sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-  });
+  })
 }
 
 function isCredentialed(credentials) {

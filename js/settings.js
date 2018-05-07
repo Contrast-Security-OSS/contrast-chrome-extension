@@ -12,10 +12,10 @@ function setAttributeValue(element, value) {
 document.addEventListener('DOMContentLoaded', () => {
   // Inputs
   "use strict";
-  const username = document.getElementById('contrast_username')
-  const serviceKey = document.getElementById('contrast_service_key')
-  const apiKey = document.getElementById('contrast_api_key')
-  const orgUuid = document.getElementById('contrast_org_uuid')
+  const username      = document.getElementById('contrast_username')
+  const serviceKey    = document.getElementById('contrast_service_key')
+  const apiKey        = document.getElementById('contrast_api_key')
+  const orgUuid       = document.getElementById('contrast_org_uuid')
   const teamserverUrl = document.getElementById('teamserver_url')
   let submitButton;
 
