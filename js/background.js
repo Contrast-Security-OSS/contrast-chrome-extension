@@ -154,8 +154,6 @@ function updateVulnerabilities(tab) {
 			if (credentialed && !evaluated) {
 				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
 
-					console.log("gather forms response", response);
-
 					evaluated = true
 					if (!!response) {
 						const { formActions } = response
@@ -242,7 +240,7 @@ function updateTabBadge(tab, count) {
 				text: count.toString(),
 			})
 		}
-		catch (e) {}
+		catch (e) { e }
 	}
 }
 
@@ -264,7 +262,7 @@ function setBadgeLoading(tab) {
 				text: "↻"
 			})
 		}
-		catch (e) {}
+		catch (e) { e }
 	}
 }
 

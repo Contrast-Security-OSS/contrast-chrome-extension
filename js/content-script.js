@@ -10,6 +10,10 @@ deDupeArray,
 */
 "use strict";
 
+if (window.performance.navigation.type === 1) {
+  window.REFRESHED = true
+}
+
 /**
  * extractActionsFromForm - gets the form actions from each form in a collection
  *
@@ -118,8 +122,8 @@ function collectFormActions(sendResponse) {
     if (formActions.length > 0) {
       messageSent = true
       sendFormActionsToBackground(formActions, sendResponse)
-      observer.disconnect()
       window.REFRESHED = false
+      observer.disconnect()
     }
   })
 
@@ -142,12 +146,6 @@ function collectFormActions(sendResponse) {
   })
 }
 
-function isRefreshed() {
-  if (window.performance.navigation.type === 1) {
-    window.REFRESHED = true
-  }
-}
-
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === GATHER_FORMS_ACTION) {
@@ -161,8 +159,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       collectFormActions(sendResponse)
     }
-    // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
-    return true // NOTE: Keep this
   }
 
   else if (request.url !== undefined) {
@@ -183,4 +179,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       'teamserver_url': teamServerUrl
     }, () => {})
   }
+
+  // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
+  return true // NOTE: Keep this
 })

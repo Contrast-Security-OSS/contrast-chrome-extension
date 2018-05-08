@@ -83,14 +83,13 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
     })
   }
   const requestUrl = url + params
-  return(
+  return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
       if (response.status === 200 && response.ok) {
         return response.json()
-      } else {
-        return false
       }
+      return false
     })
     .catch(error => "error fetching from teamserver")
   )
