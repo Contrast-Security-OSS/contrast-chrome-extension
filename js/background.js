@@ -36,6 +36,10 @@
 
 
 "use strict";
+
+let VULNERABLE_TABS = [] // tab ids of tabs where vulnerabilities count != 0
+let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
+
 /**
  * called before any local or alocal request is sent
  * captures xhr and resource requests
@@ -44,8 +48,6 @@
  * @param {Object} filter - allows limiting the requests for which events are triggered in various dimensions including urls
  * @return {void}
  */
-
-let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
 chrome.webRequest.onBeforeRequest.addListener((request) => {
 
 	// only permit xhr requests
@@ -101,6 +103,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	return true
 })
 
+chrome.tabs.onActivated.addListener(activeInfo => {
+	if (VULNERABLE_TABS.includes(activeInfo.tabId)) {
+		chrome.tabs.query({ active: true, windowId: activeInfo.windowId }, (tabs) => {
+			updateVulnerabilities(tabs[0])
+		})
+	}
+})
+
 
 /**
  * anonymous function - called when tab is updated including any changes to url
@@ -139,8 +149,12 @@ function updateVulnerabilities(tab) {
 		getStoredCredentials().then(items => {
 			let evaluated = false
 			const credentialed = isCredentialed(items)
+
 			if (credentialed && !evaluated) {
 				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
+
+					console.log("response", response);
+
 					evaluated = true
 					if (!!response) {
 						const { formActions } = response
@@ -273,6 +287,10 @@ function setToStorage(foundTraces, tab) {
 
 		let traces = {}
 		traces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
+
+		if (JSON.stringify(vulnerabilities).length > 0) {
+			VULNERABLE_TABS.push(tab.id)
+		}
 
 		// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
 		chrome.storage.local.set(traces)

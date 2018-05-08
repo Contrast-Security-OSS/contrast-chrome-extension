@@ -30,7 +30,8 @@ const CONTRAST_USERNAME = "contrast_username",
       VALID_TEAMSERVER_HOSTNAMES = [
         'app.contrastsecurity.com',
         'apptwo.contrastsecurity.com',
-        'eval.contratsecurity.com'
+        'eval.contratsecurity.com',
+        'localhost'
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "red",

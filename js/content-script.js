@@ -88,6 +88,7 @@ function collectFormActions(sendResponse) {
   // takes a callback reporting on mutations observed
   const obs = new MutationObserver((mutations, observer) => {
     // if forms have already been sent to backgroun for processing, don't repeat this
+    console.log("messageSent", messageSent);
     if (messageSent) {
       observer.disconnect()
       return
@@ -99,18 +100,18 @@ function collectFormActions(sendResponse) {
     // go through each mutation, looking for elements that have changed in a specific manner
     for (let i = 0; i < mLength; i++) {
       let mutation = mutations[i]
-      if (!mutation.oldValue) continue;
+      // if (!mutation.oldValue) continue;
 
       // mutation must be a style attribute mutation
       // and the style must change from display: none to display: <shown>
-      let conditions = [
-        mutation.type === "attributes",
-        mutation.attributeName === "style",
-        mutation.oldValue.includes("display"),
-        mutation.oldValue.includes("none")
-      ]
+      // let conditions = [
+      //   mutation.type === "attributes",
+      //   mutation.attributeName === "style",
+      //   mutation.oldValue.includes("display"),
+      //   mutation.oldValue.includes("none")
+      // ]
 
-      if (conditions.every(c => !!c)) {
+      // if (conditions.every(c => !!c)) {
 
         let mutatedForms;
         if (mutation.target.tagName === "FORM") {
@@ -124,19 +125,22 @@ function collectFormActions(sendResponse) {
           let extractedActions = extractActionsFromForm(mutatedForms)
           formActions = formActions.concat(extractedActions)
         }
-      }
+      // }
     }
 
     // send formActions to background and stop observation
     if (formActions.length > 0) {
       messageSent = true
       sendFormActionsToBackground(formActions, sendResponse)
+      window.REFRESHED = false
     }
   })
 
   // don't run this when page has been refreshed, rely on mutation observer instead
-  if (!isRefreshed()) {
+  console.log(window.REFRESHED);
+  if (window.REFRESHED === false) {
     const actions = scrapeDOMForForms()
+    console.log("actions", actions);
     if (!!actions) {
       messageSent = true
       sendFormActionsToBackground(actions, sendResponse)
@@ -147,7 +151,6 @@ function collectFormActions(sendResponse) {
   obs.observe(document.body, {
     subtree: true,
     attributes: true,
-    attributeFilter: ["style"],
     attributeOldValue: true,
     childList: true,
     characterData: true,
@@ -155,7 +158,9 @@ function collectFormActions(sendResponse) {
 }
 
 function isRefreshed() {
-  return window.performance.navigation.type === 1
+  if (window.performance.navigation.type === 1) {
+    window.REFRESHED = true
+  }
 }
 
 // sender is tabId
@@ -164,12 +169,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
+    //
+
+    console.log(request);
+
     if (document.getElementsByTagName("form").length > 0) {
       setTimeout(() => collectFormActions(sendResponse), 1000)
     } else {
       collectFormActions(sendResponse)
     }
-    return;
+    return true
   }
 
   else if (request.url !== undefined) {
