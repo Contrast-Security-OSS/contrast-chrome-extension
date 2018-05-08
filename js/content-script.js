@@ -6,7 +6,7 @@ TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 MutationObserver,
 GATHER_FORMS_ACTION,
-deDupeArray
+deDupeArray,
 */
 "use strict";
 
@@ -106,8 +106,6 @@ function collectFormActions(sendResponse) {
       } else {
         mutatedForms = mutation.target.getElementsByTagName("form")
       }
-
-      console.log("mutated forms"); // NOTE: Doesn't always return results without this? Really weird
 
       // if the mutated element has child forms
       if (!!mutatedForms && mutatedForms.length > 0) {

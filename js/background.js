@@ -30,7 +30,8 @@
 	deDupeArray,
 	STORED_TRACES_KEY,
 	deDupeArray,
-	STORED_TRACES_KEY
+	STORED_TRACES_KEY,
+	getVulnerabilityFilter
 */
 
 
@@ -141,6 +142,9 @@ function updateVulnerabilities(tab) {
 			const credentialed = isCredentialed(items)
 			if (credentialed && !evaluated) {
 				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
+
+					console.log("gather forms response", response);
+
 					evaluated = true
 					if (!!response) {
 						const { formActions } = response
@@ -220,11 +224,14 @@ function updateTabBadge(tab, count) {
 	if (tab.index >= 0) { // tab is visible
 		chrome.browserAction.setBadgeBackgroundColor({
 			color: CONTRAST_ICON_BADGE_BACKGROUND
-		});
-		chrome.browserAction.setBadgeText({
-			tabId: tab.id,
-			text: count.toString(),
-		});
+		})
+		try {
+			chrome.browserAction.setBadgeText({
+				tabId: tab.id,
+				text: count.toString(),
+			})
+		}
+		catch (e) {}
 	}
 }
 
@@ -240,10 +247,13 @@ function setBadgeLoading(tab) {
 		chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAT_GREEN })
 
 		// &#x21bb; is unicode clockwise circular arrow
-		chrome.browserAction.setBadgeText({
-			tabId: tab.id,
-			text: "↻"
-		})
+		try {
+			chrome.browserAction.setBadgeText({
+				tabId: tab.id,
+				text: "↻"
+			})
+		}
+		catch (e) {}
 	}
 }
 
