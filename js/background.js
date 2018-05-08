@@ -231,7 +231,7 @@ function updateTabBadge(tab, count) {
 /**
  * setBadgeLoading - set badge to a loading indicator, especially useful with settimeout thing in the content script
  *
- * @param  {type} tab Gives the state of the current tab
+ * @param  {Object} tab    Gives the state of the current tab
  * @return {void}
  */
  // https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
@@ -248,23 +248,69 @@ function setBadgeLoading(tab) {
 }
 
 /**
+ * processTraces - description
+ *
+ * @param  {Array<String>} traces - array of trace uuids
+ * @param  {Object} tab - Gives the state of the current tab
+ * @return {Promise} - A promise that resolves to an array of trace objects
+ */
+function processTraces(traces, tab) {
+
+	/**
+	 * asyncRequest - not technically needed, could return getVulnerabilityFilter inside of traces.map below, but it looks cleaner
+	 *
+	 * @param  {String} trace - a trace uuid
+	 * @return {String} - blank or the trace uuid, after it has been checked against the URI of the tab vs. the URI of the trace request
+	 */
+	function asyncRequest(trace) {
+		return getVulnerabilityFilter(trace)
+		.then(json => {
+			const request = json.trace.request
+			const url 		= new URL(tab.url)
+			const path 		= url.pathname.match(/\/\w+/)[0] // 1st index is string
+			const match 	= request.uri.indexOf(path)
+			if (match === -1) {
+				return ""
+			}
+			return trace
+		})
+	}
+	return Promise.all(traces.map(t => asyncRequest(t)))
+}
+
+/**
  * setToStorage - locals the trace ids of found vulnerabilities to storage
+ * https://blog.lavrton.com/javascript-loops-how-to-handle-async-await-6252dd3c795
+ * https://stackoverflow.com/a/37576787/6410635
+ *
  *
  * @param  {Array} foundTraces - trace ids of vulnerabilities found
  * @param  {Object} tab - Gives the state of the current tab
  * @return {Promise}
  */
 function setToStorage(foundTraces, tab) {
-	buildVulnerabilitiesArray(foundTraces, tab).then((vulnerabilities) => {
-		updateTabBadge(tab, vulnerabilities.length)
 
-		let traces = {}
-		traces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
+	processTraces(foundTraces, tab)
+	.then(traces => {
 
-		// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
-		chrome.storage.local.set(traces)
-	})
+		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI (see processTraces)
+		traces = traces.filter(t => !!t)
+
+		// remove any duplicated traces
+		traces = deDupeArray(traces)
+
+		buildVulnerabilitiesArray(traces, tab)
+		.then(vulnerabilities => {
+			updateTabBadge(tab, vulnerabilities.length)
+
+			let storedTraces = {}
+			storedTraces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
+
+			// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
+			chrome.storage.local.set(storedTraces)
+		})
 	.catch(error => error)
+	})
 }
 
 /**

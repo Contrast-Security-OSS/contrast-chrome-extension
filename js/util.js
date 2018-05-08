@@ -60,6 +60,8 @@ Array.prototype.flatten = function() {
 
 /**
  * String.prototype.titleize - capitalize the first letter of each word in a string, regardless of special characters
+ * https://stackoverflow.com/a/6251509/6410635
+ * https://stackoverflow.com/a/196991/6410635
  *
  * @return {String} titleized string
  */
@@ -70,18 +72,6 @@ String.prototype.titleize = function() {
 }
 
 // --------- HELPER FUNCTIONS -------------
-function sendXhr(url, params, authHeader, apiKey) {
-
-  const xhr = new XMLHttpRequest()
-  const linkWithParams = url + params
-  // console.log("url with params sent to teamserver", linkWithParams);
-  xhr.open('GET', linkWithParams, true);
-  xhr.setRequestHeader("Authorization", authHeader);
-  xhr.setRequestHeader("API-Key", apiKey);
-  xhr.setRequestHeader("Accept", "application/json");
-  xhr.onreadystatechange = onReadyStateChangeCallback(xhr);
-  xhr.send();
-}
 
 function fetchTeamserver(url, params, authHeader, apiKey) {
   const fetchOptions = {
@@ -102,7 +92,7 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
         return false
       }
     })
-    .catch(error => console.log("error fetching from teamserver"))
+    .catch(error => "error fetching from teamserver")
   )
 }
 
@@ -119,7 +109,7 @@ function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
 }
 
 function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
-  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid;
+  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request,events,notes,application,servers";
 }
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
@@ -133,6 +123,11 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
 // --------- HELPER FUNCTIONS -------------
 
+/**
+ * getStoredCredentials - retrieve teamserver credentials from chrome storage
+ *
+ * @return {Promise} - a promise that resolves to an object of stored teamserver credentials
+ */
 function getStoredCredentials() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get([
@@ -153,13 +148,11 @@ function getStoredCredentials() {
  * @return {void}
  */
 function getOrganizationVulnerabilityesIds(urls) {
-  // console.log(onReadyStateChangeCallback);
   return getStoredCredentials()
   .then(items => {
     const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
     const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
     const params = "?urls=" + urls
-      // params = "?urls=" + btoa(urls);
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });
 }
