@@ -31,7 +31,6 @@ const CONTRAST_USERNAME = "contrast_username",
         'app.contrastsecurity.com',
         'apptwo.contrastsecurity.com',
         'eval.contratsecurity.com',
-        'localhost'
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "red",
