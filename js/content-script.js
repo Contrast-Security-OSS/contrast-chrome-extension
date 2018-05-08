@@ -119,11 +119,12 @@ function collectFormActions(sendResponse) {
       messageSent = true
       sendFormActionsToBackground(formActions, sendResponse)
       observer.disconnect()
+      window.REFRESHED = false
     }
   })
 
-  // don't run this when page has been refreshed, rely on mutation observer instead
-  if (!isRefreshed()) {
+  // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
+  if (window.REFRESHED === false) {
     const actions = scrapeDOMForForms()
     if (!!actions) {
       messageSent = true
@@ -142,7 +143,9 @@ function collectFormActions(sendResponse) {
 }
 
 function isRefreshed() {
-  return window.performance.navigation.type === 1
+  if (window.performance.navigation.type === 1) {
+    window.REFRESHED = true
+  }
 }
 
 // sender is tabId
@@ -151,12 +154,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
+    //
+
     if (document.getElementsByTagName("form").length > 0) {
       setTimeout(() => collectFormActions(sendResponse), 1000)
     } else {
       collectFormActions(sendResponse)
     }
-
     // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
     return true // NOTE: Keep this
   }
