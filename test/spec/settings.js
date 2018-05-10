@@ -19,7 +19,7 @@ describe('setting the initial credentials for the extension from teamserver', ()
       [CONTRAST_SERVICE_KEY]: dummyServiceKey.value,
       [CONTRAST_API_KEY]: dummyApiKey.value,
       [CONTRAST_ORG_UUID]: dummyOrgUuid.value,
-      [TEAMSERVER_URL]: processTeamserverUrl("localhost:19080"),
+      [TEAMSERVER_URL]: processTeamserverUrl(dummyTeamserverUrl.value),
     }
 
     dummyElement.click = function() {

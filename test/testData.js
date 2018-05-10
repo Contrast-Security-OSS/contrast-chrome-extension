@@ -18,6 +18,26 @@ const returnShortTraceData = {
   "links": []
 }
 
+const returnShortTraceDataLowSeverity = {
+  "success": true,
+  "messages": [
+    "Vulnerability short loaded successfully"
+  ],
+  "trace": {
+    "app_id": "d834de81-3069-499a-9ddc-eeb30375fdbf",
+    "first_time_seen": 1522342751785,
+    "impact": "High",
+    "license": "Licensed",
+    "likelihood": "High",
+    "ruleName": "SQL Injection",
+    "severity": "Low",
+    "status": "Reported",
+    "uuid": "7HC2-TYLR-VATF-Z2ZO",
+    "visible": true
+  },
+  "links": []
+}
+
 const returnVulnerabilityIdData = {
   "success": true,
   "messages": [
