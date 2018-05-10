@@ -90,7 +90,7 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
       if (response.status === 200 && response.ok) {
         return response.json()
       }
-      return false
+      throw new Error(response)
     })
     .catch(error => "error fetching from teamserver")
   )
@@ -139,14 +139,13 @@ function getStoredCredentials() {
 }
 
 /**
- * getOrganizationVulnerabilityesIds - sets up the teamserver request
+ * getOrganizationVulnerabilityIds - sets up the teamserver request
  *
  * @param  {String} urls - string of base64 encoded urls to send to TS as params
  * @param  {Function} onReadyStateChangeCallback description
  * @return {void}
  */
-<<<<<<< HEAD
-function getOrganizationVulnerabilityesIds(urls) {
+function getOrganizationVulnerabilityIds(urls) {
   return getStoredCredentials()
   .then(items => {
     const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
@@ -218,4 +217,33 @@ function deDupeArray(array) {
 
 function notContrastRequest(url) {
   !url.includes(TEAMSERVER_API_PATH_SUFFIX) && !url.includes(TEAMSERVER_INDEX_PATH_SUFFIX)
+}
+
+/**
+ * generateURLString - creates a string of base64 encoded urls to send to TS as params
+ *
+ * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
+ * @return {String} - string of base64 encoded urls to send to TS as params
+ */
+function generateURLString(traceUrls) {
+	if (!traceUrls || traceUrls.length === 0) {
+		return ""
+	}
+
+	// add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
+	// http://localhost:3000/login vs /login
+	const prefix = new URL(document.URL).origin
+	const prefixedUrls = traceUrls.map(u => prefix + "/" + u)
+
+	let urls = traceUrls.concat(prefixedUrls).map(u => {
+		// return the full url
+		// and the path / endpoint of the url
+		return [
+			btoa(u),
+			btoa(new URL(u).pathname)
+		]
+	}).flatten()
+
+	// return each base64 encoded url path with a common in between
+	return urls.join(',')
 }

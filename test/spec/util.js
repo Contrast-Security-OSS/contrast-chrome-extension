@@ -1,23 +1,18 @@
-// describe("Player", function() {
-//   var player;
-//   var song;
-//
-//   beforeEach(function() {
-//     player = new Player();
-//     song = new Song();
-//   });
-//
-//   it("should be able to play a Song", function() {
-//     player.play(song);
-//     expect(player.currentlyPlayingSong).toEqual(song);
-//
-//     //demonstrates use of custom matcher
-//     expect(player).toBePlaying(song);
-//   });
-//
 describe("testing utility functions and constants", () => {
-  let teamserverUrl, orgUuid, traceUuid, spy, obj;
+  const authHeader = "Y29udHJhc3RfYWRtaW46ZGVtbw=="
+  const apiKey = "demo"
+  const fetchOptions = {
+    method: "GET",
+    headers: new Headers({
+      "Authorization": authHeader,
+      "API-Key": apiKey,
+      "Accept": "application/json"
+    })
+  }
+  let teamserverUrl, orgUuid, traceUuid, spy, obj, urls, credentials;
+
   beforeEach((done) => {
+    const fetchSpy = spyOn(window, 'fetch').and.callThrough()
     chrome.storage.local.get([
       CONTRAST_USERNAME,
       CONTRAST_SERVICE_KEY,
@@ -34,6 +29,7 @@ describe("testing utility functions and constants", () => {
         "http://localhost:8080/WebGoat",
         "http://localhost:8080/WebGoat/login",
       ]
+      credentials = items
 
       // callback from jasmine
       done()
@@ -81,25 +77,104 @@ describe("testing utility functions and constants", () => {
     expect(url).toEqual(expectedURL)
   })
 
-  it('returns a string of urls, separated by commas, encoded in base64', () => {
-    const expectedString = "L1dlYkdvYXQvU3FsSW5qZWN0aW9uL2F0dGFjazVh,L1dlYkdvYXQ=,L1dlYkdvYXQvbG9naW4="
-    expect(generateURLString(urls)).toEqual(expectedString)
+  it('calls returns a promise of credentials', (done) => {
+    const getStoredCredentialsSpy = spyOn(window,'getStoredCredentials').and.callThrough()
+    const storageSpy = spyOn(chrome.storage.local, 'get').and.callThrough()
+
+    getStoredCredentialsSpy()
+    .then(result => {
+      expect(getStoredCredentialsSpy).toHaveBeenCalledWith()
+      expect(Object.keys(result).length).toEqual(5)
+      expect(storageSpy).toHaveBeenCalled()
+      done()
+    })
   })
 
-  it('calls the xhr callback to generate a list of trace uuids', (done) => {
-    const traceUrls = generateURLString(urls)
-    const spy = jasmine.createSpy('callback')
-    const sendXhr = spyOn(window, 'sendXhr')
-    const getTraces = spyOn(window, 'getOrganizationVulnerabilityesIds').and.callThrough()
-    const chromeSpy = spyOn(window.chrome.storage.local, 'get').and.callThrough()
+  it('removes duplicates from an array', () => {
+    let array = [1,2,3]
+    expect(deDupeArray(array).length).toEqual(3)
 
-    getTraces(traceUrls, spy)
-    done()
-    console.log(sendXhr.calls.all());
-
-    expect(chromeSpy).toHaveBeenCalled()
-
-
+    array = [1,1,1]
+    expect(deDupeArray(array).length).toEqual(1)
   })
 
+  it('returns if the user is or is not credentialed', () => {
+    const isCredentialedSpy = spyOn(window, 'isCredentialed').and.callThrough()
+    expect(isCredentialedSpy(credentials)).toEqual(true)
+  })
+
+  it('throws an error fetching data from teamserver', (done) => {
+    const url      = "http://localhost:19080/Contrast/api/ng/thisisnotaroute"
+    const tsSpy    = spyOn(window, 'fetchTeamserver').and.callThrough()
+    tsSpy(url, "", authHeader, apiKey)
+    .then(result => {
+      expect(result).toEqual("error fetching from teamserver")
+      expect(window.fetch).toHaveBeenCalledWith(url, fetchOptions)
+      done()
+    })
+  })
+
+  it('fetches successfully from teamserver', (done) => {
+    const url = "http://localhost:19080/Contrast/api/ng/messages"
+    const returnData = {
+      "success": true,
+    }
+    const tsSpy = spyOn(window, 'fetchTeamserver').and.returnValue(Promise.resolve(returnData))
+    tsSpy(url, "", authHeader, apiKey)
+    .then(result => {
+      expect(result.success).toEqual(true)
+      expect(fetchTeamserver).toHaveBeenCalled()
+      done()
+    })
+  })
+
+  it('returns an array of trace uuids', (done) => {
+    const getOrganizationVulnerabilityIdsSpy = spyOn(window,'getOrganizationVulnerabilityIds').and.returnValue(Promise.resolve(returnVulnerabilityIdData))
+
+    getOrganizationVulnerabilityIdsSpy(generateURLString(urls))
+    .then(result => {
+      expect(result.success).toEqual(true)
+      expect(result.traces.length).toEqual(4)
+      expect(getOrganizationVulnerabilityIds).toHaveBeenCalledWith(generateURLString(urls))
+      done()
+    })
+  })
+
+  it('returns an extended trace object', (done) => {
+    const getVulnerabilityFilterSpy = spyOn(window,'getVulnerabilityFilter').and.returnValue(Promise.resolve(returnFilterTraceData))
+
+    getVulnerabilityFilterSpy(traceUuid)
+    .then(result => {
+      expect(result.success).toEqual(true)
+      expect(getVulnerabilityFilter).toHaveBeenCalledWith(traceUuid)
+
+      const keys = Object.keys(result.trace)
+      expect(keys).toBeDefined()
+      expect(keys.length).not.toEqual(0)
+      expect(keys.includes("application")).toEqual(true)
+      expect(keys.includes("rule_name")).toEqual(true)
+      expect(keys.includes("severity")).toEqual(true)
+      expect(keys.includes("request")).toEqual(true)
+      expect(result.trace.uuid).toEqual(traceUuid)
+      expect(result.trace.status).toEqual("Reported")
+      done()
+    })
+  })
+
+  it('returns a short trace object', (done) => {
+    const getVulnerabilityShortSpy = spyOn(window,'getVulnerabilityShort').and.returnValue(Promise.resolve(returnShortTraceData))
+
+    getVulnerabilityShortSpy(traceUuid)
+    .then(result => {
+      expect(result.success).toEqual(true)
+      expect(getVulnerabilityShort).toHaveBeenCalledWith(traceUuid)
+
+      const keys = Object.keys(result.trace)
+      expect(keys).toBeDefined()
+      expect(keys.length).not.toEqual(0)
+      expect(result.trace.uuid).toEqual(traceUuid)
+      expect(result.trace.status).toEqual("Reported")
+      done()
+    })
+  })
 })

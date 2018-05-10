@@ -7,7 +7,7 @@
   CONTRAST_ICON_BADGE_BACKGROUND,
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT,
   CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND,
-  getOrganizationVulnerabilityesIds,
+  getOrganizationVulnerabilityIds,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
 	TEAMSERVER_API_PATH_SUFFIX,
 	getStoredCredentials,
@@ -31,7 +31,8 @@
 	STORED_TRACES_KEY,
 	deDupeArray,
 	STORED_TRACES_KEY,
-	getVulnerabilityFilter
+	getVulnerabilityFilter,
+	generateURLString
 */
 
 
@@ -174,36 +175,6 @@ function updateVulnerabilities(tab) {
 }
 
 /**
-<<<<<<< HEAD
- * generateURLString - creates a string of base64 encoded urls to send to TS as params
- *
- * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
- * @return {String} - string of base64 encoded urls to send to TS as params
- */
-function generateURLString(traceUrls) {
-	if (!traceUrls || traceUrls.length === 0) {
-		return ""
-	}
-
-	// add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
-	// http://localhost:3000/login vs /login
-	const prefix = new URL(document.URL).origin
-	const prefixedUrls = traceUrls.map(u => prefix + "/" + u)
-
-	let urls = traceUrls.concat(prefixedUrls).map(u => {
-		// return the full url
-		// and the path / endpoint of the url
-		return [
-			btoa(u),
-			btoa(new URL(u).pathname)
-		]
-	}).flatten()
-
-	// return each base64 encoded url path with a common in between
-	return urls.join(',')
-}
-
-/**
  * evaluateVulnerabilities - method used by tab url, xhr and form actions to check TS for vulnerabilities
  *
  * @param  {Boolean} hasCredentials if the user has credentialed the extension
@@ -215,7 +186,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
 		// generate an array of only pathnames
 		const urlQueryString = generateURLString(traceUrls)
-		getOrganizationVulnerabilityesIds(urlQueryString)
+		getOrganizationVulnerabilityIds(urlQueryString)
 		.then(json => setToStorage(json.traces, tab))
 		.catch(error => error)
 	} else {
