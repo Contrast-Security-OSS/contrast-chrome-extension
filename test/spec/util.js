@@ -90,6 +90,13 @@ describe("testing utility functions and constants", () => {
     })
   })
 
+  it('processes a given teamserver url', () => {
+    for (let i = 0; i < VALID_TEAMSERVER_HOSTNAMES.length; i++) {
+      let url = VALID_TEAMSERVER_HOSTNAMES[i]
+      expect(processTeamserverUrl(url)).toEqual(`https://${url}/Contrast/api`)
+    }
+  })
+
   it('removes duplicates from an array', () => {
     let array = [1,2,3]
     expect(deDupeArray(array).length).toEqual(3)

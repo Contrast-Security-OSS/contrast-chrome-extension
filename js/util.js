@@ -24,7 +24,7 @@ const CONTRAST_USERNAME = "contrast_username", // storage key
       SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png",
 
       HTML_BODY = "body",
-      TEAMSERVER_INDEX_PATH_SUFFIX = "/Contrast/static/ng/index.html#/",
+      TEAMSERVER_INDEX_PATH_SUFFIX  = "/Contrast/static/ng/index.html#/",
       TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account",
       TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile",
       TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api",
@@ -246,4 +246,29 @@ function generateURLString(traceUrls) {
 
 	// return each base64 encoded url path with a common in between
 	return urls.join(',')
+}
+
+/**
+ * processTeamserverUrl - transforms a given url into a valid teamserver url
+ *
+ * @param  {String} teamserverUrlValue domain or domain:host
+ * @return {String}                    processed teamserver url
+ */
+function processTeamserverUrl(teamserverUrlValue) {
+  if (teamserverUrlValue.length > 0) {
+    while (teamserverUrlValue.endsWith("/")) {
+      teamserverUrlValue = teamserverUrlValue.slice(0, -1);
+    }
+
+    if (!teamserverUrlValue.endsWith("/api")) {
+      if (!teamserverUrlValue.endsWith("/Contrast")) {
+        teamserverUrlValue += "/Contrast";
+      }
+      teamserverUrlValue += "/api";
+    }
+    if (!teamserverUrlValue.startsWith("http")) {
+      teamserverUrlValue = "https://" + teamserverUrlValue;
+    }
+  }
+  return teamserverUrlValue
 }

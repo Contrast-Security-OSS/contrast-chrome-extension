@@ -11,7 +11,6 @@ function setAttributeValue(element, value) {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Inputs
-  "use strict";
   const username      = document.getElementById('contrast_username')
   const serviceKey    = document.getElementById('contrast_service_key')
   const apiKey        = document.getElementById('contrast_api_key')
@@ -31,29 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Run when form is submitted
   submitButton.addEventListener('click', () => {
     // retrieve values form inputs
-    const usernameValue = username.value.trim(),
-          serviceKeyValue = serviceKey.value.trim(),
-          apiKeyValue = apiKey.value.trim(),
-          orgUuidValue = orgUuid.value.trim();
-
-    let teamserverUrlValue = teamserverUrl.value.trim();
-
-    if (teamserverUrlValue.length > 0) {
-      while (teamserverUrlValue.endsWith("/")) {
-        teamserverUrlValue = teamserverUrlValue.slice(0, -1);
-      }
-
-      if (!teamserverUrlValue.endsWith("/api")) {
-        if (!teamserverUrlValue.endsWith("/Contrast")) {
-          teamserverUrlValue += "/Contrast";
-        }
-        teamserverUrlValue += "/api";
-      }
-      if (!teamserverUrlValue.startsWith("http")) {
-        teamserverUrlValue = "https://" + teamserverUrlValue;
-      }
-    }
-
+    const usernameValue   = username.value.trim()
+    const serviceKeyValue = serviceKey.value.trim()
+    const apiKeyValue     = apiKey.value.trim()
+    const orgUuidValue    = orgUuid.value.trim()
+    const teamserverUrl   = processTeamserverUrl(teamserverUrl.value.trim());
 
     //save values to local storage
     chrome.storage.local.set({
