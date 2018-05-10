@@ -17,8 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const apiKey        = document.getElementById('contrast_api_key')
   const orgUuid       = document.getElementById('contrast_org_uuid')
   const teamserverUrl = document.getElementById('teamserver_url')
-  let submitButton;
-
 
   getStoredCredentials().then(items => {
     setAttributeValue(username, items.contrast_username)
@@ -28,11 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setAttributeValue(teamserverUrl, items.teamserver_url)
   })
 
-
-  submitButton = document.getElementById('contrast-submit');
+  const submitButton = document.getElementById('contrast-submit');
 
   // Run when form is submitted
   submitButton.addEventListener('click', () => {
+    // retrieve values form inputs
+    const usernameValue = username.value.trim(),
+          serviceKeyValue = serviceKey.value.trim(),
+          apiKeyValue = apiKey.value.trim(),
+          orgUuidValue = orgUuid.value.trim();
+
     let teamserverUrlValue = teamserverUrl.value.trim();
 
     if (teamserverUrlValue.length > 0) {
@@ -53,11 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     //save values to local storage
-    chrome.storage.sync.set({
-      'contrast_username': username.value.trim(),
-      'contrast_service_key': serviceKey.value.trim(),
-      'contrast_api_key': apiKey.value.trim(),
-      'contrast_org_uuid': orgUuid.value.trim(),
+    chrome.storage.local.set({
+      'contrast_username': usernameValue,
+      'contrast_service_key': serviceKeyValue,
+      'contrast_api_key': apiKeyValue,
+      'contrast_org_uuid': orgUuidValue,
       'teamserver_url': teamserverUrlValue
     }, () => {
       chrome.tabs.getCurrent(tab => {

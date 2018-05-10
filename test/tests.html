@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Contrast Security Extension Tests</title>
+
+  <link rel="shortcut icon" type="image/png" href="jasmine-standalone-3.1.0/lib/jasmine-3.1.0/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="jasmine-standalone-3.1.0/lib/jasmine-3.1.0/jasmine.css">
+
+  <script type="text/javascript" src="jasmine-standalone-3.1.0/lib/jasmine-3.1.0/jasmine.js"></script>
+  <script type="text/javascript" src="jasmine-standalone-3.1.0/lib/jasmine-3.1.0/jasmine-html.js"></script>
+  <script type="text/javascript" src="jasmine-standalone-3.1.0/lib/jasmine-3.1.0/boot.js"></script>
+
+  <script type="text/javascript" src="/jquery/jquery-3.3.1.min.js"></script>
+
+  <!-- include spec files here -->
+  <script type="text/javascript" src="spec/util.js"></script>
+  <script type="text/javascript" src="spec/settings.js"></script>
+
+  <!-- include source files here. These can be directly imported from wherever you're storing your background and content scripts.  -->
+  <!-- <script type="text/javascript" src="/js/index.js"></script> -->
+  <script type="text/javascript" src="/js/util.js"></script>
+  <!-- <script type="text/javascript" src="/js/settings.js"></script> -->
+  <script type="text/javascript" src="/js/background.js"></script>
+  <script type="text/javascript" src="/js/content-script.js"></script>
+  <script type="text/javascript" src="/js/vulnerability.js"></script>
+
+  <script type="text/javascript" src="loadjasmine.js"></script>
+
+</head>
+
+  <body>
+    <button id="loadjasmine">Load Jasmine</button>
+    <button id="runtests">Run Tests</button>
+  </body>
+
+</html>

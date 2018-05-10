@@ -174,6 +174,7 @@ function updateVulnerabilities(tab) {
 }
 
 /**
+<<<<<<< HEAD
  * generateURLString - creates a string of base64 encoded urls to send to TS as params
  *
  * @param  {Array} traceUrls - array of urls retrieved from tab and form actions

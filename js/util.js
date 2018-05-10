@@ -4,11 +4,12 @@
 XMLHttpRequest, btoa, chrome
 */
 "use strict";
-const CONTRAST_USERNAME = "contrast_username",
-      CONTRAST_SERVICE_KEY = "contrast_service_key",
-      CONTRAST_API_KEY = "contrast_api_key",
-      CONTRAST_ORG_UUID = "contrast_org_uuid",
-      TEAMSERVER_URL = "teamserver_url",
+
+const CONTRAST_USERNAME = "contrast_username", // storage key
+      CONTRAST_SERVICE_KEY = "contrast_service_key", // storage key
+      CONTRAST_API_KEY = "contrast_api_key", // storage key
+      CONTRAST_ORG_UUID = "contrast_org_uuid", // storage key
+      TEAMSERVER_URL = "teamserver_url", // storage key
 
       SEVERITY_NOTE = "Note",
       SEVERITY_LOW = "Low",
@@ -31,6 +32,7 @@ const CONTRAST_USERNAME = "contrast_username",
         'app.contrastsecurity.com',
         'apptwo.contrastsecurity.com',
         'eval.contratsecurity.com',
+        'localhost'
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "red",
@@ -112,14 +114,12 @@ function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
-  let contrastURl = teamserverUrl;
+  let contrastURL = teamserverUrl;
   if (teamserverUrl.endsWith("/api")) {
-    contrastURl = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
+    contrastURL = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
   }
-  return contrastURl + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
+  return contrastURL + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
 }
-
-// --------- HELPER FUNCTIONS -------------
 
 /**
  * getStoredCredentials - retrieve teamserver credentials from chrome storage
@@ -145,6 +145,7 @@ function getStoredCredentials() {
  * @param  {Function} onReadyStateChangeCallback description
  * @return {void}
  */
+<<<<<<< HEAD
 function getOrganizationVulnerabilityesIds(urls) {
   return getStoredCredentials()
   .then(items => {
@@ -183,6 +184,14 @@ function getVulnerabilityFilter(traceUuid) {
   })
 }
 
+// ---------  OTHER HELPER FUNCTIONS -------------
+
+/**
+ * isCredentialed - verifies that user has all fields filled in
+ *
+ * @param  {Object} credentials username, serviceKey, apiKey, etc.
+ * @return {Boolean}            if all fields are complete
+ */
 function isCredentialed(credentials) {
   // ES5
   // check if any values are undefined
@@ -194,9 +203,15 @@ function isCredentialed(credentials) {
 
   // ES6
   const values = Object.values(credentials)
-  return values.length > 0 && values.every(item => !!item)
+  return !!values && values.length > 0 && values.every(item => !!item)
 }
 
+/**
+ * deDupeArray - remove duplicate vlues from array
+ *
+ * @param  {Array} array array from which to remove duplicates
+ * @return {Array}       new, deduped array
+ */
 function deDupeArray(array) {
   return array.filter((item, position, self) => self.indexOf(item) === position)
 }
