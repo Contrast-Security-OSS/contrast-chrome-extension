@@ -9,31 +9,26 @@ describe("testing utility functions and constants", () => {
       "Accept": "application/json"
     })
   }
-  let teamserverUrl, orgUuid, traceUuid, spy, obj, urls, credentials;
+  let teamserverUrl, orgUuid, traceUuid, urls, credentials;
 
-  beforeEach((done) => {
+  beforeEach(() => {
     const fetchSpy = spyOn(window, 'fetch').and.callThrough()
-    chrome.storage.local.get([
-      CONTRAST_USERNAME,
-      CONTRAST_SERVICE_KEY,
-      CONTRAST_API_KEY,
-      CONTRAST_ORG_UUID,
-      TEAMSERVER_URL,
-      CONTRAST_ORG_UUID
-    ], (items) => {
-      teamserverUrl = items[TEAMSERVER_URL]
-      orgUuid = items[CONTRAST_ORG_UUID]
-      traceUuid = "7HC2-TYLR-VATF-Z2ZO" // webgoat sql injection url
-      urls = [
-        "http://localhost:8080/WebGoat/SqlInjection/attack5a",
-        "http://localhost:8080/WebGoat",
-        "http://localhost:8080/WebGoat/login",
-      ]
-      credentials = items
-
-      // callback from jasmine
-      done()
-    })
+    credentials = {
+      [CONTRAST_USERNAME]: "admin",
+      [CONTRAST_SERVICE_KEY]: "demo",
+      [CONTRAST_API_KEY]: "demo",
+      [CONTRAST_ORG_UUID]: "i-am-an-org-uuid-123",
+      [TEAMSERVER_URL]: "localhost:19080",
+    }
+    chrome.storage.local.set(credentials)
+    orgUuid = "i-am-an-org-uuid-123"
+    teamserverUrl = "localhost:19080"
+    traceUuid = "7HC2-TYLR-VATF-Z2ZO" // webgoat sql injection url
+    urls = [
+      "http://localhost:8080/WebGoat/SqlInjection/attack5a",
+      "http://localhost:8080/WebGoat",
+      "http://localhost:8080/WebGoat/login",
+    ]
   })
 
   it('0 == 0 to test if jasmine works', () => expect(0).toEqual(0))
@@ -78,14 +73,14 @@ describe("testing utility functions and constants", () => {
   })
 
   it('calls returns a promise of credentials', (done) => {
-    const getStoredCredentialsSpy = spyOn(window,'getStoredCredentials').and.callThrough()
+    spyOn(window,'getStoredCredentials').and.callThrough()
     const storageSpy = spyOn(chrome.storage.local, 'get').and.callThrough()
 
-    getStoredCredentialsSpy()
+    getStoredCredentials()
     .then(result => {
-      expect(getStoredCredentialsSpy).toHaveBeenCalledWith()
-      expect(Object.keys(result).length).toEqual(5)
+      expect(getStoredCredentials).toHaveBeenCalledWith()
       expect(storageSpy).toHaveBeenCalled()
+      expect(Object.keys(result).length).toEqual(5)
       done()
     })
   })
@@ -105,13 +100,18 @@ describe("testing utility functions and constants", () => {
     expect(deDupeArray(array).length).toEqual(1)
   })
 
-  it('returns if the user is or is not credentialed', () => {
-    const isCredentialedSpy = spyOn(window, 'isCredentialed').and.callThrough()
-    expect(isCredentialedSpy(credentials)).toEqual(true)
+  it('returns if the user is or is not credentialed', (done) => {
+    expect(credentials).toBeDefined()
+    spyOn(window, 'isCredentialed').and.callThrough()
+    function checkCredentials() {
+      expect(isCredentialed(credentials)).toEqual(true)
+      done()
+    }
+    setTimeout(checkCredentials, 1000)
   })
 
   it('throws an error fetching data from teamserver', (done) => {
-    const url      = "http://localhost:19080/Contrast/api/ng/thisisnotaroute"
+    const url      = "http://" + TEAMSERVER_URL +   "/Contrast/api/ng/thisisnotaroute"
     const tsSpy    = spyOn(window, 'fetchTeamserver').and.callThrough()
     tsSpy(url, "", authHeader, apiKey)
     .then(result => {
@@ -122,7 +122,7 @@ describe("testing utility functions and constants", () => {
   })
 
   it('fetches successfully from teamserver', (done) => {
-    const url = "http://localhost:19080/Contrast/api/ng/messages"
+    const url = "http://" + TEAMSERVER_URL + "/Contrast/api/ng/messages"
     const returnData = {
       "success": true,
     }

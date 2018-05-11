@@ -9,7 +9,7 @@ addons:
       - openjdk-8-jre
 before_install:
   - sh ./install-selenium.sh
-  - sh ./start-chrome.sh
+  - npm install
   - npm install -g qunit
   - npm install -g eslint
 

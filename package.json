@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "qunit",
+    "test": "node selenium-test.js",
     "lint": "jslint 'js/*.js'"
   },
   "dependencies": {

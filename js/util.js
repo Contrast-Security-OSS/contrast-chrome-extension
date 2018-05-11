@@ -101,24 +101,39 @@ function getAuthorizationHeader(username, serviceKey) {
 }
 
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
-  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
+  if (teamserverUrl && orgUuid) {
+    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
+  } else {
+    throw new Error("argument to getOrganizationVulnerabilitiesIdsUrl was undefined")
+  }
 }
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
-  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
+  if (teamserverUrl && orgUuid && traceUuid) {
+    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
+  } else {
+    throw new Error("argument to getVulnerabilityShortUrl was undefined")
+  }
 }
 
 function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
-  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request,events,notes,application,servers";
+  if (teamserverUrl && orgUuid && traceUuid) {
+    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request,events,notes,application,servers";
+  } else {
+    throw new Error("argument to getVulnerabilityFilterUrl was undefined")
+  }
 }
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
-
-  let contrastURL = teamserverUrl;
-  if (teamserverUrl.endsWith("/api")) {
-    contrastURL = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
+  if (teamserverUrl && orgUuid && traceUuid) {
+    let contrastURL = teamserverUrl;
+    if (teamserverUrl.endsWith("/api")) {
+      contrastURL = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
+    }
+    return contrastURL + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
+  } else {
+    throw new Error("argument to getVulnerabilityTeamserverUrl was undefined")
   }
-  return contrastURL + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
 }
 
 /**

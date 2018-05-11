@@ -37,12 +37,16 @@ describe('tests for background methods', () => {
 
     expect(XHR_REQUESTS.length).toEqual(0)
 
+    function checkVulnerabilities() {
+      expect(chrome.tabs.query).toHaveBeenCalled()
+      expect(evaluateVulnerabilities).toHaveBeenCalled()
+      expect(XHR_REQUESTS.length).toEqual(1)
+      done()
+    }
+
     fetch(url).then(response => {
       chrome.tabs.getCurrent((tab) => {
-        expect(chrome.tabs.query).toHaveBeenCalled()
-        expect(evaluateVulnerabilities).toHaveBeenCalledWith(true, tab, [url])
-        expect(XHR_REQUESTS.length).toEqual(1)
-        done()
+        setTimeout(checkVulnerabilities, 1500)
       })
     })
   })
@@ -111,7 +115,7 @@ describe('tests for background methods', () => {
           done()
         })
       }
-      setTimeout(checkStorage, 500) // wait for chrome storage to update
+      setTimeout(checkStorage, 2000) // wait for chrome storage to update
     })
   })
 })

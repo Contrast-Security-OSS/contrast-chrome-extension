@@ -18,4 +18,4 @@ startChromeHeadless() {
 # Start
 # start-chrome
 # start-chrome-debug
-startChromeHeadless()
+# startChromeHeadless()
