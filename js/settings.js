@@ -1,7 +1,8 @@
 /*global
   chrome,
   document,
-  getStoredCredentials
+  getStoredCredentials,
+  processTeamserverUrl
 */
 "use strict";
 
@@ -30,11 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Run when form is submitted
   submitButton.addEventListener('click', () => {
     // retrieve values form inputs
-    const usernameValue   = username.value.trim()
-    const serviceKeyValue = serviceKey.value.trim()
-    const apiKeyValue     = apiKey.value.trim()
-    const orgUuidValue    = orgUuid.value.trim()
-    const teamserverUrl   = processTeamserverUrl(teamserverUrl.value.trim());
+    const usernameValue      = username.value.trim()
+    const serviceKeyValue    = serviceKey.value.trim()
+    const apiKeyValue        = apiKey.value.trim()
+    const orgUuidValue       = orgUuid.value.trim()
+    const teamserverUrlValue = processTeamserverUrl(teamserverUrl.value.trim());
 
     //save values to local storage
     chrome.storage.local.set({

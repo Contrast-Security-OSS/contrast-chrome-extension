@@ -247,7 +247,7 @@ function setBadgeLoading(tab) {
  *
  * @param  {Array<String>} traces - array of trace uuids
  * @param  {Object} tab - Gives the state of the current tab
- * @return {Promise} - A promise that resolves to an array of trace objects
+ * @return {Promise<Array>} - A promise that resolves to an array of trace objects
  */
 function processTraces(traces, tab) {
 	if (!traces || traces.length === 0) {
@@ -275,7 +275,7 @@ function processTraces(traces, tab) {
 			return trace
 		})
 	}
-	return Promise.all(traces.map(t => asyncRequest(t)))
+	return Promise.all(traces.map(t => asyncRequest(t))) // eslint-disable-line consistent-return
 }
 
 /**

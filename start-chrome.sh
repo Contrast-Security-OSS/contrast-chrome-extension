@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# https://gist.github.com/ziadoz/3e8ab7e944d02fe872c3454d17af31a5
 
 # Run Chrome via Selenium Server
 start-chrome() {
@@ -17,4 +18,4 @@ start-chrome-headless() {
 # Start
 # start-chrome
 # start-chrome-debug
-# start-chrome-headless
+start-chrome-headless()
