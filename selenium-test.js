@@ -27,4 +27,10 @@ async function allTestsSuccessful() {
   }
 }
 
-allTestsSuccessful().then(testResult => testResult)
+allTestsSuccessful().then(testResult => {
+  if (!testResult) {
+    throw new Error("Tests Failed")
+    return false
+  }
+  return true  
+})
