@@ -4,11 +4,8 @@ language: node_js
 node_js:
   - "8"
 addons:
-  apt:
-    packages:
-      - openjdk-8-jre
+  chrome: stable
 before_install:
-  - sh ./install-selenium.sh
   - npm install
   - npm install -g qunit
   - npm install -g eslint
