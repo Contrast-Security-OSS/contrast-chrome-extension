@@ -3,8 +3,7 @@ const chrome = require('selenium-webdriver/chrome')
 
 async function allTestsSuccessful() {
   const options = new chrome.Options()
-  options.addArguments("load-extension=.")
-  options.addArguments("--no-sandbox")
+  options.addArguments("load-extension=.", "--no-sandbox", "window-size=1024,768")
 
   let driver = await new Builder().forBrowser('chrome')
                                   .setChromeOptions(options)
