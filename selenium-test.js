@@ -4,6 +4,7 @@ const chrome = require('selenium-webdriver/chrome')
 async function allTestsSuccessful() {
   const options = new chrome.Options()
   options.addArguments("load-extension=.")
+  options.addArguments("--no-sandbox")
 
   let driver = await new Builder().forBrowser('chrome')
                                   .setChromeOptions(options)
