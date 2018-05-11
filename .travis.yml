@@ -1,7 +1,15 @@
+dist: trusty
+sudo: required
 language: node_js
 node_js:
   - "8"
+addons:
+  apt:
+    packages:
+      - openjdk-8-jre
 before_install:
+  - sh ./install-selenium.sh
+  - sh ./start-chrome.sh
   - npm install -g qunit
   - npm install -g eslint
 
