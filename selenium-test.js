@@ -29,8 +29,10 @@ async function allTestsSuccessful() {
 
 allTestsSuccessful().then(testResult => {
   if (!testResult) {
+    console.log("Tests failed, returning false");
     throw new Error("Tests Failed")
     return false
   }
-  return true  
+  console.log("All tests passed, returning true");
+  return true
 })
