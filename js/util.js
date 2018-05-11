@@ -92,7 +92,7 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
       }
       throw new Error(response)
     })
-    .catch(error => "error fetching from teamserver")
+    .catch(error => false)
   )
 }
 

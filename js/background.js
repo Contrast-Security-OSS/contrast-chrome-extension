@@ -51,7 +51,6 @@ let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
  * @return {void}
  */
 chrome.webRequest.onBeforeRequest.addListener((request) => {
-
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
 	if (request.type === "xmlhttprequest" && !request.url.includes("Contrast")) {
@@ -74,8 +73,6 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
 }, { urls: [LISTENING_ON_DOMAIN] })
 
 /**
- * chrome - description
- *
  * @param  {Object} request a request object
  * @param  {Object} sender  which script sent the request
  * @param  {Function} sendResponse return information to sender, must be JSON serializable
@@ -84,6 +81,23 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
  * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	handleRuntimeOnMessage(request, sender, sendResponse)
+	return true
+})
+
+chrome.tabs.onActivated.addListener(activeInfo => {
+	handleTabActivated(activeInfo)
+})
+
+function handleTabActivated(activeInfo) {
+	if (VULNERABLE_TABS.includes(activeInfo.tabId)) {
+		chrome.tabs.query({ active: true, windowId: activeInfo.windowId }, (tabs) => {
+			updateVulnerabilities(tabs[0])
+		})
+	}
+}
+
+function handleRuntimeOnMessage(request, sender, sendResponse) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result.traces) {
@@ -101,17 +115,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			}
 		})
 	}
-
-	return true
-})
-
-chrome.tabs.onActivated.addListener(activeInfo => {
-	if (VULNERABLE_TABS.includes(activeInfo.tabId)) {
-		chrome.tabs.query({ active: true, windowId: activeInfo.windowId }, (tabs) => {
-			updateVulnerabilities(tabs[0])
-		})
-	}
-})
+}
 
 
 /**
@@ -246,7 +250,9 @@ function setBadgeLoading(tab) {
  * @return {Promise} - A promise that resolves to an array of trace objects
  */
 function processTraces(traces, tab) {
-
+	if (!traces || traces.length === 0) {
+		return
+	}
 	/**
 	 * asyncRequest - not technically needed, could return getVulnerabilityFilter inside of traces.map below, but it looks cleaner
 	 *
@@ -256,6 +262,9 @@ function processTraces(traces, tab) {
 	function asyncRequest(trace) {
 		return getVulnerabilityFilter(trace)
 		.then(json => {
+			if (!json) {
+				return ""
+			}
 			const request = json.trace.request
 			const url 		= new URL(tab.url)
 			const path 		= url.pathname.match(/\/\w+/)[0] // 1st index is string
@@ -280,15 +289,11 @@ function processTraces(traces, tab) {
  * @return {Promise}
  */
 function setToStorage(foundTraces, tab) {
-
 	processTraces(foundTraces, tab)
 	.then(traces => {
 
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI (see processTraces)
 		traces = traces.filter(t => !!t)
-
-		// remove any duplicated traces
-		traces = deDupeArray(traces)
 
 		buildVulnerabilitiesArray(traces, tab)
 		.then(vulnerabilities => {

@@ -115,7 +115,7 @@ describe("testing utility functions and constants", () => {
     const tsSpy    = spyOn(window, 'fetchTeamserver').and.callThrough()
     tsSpy(url, "", authHeader, apiKey)
     .then(result => {
-      expect(result).toEqual("error fetching from teamserver")
+      expect(result).toEqual(false)
       expect(window.fetch).toHaveBeenCalledWith(url, fetchOptions)
       done()
     })
