@@ -103,25 +103,22 @@ function getAuthorizationHeader(username, serviceKey) {
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
   if (teamserverUrl && orgUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
-  } else {
-    throw new Error("argument to getOrganizationVulnerabilitiesIdsUrl was undefined")
   }
+  throw new Error("argument to getOrganizationVulnerabilitiesIdsUrl was undefined")
 }
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
-  } else {
-    throw new Error("argument to getVulnerabilityShortUrl was undefined")
   }
+  throw new Error("argument to getVulnerabilityShortUrl was undefined")
 }
 
 function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request,events,notes,application,servers";
-  } else {
-    throw new Error("argument to getVulnerabilityFilterUrl was undefined")
   }
+  throw new Error("argument to getVulnerabilityFilterUrl was undefined")
 }
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
@@ -131,9 +128,8 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
       contrastURL = teamserverUrl.substring(0, teamserverUrl.indexOf("/api"));
     }
     return contrastURL + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
-  } else {
-    throw new Error("argument to getVulnerabilityTeamserverUrl was undefined")
   }
+  throw new Error("argument to getVulnerabilityTeamserverUrl was undefined")
 }
 
 /**
