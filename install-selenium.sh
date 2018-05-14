@@ -41,5 +41,4 @@ sudo chmod 0755 /usr/local/bin/chromedriver
 wget -N http://selenium-release.storage.googleapis.com/$SELENIUM_SUBDIR/selenium-server-standalone-$SELENIUM_STANDALONE_VERSION.jar -P ~/
 sudo mv -f ~/selenium-server-standalone-$SELENIUM_STANDALONE_VERSION.jar /usr/local/bin/selenium-server-standalone.jar
 sudo chown root:root /usr/local/bin/selenium-server-standalone.jar
-sudo chmod 0755 /usr/local/bin/selenium-server-standalone.jar
-selenium-standalone start > /dev/null 2>&1
+sudo chmod 0755 /usr/local/bin/selenium-server-standalone.jar  

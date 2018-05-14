@@ -10,10 +10,12 @@ before_install:
   - npm install
   - npm install -g qunit
   - npm install -g eslint
+  - npm install -g nightwatch
 
 before_script:
   - "sh -e /etc/init.d/xvfb start"
   - sleep 5 # give xvfb some time to start
+  - selenium-standalone start
 
 script:
   - npm test && eslint js/
