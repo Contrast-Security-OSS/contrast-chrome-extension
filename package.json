@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "node selenium-test.js",
+    "test": "xvfb-run node selenium-test.js",
     "lint": "jslint 'js/*.js'"
   },
   "dependencies": {

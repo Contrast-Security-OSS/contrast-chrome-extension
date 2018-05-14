@@ -15,6 +15,9 @@ before_install:
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
-  - sleep 10 # give xvfb some time to start
+  - sleep 60 # give xvfb some time to start
 
-script: npm test && eslint js/
+script:
+  - whereis google-chrome-stable
+  - whereis chromedriver
+  - npm test && eslint js/

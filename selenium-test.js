@@ -3,27 +3,28 @@ const chrome = require('selenium-webdriver/chrome')
 
 async function allTestsSuccessful() {
   const options = new chrome.Options()
-  options.addArguments("load-extension=.", "--no-sandbox", "--window-size=1024,768")
+  options.addArguments(
+    "load-extension=.",
+    "window-size=2560,1440",
+    "allow-running-insecure-content",
+  )
+  // options.windowSize({ height: 2560, width: 1440 })
 
   let driver = await new Builder().forBrowser('chrome')
                                   .setChromeOptions(options)
                                   .build()
   try {
     await driver.get('chrome-extension://pcjjnlfcfafhomibohnelgcjnbnlhopn/test/tests.html')
-    await driver.findElement(By.css('html')).then(res => console.log(res))
-
     await driver.sleep(10000)
     let testBar
     try {
-      testBar = await driver.findElement(By.className('jasmine-overall-result'))
-    } catch (e) {
+      console.log(By.className('jasmine-bar'));
       testBar = await driver.findElement(By.className('jasmine-bar'))
+    } catch (e) {
+      testBar = await driver.findElement(By.xpath("//span[contains(@class, 'jasmine-bar')]"))
     }
     const testBarText = await testBar.getText()
-    if (testBarText.includes("0 failures")) {
-      return true
-    }
-    return false
+    return testBarText.includes("0 failures")
   } finally {
       await driver.quit()
   }
