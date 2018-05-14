@@ -4,10 +4,11 @@ const chrome = require('selenium-webdriver/chrome')
 async function allTestsSuccessful() {
   const options = new chrome.Options()
   options.addArguments(
-    "load-extension=.",
-    "window-size=2560,1440",
+    "window-size=1024,768",
     "allow-running-insecure-content",
   )
+  options.addExtensions("/Users/dcorderman/js/contrast-chrome-extension.crx")
+  // "load-extension=.",
   // options.windowSize({ height: 2560, width: 1440 })
 
   let driver = await new Builder().forBrowser('chrome')
@@ -15,12 +16,26 @@ async function allTestsSuccessful() {
                                   .build()
   try {
     await driver.get('chrome-extension://pcjjnlfcfafhomibohnelgcjnbnlhopn/test/tests.html')
+    driver.navigate.refresh()
     await driver.sleep(10000)
+
     let testBar
+
     try {
       testBar = await driver.findElement(By.className('jasmine-bar'))
     } catch (e) {
-      testBar = await driver.findElement(By.xpath("//span[contains(@class, 'jasmine-bar')]"))
+      console.log("Couldn't find element by className", e);
+    }
+    if (!testBar) {
+      try {
+        testBar = await driver.findElement(By.xpath("//span[contains(@class, 'jasmine-bar')]"))
+      } catch (e) {
+        console.log("Couldn't find element by xpath", e);
+      }
+    }
+    if (!testBar) {
+      throw new Error("Jasmine Bar not found")
+      await driver.quit()
     }
     const testBarText = await testBar.getText()
     return testBarText.includes("0 failures")
