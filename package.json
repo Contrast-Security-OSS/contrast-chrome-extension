@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "xvfb-run node selenium-test.js",
+    "test": "xvfb-run --auto-servernum --server-num=1 node selenium-test.js",
     "lint": "jslint 'js/*.js'"
   },
   "dependencies": {

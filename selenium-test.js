@@ -18,7 +18,6 @@ async function allTestsSuccessful() {
     await driver.sleep(10000)
     let testBar
     try {
-      console.log(By.className('jasmine-bar'));
       testBar = await driver.findElement(By.className('jasmine-bar'))
     } catch (e) {
       testBar = await driver.findElement(By.xpath("//span[contains(@class, 'jasmine-bar')]"))
