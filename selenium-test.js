@@ -4,19 +4,16 @@ const chrome = require('selenium-webdriver/chrome')
 async function allTestsSuccessful() {
   const options = new chrome.Options()
   options.addArguments(
+    `load-extension=${__dirname}`,
     "window-size=1024,768",
     "allow-running-insecure-content",
   )
-  options.addExtensions("/Users/dcorderman/js/contrast-chrome-extension.crx")
-  // "load-extension=.",
-  // options.windowSize({ height: 2560, width: 1440 })
 
   let driver = await new Builder().forBrowser('chrome')
                                   .setChromeOptions(options)
                                   .build()
   try {
     await driver.get('chrome-extension://pcjjnlfcfafhomibohnelgcjnbnlhopn/test/tests.html')
-    driver.navigate.refresh()
     await driver.sleep(10000)
 
     let testBar

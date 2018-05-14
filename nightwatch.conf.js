@@ -21,7 +21,9 @@ module.exports = {
         "chromeOptions": {
           "args": [
             `load-extension=${__dirname}`,
-            "allow-running-insecure-content"
+            "allow-running-insecure-content",
+            "disable-gpu",
+            "no-sandbox"
           ]
         }
       }
