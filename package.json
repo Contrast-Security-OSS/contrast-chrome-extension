@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "xvfb-run --auto-servernum --server-num=1 node selenium-test.js",
+    "test": "nightwatch --verbose -t test/nightwatch-test.js --env chrome",
     "lint": "jslint 'js/*.js'"
   },
   "dependencies": {

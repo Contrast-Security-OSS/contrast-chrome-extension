@@ -1,8 +1,3 @@
-function encode(file) {
-    var stream = require('fs').readFileSync(file);
-    return new Buffer(stream).toString('base64');
-}
-
 module.exports = {
   "src_folders": "test",
   "selenium": {
@@ -25,7 +20,7 @@ module.exports = {
         "javascriptEnabled": true,
         "chromeOptions": {
           "args": [
-            "load-extension=/Users/dcorderman/js/contrast-chrome-extension",
+            `load-extension=${__dirname}`,
             "allow-running-insecure-content"
           ]
         }
