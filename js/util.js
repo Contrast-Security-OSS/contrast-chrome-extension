@@ -30,7 +30,7 @@ const CONTRAST_USERNAME = "contrast_username",
       VALID_TEAMSERVER_HOSTNAMES = [
         'app.contrastsecurity.com',
         'apptwo.contrastsecurity.com',
-        'eval.contratsecurity.com'
+        'eval.contratsecurity.com',
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "red",
@@ -56,18 +56,42 @@ Array.prototype.flatten = function() {
 	return this.reduce((newArray, val) => newArray.concat(val), []);
 }
 
-// --------- HELPER FUNCTIONS -------------
-function sendXhr(url, params, authHeader, apiKey, onReadyStateChangeCallback) {
 
-  const xhr = new XMLHttpRequest()
-  const linkWithParams = url + params
-  // console.log("url with params sent to teamserver", linkWithParams);
-  xhr.open('GET', linkWithParams, true);
-  xhr.setRequestHeader("Authorization", authHeader);
-  xhr.setRequestHeader("API-Key", apiKey);
-  xhr.setRequestHeader("Accept", "application/json");
-  xhr.onreadystatechange = onReadyStateChangeCallback(xhr);
-  xhr.send();
+/**
+ * String.prototype.titleize - capitalize the first letter of each word in a string, regardless of special characters
+ * https://stackoverflow.com/a/6251509/6410635
+ * https://stackoverflow.com/a/196991/6410635
+ *
+ * @return {String} titleized string
+ */
+String.prototype.titleize = function() {
+  return this.replace(/\b([a-z])/g, function(captured) {
+    return captured.charAt(0).toUpperCase() + captured.substr(1).toLowerCase()
+  })
+}
+
+// --------- HELPER FUNCTIONS -------------
+
+function fetchTeamserver(url, params, authHeader, apiKey) {
+  const fetchOptions = {
+    method: "GET",
+    headers: new Headers({
+      "Authorization": authHeader,
+      "API-Key": apiKey,
+      "Accept": "application/json"
+    })
+  }
+  const requestUrl = url + params
+  return (
+    fetch(requestUrl, fetchOptions)
+    .then(response => {
+      if (response.status === 200 && response.ok) {
+        return response.json()
+      }
+      return false
+    })
+    .catch(error => "error fetching from teamserver")
+  )
 }
 
 function getAuthorizationHeader(username, serviceKey) {
@@ -82,6 +106,10 @@ function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
 }
 
+function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
+  return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request,events,notes,application,servers";
+}
+
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
   let contrastURl = teamserverUrl;
@@ -93,6 +121,11 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 
 // --------- HELPER FUNCTIONS -------------
 
+/**
+ * getStoredCredentials - retrieve teamserver credentials from chrome storage
+ *
+ * @return {Promise} - a promise that resolves to an object of stored teamserver credentials
+ */
 function getStoredCredentials() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get([
@@ -112,24 +145,42 @@ function getStoredCredentials() {
  * @param  {Function} onReadyStateChangeCallback description
  * @return {void}
  */
-function getOrganizationVulnerabilityesIds(urls, onReadyStateChangeCallback) {
-  // console.log(onReadyStateChangeCallback);
-  getStoredCredentials().then(items => {
+function getOrganizationVulnerabilityesIds(urls) {
+  return getStoredCredentials()
+  .then(items => {
     const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
     const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
     const params = "?urls=" + urls
-      // params = "?urls=" + btoa(urls);
-    sendXhr(url, params, authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
+    return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });
 }
 
-function getVulnerabilityShort(traceUuid, onReadyStateChangeCallback) {
+function getVulnerabilityShort(traceUuid) {
+  return getStoredCredentials()
+  .then(items => {
+    const url = getVulnerabilityShortUrl(
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
+    )
+    const authHeader = getAuthorizationHeader(
+      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+    );
 
-  getStoredCredentials().then(items => {
-    const url = getVulnerabilityShortUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid),
-      authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-    sendXhr(url, "", authHeader, items[CONTRAST_API_KEY], onReadyStateChangeCallback);
-  });
+    return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
+  })
+}
+
+function getVulnerabilityFilter(traceUuid) {
+  return getStoredCredentials()
+  .then(items => {
+    const url = getVulnerabilityFilterUrl(
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
+    )
+    const authHeader = getAuthorizationHeader(
+      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+    );
+
+    return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
+  })
 }
 
 function isCredentialed(credentials) {

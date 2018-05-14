@@ -139,3 +139,7 @@ label {
 #vulnerabilities-found-on-page-list {
   margin-top: 10px;
 }
+
+#configure {
+  outline: none;
+}

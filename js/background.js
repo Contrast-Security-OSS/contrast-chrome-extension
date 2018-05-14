@@ -30,12 +30,17 @@
 	deDupeArray,
 	STORED_TRACES_KEY,
 	deDupeArray,
-	STORED_TRACES_KEY
+	STORED_TRACES_KEY,
+	getVulnerabilityFilter
 */
 
 
 
 "use strict";
+
+let VULNERABLE_TABS = [] // tab ids of tabs where vulnerabilities count != 0
+let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
+
 /**
  * called before any local or alocal request is sent
  * captures xhr and resource requests
@@ -44,8 +49,6 @@
  * @param {Object} filter - allows limiting the requests for which events are triggered in various dimensions including urls
  * @return {void}
  */
-
-let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
 chrome.webRequest.onBeforeRequest.addListener((request) => {
 
 	// only permit xhr requests
@@ -101,6 +104,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	return true
 })
 
+chrome.tabs.onActivated.addListener(activeInfo => {
+	if (VULNERABLE_TABS.includes(activeInfo.tabId)) {
+		chrome.tabs.query({ active: true, windowId: activeInfo.windowId }, (tabs) => {
+			updateVulnerabilities(tabs[0])
+		})
+	}
+})
+
 
 /**
  * anonymous function - called when tab is updated including any changes to url
@@ -139,8 +150,10 @@ function updateVulnerabilities(tab) {
 		getStoredCredentials().then(items => {
 			let evaluated = false
 			const credentialed = isCredentialed(items)
+
 			if (credentialed && !evaluated) {
 				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
+
 					evaluated = true
 					if (!!response) {
 						const { formActions } = response
@@ -201,22 +214,9 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
 	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
 		// generate an array of only pathnames
 		const urlQueryString = generateURLString(traceUrls)
-		getOrganizationVulnerabilityesIds(urlQueryString, () => {
-			return (e) => {
-				const xhr = e.currentTarget;
-				if (xhr.readyState === 4 && xhr.responseText !== "") {
-
-					const json = JSON.parse(xhr.responseText);
-					if (json.traces && json.traces.length > 0) {
-						if (chrome.runtime.lastError) {
-							return;
-						}
-						setToStorage(json.traces, tab)
-					}
-
-				}
-			};
-		});
+		getOrganizationVulnerabilityesIds(urlQueryString)
+		.then(json => setToStorage(json.traces, tab))
+		.catch(error => error)
 	} else {
 		getCredentials(tab)
 	}
@@ -233,18 +233,21 @@ function updateTabBadge(tab, count) {
 	if (tab.index >= 0) { // tab is visible
 		chrome.browserAction.setBadgeBackgroundColor({
 			color: CONTRAST_ICON_BADGE_BACKGROUND
-		});
-		chrome.browserAction.setBadgeText({
-			tabId: tab.id,
-			text: count.toString(),
-		});
+		})
+		try {
+			chrome.browserAction.setBadgeText({
+				tabId: tab.id,
+				text: count.toString(),
+			})
+		}
+		catch (e) { e }
 	}
 }
 
 /**
  * setBadgeLoading - set badge to a loading indicator, especially useful with settimeout thing in the content script
  *
- * @param  {type} tab Gives the state of the current tab
+ * @param  {Object} tab    Gives the state of the current tab
  * @return {void}
  */
  // https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
@@ -253,31 +256,86 @@ function setBadgeLoading(tab) {
 		chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAT_GREEN })
 
 		// &#x21bb; is unicode clockwise circular arrow
-		chrome.browserAction.setBadgeText({
-			tabId: tab.id,
-			text: "↻"
-		})
+		try {
+			chrome.browserAction.setBadgeText({
+				tabId: tab.id,
+				text: "↻"
+			})
+		}
+		catch (e) { e }
 	}
 }
 
 /**
+ * processTraces - description
+ *
+ * @param  {Array<String>} traces - array of trace uuids
+ * @param  {Object} tab - Gives the state of the current tab
+ * @return {Promise} - A promise that resolves to an array of trace objects
+ */
+function processTraces(traces, tab) {
+
+	/**
+	 * asyncRequest - not technically needed, could return getVulnerabilityFilter inside of traces.map below, but it looks cleaner
+	 *
+	 * @param  {String} trace - a trace uuid
+	 * @return {String} - blank or the trace uuid, after it has been checked against the URI of the tab vs. the URI of the trace request
+	 */
+	function asyncRequest(trace) {
+		return getVulnerabilityFilter(trace)
+		.then(json => {
+			const request = json.trace.request
+			const url 		= new URL(tab.url)
+			const path 		= url.pathname.match(/\/\w+/)[0] // 1st index is string
+			const match 	= request.uri.indexOf(path)
+			if (match === -1) {
+				return ""
+			}
+			return trace
+		})
+	}
+	return Promise.all(traces.map(t => asyncRequest(t)))
+}
+
+/**
  * setToStorage - locals the trace ids of found vulnerabilities to storage
+ * https://blog.lavrton.com/javascript-loops-how-to-handle-async-await-6252dd3c795
+ * https://stackoverflow.com/a/37576787/6410635
+ *
  *
  * @param  {Array} foundTraces - trace ids of vulnerabilities found
  * @param  {Object} tab - Gives the state of the current tab
  * @return {Promise}
  */
 function setToStorage(foundTraces, tab) {
-	buildVulnerabilitiesArray(foundTraces, tab).then((vulnerabilities) => {
-		updateTabBadge(tab, vulnerabilities.length)
 
-		let traces = {}
-		traces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
+	processTraces(foundTraces, tab)
+	.then(traces => {
 
-		// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
-		chrome.storage.local.set(traces)
+		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI (see processTraces)
+		traces = traces.filter(t => !!t)
+
+		// remove any duplicated traces
+		traces = deDupeArray(traces)
+
+		buildVulnerabilitiesArray(traces, tab)
+		.then(vulnerabilities => {
+			updateTabBadge(tab, vulnerabilities.length)
+
+			let storedTraces = {}
+			storedTraces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
+
+			// add tab id to VULNERABLE_TABS so that vulnerabilities can be assessed if tab is reactivated
+			if (JSON.stringify(vulnerabilities).length > 0) {
+				VULNERABLE_TABS.push(tab.id)
+			}
+
+			// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
+			chrome.storage.local.set(storedTraces)
+		})
+		.catch(error => error)
 	})
-	.catch(error => error)
+
 }
 
 /**
