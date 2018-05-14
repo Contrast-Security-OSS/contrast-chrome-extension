@@ -15,7 +15,7 @@ before_install:
 before_script:
   - "sh -e /etc/init.d/xvfb start"
   - sleep 5 # give xvfb some time to start
-  - selenium-standalone start
+  - java -jar /usr/local/bin/selenium-server-standalone.jar
 
 script:
   - npm test && eslint js/
