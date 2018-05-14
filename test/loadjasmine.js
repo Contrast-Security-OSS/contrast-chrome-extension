@@ -18,7 +18,7 @@ function loadJasmine() {
     jasmineEnv.execute();
   }
   function runTests() {
-    execJasmine();
+    console.log("execJasmine()", execJasmine())
   }
   document.getElementById("runtests").addEventListener('click', runTests);
 }

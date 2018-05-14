@@ -3,13 +3,15 @@ const chrome = require('selenium-webdriver/chrome')
 
 async function allTestsSuccessful() {
   const options = new chrome.Options()
-  options.addArguments("load-extension=.", "--no-sandbox", "window-size=1024,768")
+  options.addArguments("load-extension=.", "--no-sandbox", "--window-size=1024,768")
 
   let driver = await new Builder().forBrowser('chrome')
                                   .setChromeOptions(options)
                                   .build()
   try {
     await driver.get('chrome-extension://pcjjnlfcfafhomibohnelgcjnbnlhopn/test/tests.html')
+    await driver.findElement(By.css('html')).then(res => console.log(res))
+
     await driver.sleep(10000)
     let testBar
     try {
