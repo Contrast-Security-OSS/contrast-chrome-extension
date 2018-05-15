@@ -2,20 +2,24 @@ dist: trusty
 sudo: required
 addons:
   chrome: stable
+  sauce_connect:
+    username: SAUCE_USERNAME
+    access_key: SAUCE_ACCESS_KEY
 language: node_js
 node_js:
-  - "8"
+- '8'
 before_install:
-  - sh ./install-selenium.sh
-  - npm install
-  - npm install -g qunit
-  - npm install -g eslint
-  - npm install -g nightwatch
-
+- sh ./install-selenium.sh
+- npm install
+- npm install -g qunit
+- npm install -g eslint
 before_script:
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 5 # give xvfb some time to start
-  - java -jar /usr/local/bin/selenium-server-standalone.jar
-
+- sh -e /etc/init.d/xvfb start
+- sleep 5
+- java -jar /usr/local/bin/selenium-server-standalone.jar > /dev/null 2>&1 &
 script:
-  - npm test && eslint js/
+- npm test && eslint js/
+env:
+  global:
+  - secure: Z2E0uueTj6dAtCZLnTpBpSjeRkksCrPlAXfN6kffteOh3TBHXijOJCxj+FtuyTWJ6Gi71dc94qKBtABiegKwm+WdLwRgSLj9twmfyJJStsMbykH5Mss9eVhJqApVgZZCqA8Cu/FuC155zp7jQCUwL0L0cOosHlt+c8HPFI377XQ1R7G0me9Vrtq7fo9bcG3/R7ggqp8E/m0VQWNMwNHKLk+sH1xI1l5lv/f5Rz1TF7a0TlVMKe7TfGug/7zxmznYZQ0L3ntCmRIItEA33Nj9XH+CTYo5+UHF5H1C8UJzlZxa1dwNIotIMCxnkqBn9TLdw2f2Y0rdpSQUxRaKyslrc/JBm61r0YwHIP8SLsf15Yxf/IJ8eodQn5BnuRRHeRDzQGmCZJlLGq20vOxx91VZtFiPBEcNmp3Ta91NxpVbPLRaqIGSCprKNdDCQ78ZYAr2JruWubjuvwf394eqfl/ztbS4lO/64+5azBdBmsg/gjG3L0PCjYk7JT+OIeBFph+LoXC98UgjyAqnG2ola98cLWnIuLQ1kQWtil1r2vn+qmJ+EdlkihqfNyxdeENHZl/RdBK/TlsHUDRJU7w+wjv24Pwu5hCbOddfKWaXtv3RnwWyI4P65J1uOqtWgve0A/NWLyrs+TAL/MovzV3sh06R/uEFO/T7bJWBLkKda5lh7IQ=
+  - secure: Z7j9mWwZ/TXcXQlhcJjC7WkBOlQKgEeflO/62HSJhtLJ1zksuGYcJg1khiHqRDVGO3n8LQnw2b0jzSJoMFVd1HmkLS9S5ESXQv5vla3PV0vgEZgwrnjcA1/6n0ZV9wCs/193ARWwiCCvg9mrGcYSA+vcBiqEtf62yCcNoDGDhtq3Vhnwu6TsWraRX4OHJz3HHBwqhmVVpudMrXYbor9eZn7dnytw0NTUlKU0IbyCIZ7fCyjgYXR8EUTHR29tJuhxQzoCVILTxPRiHPnJ5TpoXiBOUCGHADuZ1KklrOLu+bMo6yUA5OM6Madn13tDy10fRBGqErQ5HOdFP1rUFkcluNKUC+etdYC3c3hrvIMrvZwc4EsavjVTnMt5aycvu5lqs4PP93y/T3ia7ftwQoEOImUdYvfV4p6S4Wc0veeWwrmE5raVTisaoytAF1zqmgb3H9uPzFaR1wWLpaw3xGYBNlidlWYGl5G/JhfvbuYn5fBidP1QDU33Tztd/erPmGEBG9z9ppFMwK7XKQ7/U5MHF+mFOCBhp2UphFGYJDxf4KOu1SNH405Tmp/3L4XaTy4Ngz5vRWML2kHVsq2m0j/GAiCown7xrvWA1tDObrkEJfGNCzRzZkXkT0rWYMw0xunTDZ4Jz/lXTEvZfG/tUkDHMKgNbndYGPJbE059bzh0d74=

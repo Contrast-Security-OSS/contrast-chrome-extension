@@ -1,10 +1,11 @@
 {
   "scripts": {
-    "test": "nightwatch --verbose -t test/nightwatch-test.js --env chrome",
+    "test": "node sauce-selenium-test.js",
     "lint": "jslint 'js/*.js'"
   },
   "dependencies": {
     "nightwatch": "^0.9.21",
-    "selenium-webdriver": "^4.0.0-alpha.1"
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "webdriverio": "^4.12.0"
   }
 }
