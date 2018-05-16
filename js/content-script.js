@@ -15,6 +15,28 @@ if (window.performance.navigation.type === 1) {
 }
 
 /**
+ * highlightForm - description
+ *
+ * @param  {DOMElement} form - A form on the DOM
+ * @return {void}
+ */
+function highlightForm(form) {
+  const inputs = form.getElementsByTagName('input')
+  for (let i = 0; i < inputs.length; i++) {
+    if (inputs[i].type.toLowerCase() !== "submit") {
+      inputs[i].setAttribute("style",
+        `border-radius: 5px;
+        border: 3px solid ${CONTRAT_GREEN};
+        background-image: url(${chrome.extension.getURL(CONTRAST_ICON_16)});
+        background-repeat: no-repeat;
+        background-position: left;
+        background-position-x: 2%;`
+      ); // highlight with contrast aquamarine color
+    }
+  }
+}
+
+/**
  * extractActionsFromForm - gets the form actions from each form in a collection
  *
  * @param  {HTMLCollection} forms collection of forms extracted from DOM
@@ -46,6 +68,12 @@ function parentHasDisplayNone(element) {
   return false
 }
 
+/**
+ * HTMLCollectionToArray - convert a collection of html form to an array
+ *
+ * @param  {HTMLCollection} collection - Collection of html elements
+ * @return {Array<DOMNode>}
+ */
 function HTMLCollectionToArray(collection) {
   return Array.prototype.slice.call(collection)
 }
@@ -55,7 +83,7 @@ function scrapeDOMForForms() {
   let formActions = []
   let domForms = HTMLCollectionToArray(document.getElementsByTagName("form"))
   for (let i = 0; i < domForms.length; i++) {
-
+    highlightForm(domForms[i])
     // only collect forms that are shown on DOM
     // don't use `.splice()` because that mutates array we're running loop on
     if (!parentHasDisplayNone(domForms[i])) {
@@ -113,6 +141,9 @@ function collectFormActions(sendResponse) {
 
       // if the mutated element has child forms
       if (!!mutatedForms && mutatedForms.length > 0) {
+        for (let i = 0; i < mutatedForms.length; i++) {
+          highlightForm(mutatedForms[i])
+        }
         let extractedActions = extractActionsFromForm(mutatedForms)
         formActions = formActions.concat(extractedActions)
       }
