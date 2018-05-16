@@ -40,11 +40,10 @@ const CONTRAST_USERNAME = "contrast_username", // storage key
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*",
 
-      LISTENING_ON_DOMAIN = "<all_urls>",
+      LISTENING_ON_DOMAIN = ["^http://", "^https://"],
       GATHER_FORMS_ACTION = "gatherForms",
       STORED_TRACES_KEY   = "traces",
       TRACES_REQUEST      = "getStoredTraces";
-
 
 /**
  * Array.prototype.flatten - reduce multi-dimensional arrays to single dimension

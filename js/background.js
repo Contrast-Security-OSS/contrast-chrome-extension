@@ -70,7 +70,7 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
 			})
 		})
 	}
-}, { urls: [LISTENING_ON_DOMAIN] })
+}, { urls: LISTENING_ON_DOMAIN })
 
 /**
  * @param  {Object} request a request object
