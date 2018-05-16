@@ -31,6 +31,9 @@
      "48": "img/contrast48.png",
     "128": "img/contrast128.png"
   },
+  "web_accessible_resources": [
+    "test/*"
+  ],
   "permissions": [
     "webRequest",
     "activeTab",
