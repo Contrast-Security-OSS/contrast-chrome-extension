@@ -10,6 +10,10 @@
   isCredentialed
 */
 "use strict";
+function setDisplayNone(element) {
+  element.style.display = 'none'
+}
+
 function indexFunction() {
   getStoredCredentials().then(items => {
 
@@ -21,7 +25,6 @@ function indexFunction() {
     configureExtension = document.getElementById('configure-extension');
     let vulnerabilitiesFoundOnPageSection = document.getElementById('vulnerabilities-found-on-page');
     let noVulnerabilitiesFoundOnPageSection = document.getElementById('no-vulnerabilities-found-on-page');
-
     if (!isCredentialed(items)) {
       // if you need credentials, hide the activity feed
 
@@ -38,12 +41,24 @@ function indexFunction() {
           configureExtensionHost.textContent = "Make sure you trust this site: " + url.hostname;
 
           let configureExtensionButton = document.getElementById('configure-extension-button');
-          configureExtensionButton.addEventListener('click', () => {
-            chrome.tabs.sendMessage(tab.id, { url: tab.url }, () => {
-              chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
-              noVulnerabilitiesFoundOnPageSection.style.display = '';
-              indexFunction();
-              return;
+          configureExtensionButton.addEventListener('click', (e) => {
+            configureExtensionButton.setAttribute('disabled', true)
+
+            // credentials are set by sending a message to content-script
+            chrome.tabs.sendMessage(tab.id, {
+              url: tab.url,
+              action: "INITIALIZE",
+            }, (response) => {
+              if (response === "INITIALIZED") {
+                chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
+                setDisplayNone(noVulnerabilitiesFoundOnPageSection)
+
+                // recurse on this method, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
+                indexFunction();
+              } else {
+                configureExtensionButton.removeAttribute('disabled')
+              }
+              return
             });
           }, false);
 
@@ -52,13 +67,11 @@ function indexFunction() {
         }
       });
 
-      vulnerabilitiesFoundOnPageSection.style.display = 'none';
-      // noVulnerabilitiesFoundOnPageSection.style.display = 'none';
+      setDisplayNone(vulnerabilitiesFoundOnPageSection)
     } else {
       // if you don't need credentials, hide the signin functionality
-      configureExtension.style.display = 'none';
-      notConfiguredSection.style.display = 'none';
-      // noVulnerabilitiesFoundOnPageSection.style.display = 'none';
+      setDisplayNone(configureExtension)
+      setDisplayNone(notConfiguredSection)
 
       let userEmail = document.getElementById('user-email');
       userEmail.textContent = "User: " + items.contrast_username;
@@ -82,7 +95,7 @@ function indexFunction() {
     extensionId = chrome.runtime.id;
 
     //configure button opens up settings page in new tab
-    configureButton.addEventListener('click', function () {
+    configureButton.addEventListener('click', () => {
       const settingsUrl = 'chrome-extension://' + String(extensionId) + '/settings.html';
       chrome.tabs.create({ url: settingsUrl });
     }, false);

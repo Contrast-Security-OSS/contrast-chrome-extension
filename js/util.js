@@ -39,7 +39,7 @@ const CONTRAST_USERNAME = "contrast_username", // storage key
       CONTRAT_GREEN = "#65C0B2", // or is it #3CC3B2?
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
       CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*",
-      CONTRAST_ICON_16 = "../img/contrast16Red.png",
+      CONTRAST_ICON_16 = "../img/contrast16.png",
 
       LISTENING_ON_DOMAIN = "<all_urls>",
       GATHER_FORMS_ACTION = "gatherForms",

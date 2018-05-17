@@ -26,12 +26,19 @@ function highlightForm(form) {
     if (inputs[i].type.toLowerCase() !== "submit") {
       inputs[i].setAttribute("style",
         `border-radius: 5px;
-        border: 3px solid ${CONTRAT_GREEN};
-        background-image: url(${chrome.extension.getURL(CONTRAST_ICON_16)});
-        background-repeat: no-repeat;
-        background-position: left;
-        background-position-x: 2%;`
+         border: 3px solid ${CONTRAT_GREEN};
+         background-image: url(${chrome.extension.getURL(CONTRAST_ICON_16)});
+         background-repeat: no-repeat;
+         background-position: left;
+         background-position-x: 2%;`
       ); // highlight with contrast aquamarine color
+      /*
+      * For adding contrast icon to background of input
+      * background-image: url(${chrome.extension.getURL(CONTRAST_ICON_16)});
+      * background-repeat: no-repeat;
+      * background-position: left;
+      * background-position-x: 2%;
+      */
     }
   }
 }
@@ -48,8 +55,7 @@ function extractActionsFromForm(forms) {
     let form = forms[i]
     let conditions = [
       form,
-      form.action,
-      form.action.length > 0
+      !!form.action && form.action.length > 0,
     ]
     if (conditions.every(c => !!c)) {
       actions.push(form.action)
@@ -183,7 +189,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
-    //
 
     if (document.getElementsByTagName("form").length > 0) {
       setTimeout(() => collectFormActions(sendResponse), 1000)
@@ -192,7 +197,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
 
-  else if (request.url !== undefined) {
+  else if (request.url !== undefined && request.action === "INITIALIZE") {
 
     const teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX
     const orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
@@ -203,12 +208,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
 
     chrome.storage.local.set({
-      'contrast_username': profileEmail.trim(),
-      'contrast_service_key': serviceKey.trim(),
-      'contrast_api_key': apiKey.trim(),
-      'contrast_org_uuid': orgUuid.trim(),
-      'teamserver_url': teamServerUrl
-    }, () => {})
+      [CONTRAST_USERNAME]: profileEmail.trim(),
+      [CONTRAST_SERVICE_KEY]: serviceKey.trim(),
+      [CONTRAST_API_KEY]: apiKey.trim(),
+      [CONTRAST_ORG_UUID]: orgUuid.trim(),
+      [TEAMSERVER_URL]: teamServerUrl,
+    }, () => sendResponse("INITIALIZED"))
   }
 
   // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
