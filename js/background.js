@@ -14,23 +14,10 @@
 	isCredentialed,
 	LISTENING_ON_DOMAIN,
 	TRACES_REQUEST,
-	STORED_TRACES_KEY,
-	GATHER_FORMS_ACTION,
-	getStoredCredentials,
-	isCredentialed,
-	getStoredCredentials,
-	isCredentialed,
 	GATHER_FORMS_ACTION,
 	CONTRAT_GREEN,
 	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
 	deDupeArray,
-	STORED_TRACES_KEY,
-	deDupeArray,
-	STORED_TRACES_KEY,
 	getVulnerabilityFilter,
 	generateURLString
 */
@@ -38,7 +25,7 @@
 
 
 "use strict";
-
+let TAB_CLOSED = false
 let VULNERABLE_TABS = [] // tab ids of tabs where vulnerabilities count != 0
 let XHR_REQUESTS = [] // use to not re-evaluate xhr requests
 
@@ -57,6 +44,8 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
 		const tab = tabs[0]
+		if (!tab) return
+
 		if (tab.url.includes(TEAMSERVER_API_PATH_SUFFIX) || request.url.includes(TEAMSERVER_API_PATH_SUFFIX)) {
 			return;
 		}
@@ -89,9 +78,15 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 	handleTabActivated(activeInfo)
 })
 
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+	TAB_CLOSED = true
+})
+
 function handleTabActivated(activeInfo) {
 	if (VULNERABLE_TABS.includes(activeInfo.tabId)) {
 		chrome.tabs.query({ active: true, windowId: activeInfo.windowId }, (tabs) => {
+			if (!tabs || tabs.length === 0) return
+
 			updateVulnerabilities(tabs[0])
 		})
 	}
@@ -206,18 +201,19 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
  * @return {void}
  */
 function updateTabBadge(tab, count) {
-	if (tab.index >= 0) { // tab is visible
-		chrome.browserAction.setBadgeBackgroundColor({
-			color: CONTRAST_ICON_BADGE_BACKGROUND
-		})
+	if (!TAB_CLOSED && !chrome.runtime.lastError && tab.index >= 0) { // tab is visible
 		try {
+			chrome.browserAction.setBadgeBackgroundColor({
+				color: CONTRAST_ICON_BADGE_BACKGROUND
+			})
 			chrome.browserAction.setBadgeText({
 				tabId: tab.id,
 				text: count.toString(),
 			})
-		}
-		catch (e) { e }
+		} catch (e) { return null }
+			finally { TAB_CLOSED = false }
 	}
+	return null
 }
 
 /**
@@ -228,17 +224,17 @@ function updateTabBadge(tab, count) {
  */
  // https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
 function setBadgeLoading(tab) {
-	if (tab.index >= 0) {
-		chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAT_GREEN })
-
+	if (!TAB_CLOSED && tab.index >= 0 && !chrome.runtime.lastError) {
 		// &#x21bb; is unicode clockwise circular arrow
 		try {
+			chrome.browserAction.setBadgeBackgroundColor({ color: CONTRAT_GREEN })
 			chrome.browserAction.setBadgeText({
 				tabId: tab.id,
 				text: "↻"
 			})
 		}
 		catch (e) { e }
+		finally { TAB_CLOSED = false }
 	}
 }
 
@@ -251,8 +247,9 @@ function setBadgeLoading(tab) {
  */
 function processTraces(traces, tab) {
 	if (!traces || traces.length === 0) {
-		return
+		return Promise.resolve([])
 	}
+
 	/**
 	 * asyncRequest - not technically needed, could return getVulnerabilityFilter inside of traces.map below, but it looks cleaner
 	 *
@@ -267,6 +264,13 @@ function processTraces(traces, tab) {
 			}
 			const request = json.trace.request
 			const url 		= new URL(tab.url)
+
+			if (!url) return ""
+			if (!url.pathname) {
+				console.log("url in bg line 265", url);
+			}
+
+
 			const path 		= url.pathname.match(/\/\w+/)[0] // 1st index is string
 			const match 	= request.uri.indexOf(path)
 			if (match === -1) {
@@ -274,6 +278,7 @@ function processTraces(traces, tab) {
 			}
 			return trace
 		})
+		.catch(error)
 	}
 	return Promise.all(traces.map(t => asyncRequest(t))) // eslint-disable-line consistent-return
 }
@@ -291,13 +296,13 @@ function processTraces(traces, tab) {
 function setToStorage(foundTraces, tab) {
 	processTraces(foundTraces, tab)
 	.then(traces => {
+		if (!traces) return
 
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI (see processTraces)
 		traces = traces.filter(t => !!t)
 
 		buildVulnerabilitiesArray(traces, tab)
 		.then(vulnerabilities => {
-			updateTabBadge(tab, vulnerabilities.length)
 
 			let storedTraces = {}
 			storedTraces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
@@ -308,7 +313,15 @@ function setToStorage(foundTraces, tab) {
 			}
 
 			// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
-			chrome.storage.local.set(storedTraces)
+			chrome.storage.local.set(storedTraces, () => {
+				chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
+
+					// set tab badget to the length of traces in storage (can change)
+					if (!chrome.runtime.lastError && !!tab && tab.id) {
+						updateTabBadge(tab, JSON.parse(result[STORED_TRACES_KEY]).length)
+					}
+				})
+			})
 		})
 		.catch(error => error)
 	})
@@ -361,13 +374,14 @@ function removeVulnerabilitiesFromStorage(tab) {
 
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.remove(STORED_TRACES_KEY, () => {
-			try {
-				chrome.browserAction.setBadgeBackgroundColor({
-					color: '#00FFFFFF' // transparent
-				});
-				chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
-			} catch (e) {
-				reject(e)
+			if (!TAB_CLOSED && !chrome.runtime.lastError) {
+				try {
+					chrome.browserAction.setBadgeBackgroundColor({
+						color: '#00FFFFFF' // transparent
+					});
+					chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
+				} catch (e) { reject(e) }
+					finally { TAB_CLOSED = false }
 			}
 			resolve()
 		})
@@ -384,22 +398,28 @@ function getCredentials(tab) {
 	const url = new URL(tab.url);
 	const conditions = [
 		VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname) && tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX),
-		tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1
+		tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX) && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1,
+		!chrome.runtime.lastError
 	]
-	if (conditions.some(c => !!c)) {
-		chrome.browserAction.setBadgeBackgroundColor({
-			color: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND
-		});
-		chrome.browserAction.setBadgeText({
-			tabId: tab.id,
-			text: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT
-		});
-
-	} else {
-		chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
-			if (result === CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT) {
-				chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
-			}
-		});
+	if (!TAB_CLOSED && conditions.some(c => !!c)) {
+		try {
+			chrome.browserAction.setBadgeBackgroundColor({
+				color: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND
+			});
+			chrome.browserAction.setBadgeText({
+				tabId: tab.id,
+				text: CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT
+			});
+		} catch (e) { e }
+			finally { TAB_CLOSED = false }
+	} else if (!TAB_CLOSED && !chrome.runtime.lastError) {
+		try {
+			chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
+				if (result === CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT) {
+					chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
+				}
+			})
+		} catch (e) { e }
+			finally { TAB_CLOSED = false }
 	}
 }

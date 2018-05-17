@@ -32,7 +32,7 @@ const CONTRAST_USERNAME = "contrast_username", // storage key
         'app.contrastsecurity.com',
         'apptwo.contrastsecurity.com',
         'eval.contratsecurity.com',
-        'localhost'
+        'localhost',
       ],
 
       CONTRAST_ICON_BADGE_BACKGROUND = "#E63025",
@@ -76,21 +76,27 @@ String.prototype.titleize = function() {
 // --------- HELPER FUNCTIONS -------------
 
 function fetchTeamserver(url, params, authHeader, apiKey) {
+  const requestUrl   = url + params
   const fetchOptions = {
     method: "GET",
-    headers: new Headers({
+    headers: {
+      "Access-Control-Request-Method": "GET",
+      "Access-Control-Request-Headers": "Authorization, API-Key, Accept",
       "Authorization": authHeader,
       "API-Key": apiKey,
-      "Accept": "application/json"
-    })
+      "Accept": "application/json",
+    },
+    mode: "cors"
   }
-  const requestUrl = url + params
   return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
+
       if (response.status === 200 && response.ok) {
         return response.json()
       }
+      console.log(fetchOptions);
+      console.log(response);
       throw new Error(response)
     })
     .catch(error => false)
@@ -117,7 +123,7 @@ function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
 
 function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
-    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request,events,notes,application,servers";
+    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request"; // ,events,notes,application,servers
   }
   throw new Error("argument to getVulnerabilityFilterUrl was undefined")
 }

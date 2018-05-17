@@ -17,7 +17,7 @@ if (window.performance.navigation.type === 1) {
 /**
  * highlightForm - description
  *
- * @param  {DOMElement} form - A form on the DOM
+ * @param  {Element} form - A form on the DOM
  * @return {void}
  */
 function highlightForm(form) {
@@ -27,10 +27,7 @@ function highlightForm(form) {
       inputs[i].setAttribute("style",
         `border-radius: 5px;
          border: 3px solid ${CONTRAT_GREEN};
-         background-image: url(${chrome.extension.getURL(CONTRAST_ICON_16)});
-         background-repeat: no-repeat;
-         background-position: left;
-         background-position-x: 2%;`
+         `
       ); // highlight with contrast aquamarine color
       /*
       * For adding contrast icon to background of input
