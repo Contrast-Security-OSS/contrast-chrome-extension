@@ -266,13 +266,15 @@ function processTraces(traces, tab) {
 			const url 		= new URL(tab.url)
 
 			if (!url) return ""
-			if (!url.pathname) {
-				console.log("url in bg line 265", url);
+			if (!url.pathname.match(/\/\w+/)) {
+				console.log("url in bg line 265", url.pathname);
 			}
 
+			const path 		= url.pathname.match(/\/\w+/) // 1st index is string
 
-			const path 		= url.pathname.match(/\/\w+/)[0] // 1st index is string
-			const match 	= request.uri.indexOf(path)
+			if (!path) return ""
+
+			const match 	= request.uri.indexOf(path[0])
 			if (match === -1) {
 				return ""
 			}
