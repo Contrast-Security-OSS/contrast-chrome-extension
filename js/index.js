@@ -10,46 +10,51 @@
   isCredentialed
 */
 "use strict";
+
+/**
+ * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
+ *
+ * @return {void}
+ */
 function indexFunction() {
-  getStoredCredentials().then(items => {
-
-    if (!isCredentialed(items)) {
-
-      // if you need credentials, hide the activity feed
-      getUserCredentials()
-    } else {
-      showActivityFeed(items)
-    }
-
-
-    let configureButton = document.getElementById('configure');
-
-    //configure button opens up settings page in new tab
-    configureButton.addEventListener('click', () => {
-      chrome.tabs.create({ url: chromeExtensionSettingsUrl() });
-    }, false);
-  });
-}
-
-function getUserCredentials() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
     const tab = tabs[0]
-    const url = new URL(tab.url);
+    const url = new URL(tab.url)
 
-    if (isTeamserverAccountPage(tab, url)) {
+    getStoredCredentials().then(items => {
 
-      setDisplayEmpty(document.getElementById('configure-extension'))
+      if (!isCredentialed(items)) {
+        getUserCredentials(tab, url)
+      } else if (isCredentialed(items) && isTeamserverAccountPage(tab, url)) {
+        let configureExtensionButton = document.getElementById('configure-extension-button')
+        setTextContent(configureExtensionButton, "Reconfigure")
+        getUserCredentials(tab, url)
+      } else {
+        showActivityFeed(items)
+      }
 
-      let configureExtensionHost = document.getElementById('configure-extension-host');
-      setTextContent(configureExtensionHost, "Make sure you trust this site: " + url.hostname);
+      //configure button opens up settings page in new tab
+      let configureButton = document.getElementById('configure')
+      configureButton.addEventListener('click', () => {
+        chrome.tabs.create({ url: chromeExtensionSettingsUrl() })
+      }, false)
+    })
+  })
+}
 
-      renderConfigButton(tab)
+function getUserCredentials(tab, url) {
+  if (isTeamserverAccountPage(tab, url)) {
 
-    } else {
-      setDisplayEmpty(document.getElementById('not-configured'))
-    }
-  });
+    setDisplayEmpty(document.getElementById('configure-extension'))
+
+    let configureExtensionHost = document.getElementById('configure-extension-host');
+    setTextContent(configureExtensionHost, "Make sure you trust this site: " + url.hostname);
+
+    renderConfigButton(tab)
+  } else {
+    setDisplayEmpty(document.getElementById('not-configured'))
+  }
 
   setDisplayNone(document.getElementById('vulnerabilities-found-on-page'))
 }
@@ -69,11 +74,18 @@ function renderConfigButton(tab) {
         setDisplayNone(noVulnerabilitiesFoundOnPageSection)
 
         // recurse on this method, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
-        document.getElementById('config-success').style.display = 'block'
-        setTimeout(indexFunction, 1000)
+        const successMessage = document.getElementById('config-success')
+        setDisplayBlock(successMessage)
+        setTimeout(() => {
+          configureExtensionButton.removeAttribute('disabled')
+          setDisplayNone(successMessage)
+          indexFunction()
+        }, 1000)
       } else {
         configureExtensionButton.removeAttribute('disabled')
-        document.getElementById('config-failure').style.display = 'block'
+        const failureMessage = document.getElementById('config-failure')
+        setDisplayBlock(failureMessage)
+        setTimeout(() => setDisplayNone(failureMessage), 2000)
       }
       return
     })
@@ -118,6 +130,11 @@ function setDisplayNone(element) {
 function setDisplayEmpty(element) {
   if (!element) return
   element.style.display = ''
+}
+
+function setDisplayBlock(element) {
+  if (!element) return
+  element.style.display = 'block'
 }
 
 function setTextContent(element, text) {
