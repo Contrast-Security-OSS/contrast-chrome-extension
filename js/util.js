@@ -79,7 +79,7 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
   const requestUrl   = url + params
   const fetchOptions = {
     method: "GET",
-    headers: {
+    headers: { // errors on apptwo, tried without cors and with using new Headers()
       "Access-Control-Request-Method": "GET",
       "Access-Control-Request-Headers": "Authorization, API-Key, Accept",
       "Authorization": authHeader,
@@ -91,7 +91,6 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
   return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
-
       if (response.status === 200 && response.ok) {
         return response.json()
       }

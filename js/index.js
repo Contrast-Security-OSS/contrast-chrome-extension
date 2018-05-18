@@ -52,7 +52,6 @@ function indexFunction() {
               if (response === "INITIALIZED") {
                 chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
                 setDisplayNone(noVulnerabilitiesFoundOnPageSection)
-
                 // recurse on this method, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
                 indexFunction();
               } else {
