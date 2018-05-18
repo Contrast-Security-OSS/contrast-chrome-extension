@@ -319,9 +319,12 @@ function setToStorage(foundTraces, tab) {
 				chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 
 					// set tab badget to the length of traces in storage (can change)
-					if (!chrome.runtime.lastError && !!tab && tab.id) {
-						updateTabBadge(tab, JSON.parse(result[STORED_TRACES_KEY]).length)
-					}
+					try {
+						if (!!result && !chrome.runtime.lastError && !TAB_CLOSED) {
+							updateTabBadge(tab, JSON.parse(result[STORED_TRACES_KEY]).length)
+						}
+					} catch (e) { e }
+						finally { TAB_CLOSED = false }
 				})
 			})
 		})

@@ -94,9 +94,6 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
       if (response.status === 200 && response.ok) {
         return response.json()
       }
-      console.log(fetchOptions);
-      console.log(response);
-      throw new Error(response)
     })
     .catch(error => false)
   )
