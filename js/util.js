@@ -5,46 +5,50 @@ XMLHttpRequest, btoa, chrome
 */
 "use strict";
 
-const CONTRAST_USERNAME = "contrast_username", // storage key
-      CONTRAST_SERVICE_KEY = "contrast_service_key", // storage key
-      CONTRAST_API_KEY = "contrast_api_key", // storage key
-      CONTRAST_ORG_UUID = "contrast_org_uuid", // storage key
-      TEAMSERVER_URL = "teamserver_url", // storage key
+// keys for credentials
+const CONTRAST_USERNAME    = "contrast_username"
+const CONTRAST_SERVICE_KEY = "contrast_service_key"
+const CONTRAST_API_KEY     = "contrast_api_key"
+const CONTRAST_ORG_UUID    = "contrast_org_uuid"
+const TEAMSERVER_URL       = "teamserver_url"
 
-      SEVERITY_NOTE = "Note",
-      SEVERITY_LOW = "Low",
-      SEVERITY_MEDIUM = "Medium",
-      SEVERITY_HIGH = "High",
-      SEVERITY_CRITICAL = "Critical",
+// Vulnerability Severity Levels
+const SEVERITY_NOTE = "Note"
+const SEVERITY_LOW = "Low"
+const SEVERITY_MEDIUM = "Medium"
+const SEVERITY_HIGH = "High"
+const SEVERITY_CRITICAL = "Critical"
 
-      SEVERITY_NOTE_ICON_PATH = "../img/note.png",
-      SEVERITY_LOW_ICON_PATH = "../img/low.png",
-      SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png",
-      SEVERITY_HIGH_ICON_PATH = "../img/high.png",
-      SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png",
+// Vulnerability Severity Icons
+const SEVERITY_NOTE_ICON_PATH = "../img/note.png"
+const SEVERITY_LOW_ICON_PATH = "../img/low.png"
+const SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png"
+const SEVERITY_HIGH_ICON_PATH = "../img/high.png"
+const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png"
 
-      HTML_BODY = "body",
-      TEAMSERVER_INDEX_PATH_SUFFIX  = "/Contrast/static/ng/index.html#/",
-      TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account",
-      TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile",
-      TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api",
-      VALID_TEAMSERVER_HOSTNAMES = [
-        'app.contrastsecurity.com',
-        'apptwo.contrastsecurity.com',
-        'eval.contratsecurity.com',
-        'localhost',
-      ],
+const HTML_BODY = "body"
+const TEAMSERVER_INDEX_PATH_SUFFIX  = "/Contrast/static/ng/index.html#/"
+const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account"
+const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile"
+const TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api"
+const VALID_TEAMSERVER_HOSTNAMES = [
+  'app.contrastsecurity.com',
+  'apptwo.contrastsecurity.com',
+  'eval.contratsecurity.com',
+  'localhost',
+]
 
-      CONTRAST_ICON_BADGE_BACKGROUND = "#E63025",
-      CONTRAT_GREEN = "#65C0B2", // or is it #3CC3B2?
-      CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300",
-      CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*",
-      CONTRAST_ICON_16 = "../img/contrast16.png",
+const CONTRAST_ICON_BADGE_BACKGROUND = "#E63025"
+const CONTRAT_GREEN = "#65C0B2" // or is it #3CC3B2?
+const CONTRAST_RED  = "#E63025"
+const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300"
+const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*"
+const CONTRAST_ICON_16 = "../img/contrast16.png"
 
-      LISTENING_ON_DOMAIN = "<all_urls>",
-      GATHER_FORMS_ACTION = "gatherForms",
-      STORED_TRACES_KEY   = "traces",
-      TRACES_REQUEST      = "getStoredTraces";
+const LISTENING_ON_DOMAIN = "<all_urls>"
+const GATHER_FORMS_ACTION = "gatherForms"
+const STORED_TRACES_KEY   = "traces"
+const TRACES_REQUEST      = "getStoredTraces"
 
 
 /**
@@ -79,14 +83,11 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
   const requestUrl   = url + params
   const fetchOptions = {
     method: "GET",
-    headers: { // errors on apptwo, tried without cors and with using new Headers()
-      "Access-Control-Request-Method": "GET",
-      "Access-Control-Request-Headers": "Authorization, API-Key, Accept",
+    headers: new Headers({
       "Authorization": authHeader,
       "API-Key": apiKey,
       "Accept": "application/json",
-    },
-    mode: "cors"
+    }),
   }
   return (
     fetch(requestUrl, fetchOptions)
@@ -94,6 +95,7 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
       if (response.status === 200 && response.ok) {
         return response.json()
       }
+      throw new Error(response)
     })
     .catch(error => false)
   )

@@ -143,3 +143,17 @@ label {
 #configure {
   outline: none;
 }
+
+/* Hide success/error message and show when user clicks configure button after installing extension */
+.configure-message {
+ display: none;
+ font-weight: bold;
+}
+
+#config-success {
+  color: #65C0B2;
+}
+
+#config-failure {
+  color: #E63025;
+}

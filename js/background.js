@@ -201,8 +201,8 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls) {
  * @return {void}
  */
 function updateTabBadge(tab, count) {
-	if (!TAB_CLOSED && !chrome.runtime.lastError && tab.index >= 0) { // tab is visible
-		try {
+	try {
+		if (!TAB_CLOSED && !chrome.runtime.lastError && tab.index >= 0) { // tab is visible
 			chrome.browserAction.setBadgeBackgroundColor({
 				color: CONTRAST_ICON_BADGE_BACKGROUND
 			})
@@ -210,10 +210,9 @@ function updateTabBadge(tab, count) {
 				tabId: tab.id,
 				text: count.toString(),
 			})
-		} catch (e) { return null }
-			finally { TAB_CLOSED = false }
-	}
-	return null
+		}
+	} catch (e) { return null }
+		finally { TAB_CLOSED = false }
 }
 
 /**
@@ -263,21 +262,16 @@ function processTraces(traces, tab) {
 				return ""
 			}
 			const request = json.trace.request
-			const url 		= new URL(tab.url)
 
+			const url   = new URL(tab.url)
 			if (!url) return ""
-			if (!url.pathname.match(/\/\w+/)) {
-				console.log("url in bg line 265", url.pathname);
-			}
 
-			const path 		= url.pathname.match(/\/\w+/) // 1st index is string
-
+			const path  = url.pathname.match(/\/\w+/) // 1st index is string
 			if (!path) return ""
 
-			const match 	= request.uri.indexOf(path[0])
-			if (match === -1) {
-				return ""
-			}
+			const match = request.uri.indexOf(path[0])
+			if (match === -1) return ""
+
 			return trace
 		})
 		.catch(error)
@@ -296,16 +290,16 @@ function processTraces(traces, tab) {
  * @return {Promise}
  */
 function setToStorage(foundTraces, tab) {
-	processTraces(foundTraces, tab)
-	.then(traces => {
-		if (!traces) return
+	// processTraces(foundTraces, tab)
+	// .then(traces => {
+	// 	console.log("traces", traces);
+	// 	if (!traces) return
 
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI (see processTraces)
-		traces = traces.filter(t => !!t)
+		const traces = foundTraces.filter(t => !!t)
 
 		buildVulnerabilitiesArray(traces, tab)
 		.then(vulnerabilities => {
-
 			let storedTraces = {}
 			storedTraces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities)
 
@@ -329,7 +323,7 @@ function setToStorage(foundTraces, tab) {
 			})
 		})
 		.catch(error => error)
-	})
+	// })
 
 }
 
