@@ -25,11 +25,11 @@ function indexFunction() {
     getStoredCredentials().then(items => {
 
       if (!isCredentialed(items)) {
-        getUserCredentials(tab, url)
+        getUserConfiguration(tab, url)
       } else if (isCredentialed(items) && isTeamserverAccountPage(tab, url)) {
         let configureExtensionButton = document.getElementById('configure-extension-button')
         setTextContent(configureExtensionButton, "Reconfigure")
-        getUserCredentials(tab, url)
+        getUserConfiguration(tab, url)
         getApplications()
         .then(json => {
           if (!json) {
@@ -38,7 +38,7 @@ function indexFunction() {
           }
           json.applications.forEach(app => createAppTableRow(app, url))
         })
-        .catch(console.log)
+        .catch(error => error)
       } else {
         renderActivityFeed(items, url)
       }
@@ -52,7 +52,7 @@ function indexFunction() {
   })
 }
 
-function getUserCredentials(tab, url) {
+function getUserConfiguration(tab, url) {
   if (isTeamserverAccountPage(tab, url)) {
 
     setDisplayEmpty(document.getElementById('configure-extension'))
@@ -63,13 +63,18 @@ function getUserCredentials(tab, url) {
     renderConfigButton(tab)
   } else {
     setDisplayEmpty(document.getElementById('not-configured'))
+
+    // let vulnsFound = document.getElementById('vulnerabilities-found-on-page')
+    // setDisplayBlock(vulnsFound)
+    // const noVulns = document.getElementById('no-vulnerabilities-found-on-page')
+    // noVulns.style.display = 'inline'
   }
 
-  setDisplayNone(document.getElementById('vulnerabilities-found-on-page'))
+
+  // setDisplayNone(document.getElementById('vulnerabilities-found-on-page'))
 }
 
 function renderConfigButton(tab) {
-  let noVulnerabilitiesFoundOnPageSection = document.getElementById('no-vulnerabilities-found-on-page')
   let configureExtensionButton = document.getElementById('configure-extension-button')
 
   configureExtensionButton.addEventListener('click', (e) => {
@@ -80,7 +85,6 @@ function renderConfigButton(tab) {
       if (response === "INITIALIZED") {
 
         chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' })
-        setDisplayNone(noVulnerabilitiesFoundOnPageSection)
 
         // recurse on this method, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
         const successMessage = document.getElementById('config-success')
@@ -138,13 +142,18 @@ function renderActivityFeed(items, url) {
   })
 }
 
+/**
+ * showActivityFeed - description
+ *
+ * @param  {type} items description
+ * @return {type}       description
+ */
 function showActivityFeed(items) {
-  const extensionId = chrome.runtime.id;
+  const extensionId = chrome.runtime.id
 
   // find sections
   let notConfiguredSection = document.getElementById('not-configured');
   let configureExtension   = document.getElementById('configure-extension');
-  let vulnerabilitiesFoundOnPageSection = document.getElementById('vulnerabilities-found-on-page');
 
   // if you don't need credentials, hide the signin functionality
   setDisplayNone(configureExtension)
@@ -167,6 +176,14 @@ function showActivityFeed(items) {
   }, false)
 }
 
+
+/**
+ * createAppTableRow - renders a table row, either with a button if it's not a contrast url, or with a domain (or blank) if it's a contrast url showing in tab
+ *
+ * @param  {Object} application the contrast application
+ * @param  {Object} url         the URL() of the current tab
+ * @return {void} - adds rows to a table
+ */
 function createAppTableRow(application, url) {
   const tableBody = document.getElementById('application-table-body')
   const row       = document.createElement('tr')
@@ -184,15 +201,18 @@ function createAppTableRow(application, url) {
   row.appendChild(domainTD)
   row.appendChild(appIdTD)
 
+  setTextContent(domainTD, 'Click to Connect Domain')
+
   const host = getHost(url.host.split(":").join("_"))
 
+  // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!url.href.includes("Contrast")) {
     const nameBtn = document.createElement('button')
-    nameBtn.setAttribute('class', 'btn btn-primary btn-contrast-plugin nameBtn')
+    nameBtn.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin nameBtn')
     setTextContent(nameBtn, application.name.titleize())
     nameTD.appendChild(nameBtn)
 
-    setDisplayBlock(document.getElementById('application-table'))
+    document.getElementById('application-table').style.display = 'table'
 
     nameBtn.addEventListener('click', (event) => {
       chrome.storage.local.set({ "APPS": [{ [host]: application.app_id }] }, () => {
@@ -201,6 +221,8 @@ function createAppTableRow(application, url) {
       })
     })
   } else {
+
+    // on a contrast page - render the full collection of apps in a user org with respective domains
     chrome.storage.local.get("APPS", (result) => {
       const storedApp = result.APPS.filter(app => {
         return Object.values(app)[0] === application.app_id
@@ -211,7 +233,7 @@ function createAppTableRow(application, url) {
         setTextContent(domainTD, host)
       }
       setTextContent(nameTD, application.name)
-      setDisplayBlock(document.getElementById('application-table'))
+      document.getElementById('application-table').style.display = 'table'
     })
   }
 }
