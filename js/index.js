@@ -30,8 +30,17 @@ function indexFunction() {
         let configureExtensionButton = document.getElementById('configure-extension-button')
         setTextContent(configureExtensionButton, "Reconfigure")
         getUserCredentials(tab, url)
+        getApplications()
+        .then(json => {
+          if (!json) {
+            throw new Error("Error getting applications")
+            return
+          }
+          json.applications.forEach(app => createAppTableRow(app, url))
+        })
+        .catch(console.log)
       } else {
-        showActivityFeed(items)
+        renderActivityFeed(items, url)
       }
 
       //configure button opens up settings page in new tab
@@ -92,6 +101,43 @@ function renderConfigButton(tab) {
   }, false)
 }
 
+function renderActivityFeed(items, url) {
+  const host = getHost(url.host.split(":").join("_"))
+
+  chrome.storage.local.get("APPS", (result) => {
+
+    // look in stored apps array for app tied to host
+    if (!!result.APPS && !!result.APPS.filter(result => result[host])[0]) {
+      showActivityFeed(items)
+    } else {
+
+      // if app is not stored, render the table with buttons to add the domain
+      getApplications()
+      .then(json => {
+        if (!json) {
+          throw new Error("Error getting applications")
+          return
+        }
+
+        let applications
+        if (!!result.APPS) {
+          const appIds = result.APPS.map(Object.values).flatten()
+          applications = json.applications.filter(app => {
+
+            // include in applications if it's not in storage
+            return !appIds.includes(app.app_id)
+          })
+        } else {
+          applications = json.applications
+        }
+
+        // create a row for each application
+        applications.forEach(app => createAppTableRow(app, url))
+      })
+    }
+  })
+}
+
 function showActivityFeed(items) {
   const extensionId = chrome.runtime.id;
 
@@ -119,6 +165,66 @@ function showActivityFeed(items) {
   signInButtonConfigurationProblem.addEventListener('click', () => {
     chrome.tabs.create({ url: chromeExtensionSettingsUrl() })
   }, false)
+}
+
+function createAppTableRow(application, url) {
+  const tableBody = document.getElementById('application-table-body')
+  const row       = document.createElement('tr')
+  const nameTD    = document.createElement('td')
+  const appIdTD   = document.createElement('td')
+  const domainTD  = document.createElement('td')
+
+  row.setAttribute('scope', 'row')
+
+  setTextContent(appIdTD, application.app_id)
+  setDisplayNone(appIdTD)
+
+  tableBody.appendChild(row)
+  row.appendChild(nameTD)
+  row.appendChild(domainTD)
+  row.appendChild(appIdTD)
+
+  const host = getHost(url.host.split(":").join("_"))
+
+  if (!url.href.includes("Contrast")) {
+    const nameBtn = document.createElement('button')
+    nameBtn.setAttribute('class', 'btn btn-primary btn-contrast-plugin nameBtn')
+    setTextContent(nameBtn, application.name.titleize())
+    nameTD.appendChild(nameBtn)
+
+    setDisplayBlock(document.getElementById('application-table'))
+
+    nameBtn.addEventListener('click', (event) => {
+      chrome.storage.local.set({ "APPS": [{ [host]: application.app_id }] }, () => {
+        setDisplayNone(document.getElementById('application-table'))
+        indexFunction()
+      })
+    })
+  } else {
+    chrome.storage.local.get("APPS", (result) => {
+      const storedApp = result.APPS.filter(app => {
+        return Object.values(app)[0] === application.app_id
+      })[0]
+
+      if (!!storedApp) {
+        const host = Object.keys(storedApp)[0]
+        setTextContent(domainTD, host)
+      }
+      setTextContent(nameTD, application.name)
+      setDisplayBlock(document.getElementById('application-table'))
+    })
+  }
+}
+
+function getHost(hostname) {
+  const hostArray = hostname.split(".")
+  if (hostArray.length < 3) {
+    return [hostArray[0]]
+  } else if (hostArray.length === 3) {
+    return [hostArray[1]]
+  } else {
+    return [hostname]
+  }
 }
 
 // --------- HELPER FUNCTIONS -------------
@@ -165,4 +271,4 @@ function isTeamserverAccountPage(tab, url) {
 }
 
 
-document.addEventListener('DOMContentLoaded', indexFunction, false);
+document.addEventListener('DOMContentLoaded', indexFunction, false)

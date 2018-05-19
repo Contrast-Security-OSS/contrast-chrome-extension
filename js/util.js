@@ -109,21 +109,28 @@ function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
   if (teamserverUrl && orgUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
   }
-  throw new Error("argument to getOrganizationVulnerabilitiesIdsUrl was undefined")
+  throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined")
 }
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
   }
-  throw new Error("argument to getVulnerabilityShortUrl was undefined")
+  throw new Error("an argument to getVulnerabilityShortUrl was undefined")
 }
 
 function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request"; // ,events,notes,application,servers
   }
-  throw new Error("argument to getVulnerabilityFilterUrl was undefined")
+  throw new Error("an argument to getVulnerabilityFilterUrl was undefined")
+}
+
+function getApplicationsUrl(teamserverUrl, orgUuid) {
+  if (teamserverUrl && orgUuid) {
+    return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
+  }
+  throw new Error("an argument to getApplicationsUrl was undefined")
 }
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
@@ -190,6 +197,20 @@ function getVulnerabilityFilter(traceUuid) {
   .then(items => {
     const url = getVulnerabilityFilterUrl(
       items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
+    )
+    const authHeader = getAuthorizationHeader(
+      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+    );
+
+    return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
+  })
+}
+
+function getApplications() {
+  return getStoredCredentials()
+  .then(items => {
+    const url = getApplicationsUrl  (
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]
     )
     const authHeader = getAuthorizationHeader(
       items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]

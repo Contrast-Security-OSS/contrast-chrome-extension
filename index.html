@@ -14,7 +14,7 @@
   <script src="js/index.js"></script>
 </head>
 
-<body class="normal">
+<body>
 
   <section id="vulnerabilities" class="panel panel-default">
 
@@ -39,6 +39,17 @@
 
     <div style="display: none;" class="color-gray panel-body" id="not-configured">
       <h5>To start using the extension, please log into Teamserver and navigate to "Your Account"</h5>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-responsive table-striped" id="application-table">
+        <thead>
+          <th>Application</th>
+          <th>Domain</th>
+        </thead>
+        <tbody id="application-table-body">
+        </tbody>
+      </table>
     </div>
 
     <div style="display: none;" class="color-gray panel-body" id="configure-extension">
