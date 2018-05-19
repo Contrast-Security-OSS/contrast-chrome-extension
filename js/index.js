@@ -9,7 +9,7 @@
   getStoredCredentials,
   isCredentialed
 */
-"use strict";
+"use strict"
 
 /**
  * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
@@ -30,15 +30,7 @@ function indexFunction() {
         let configureExtensionButton = document.getElementById('configure-extension-button')
         setTextContent(configureExtensionButton, "Reconfigure")
         getUserConfiguration(tab, url)
-        getApplications()
-        .then(json => {
-          if (!json) {
-            throw new Error("Error getting applications")
-            return
-          }
-          json.applications.forEach(app => createAppTableRow(app, url))
-        })
-        .catch(error => error)
+        renderApplicationsMenu(url)
       } else {
         renderActivityFeed(items, url)
       }
@@ -52,13 +44,51 @@ function indexFunction() {
   })
 }
 
+function renderApplicationsMenu(url) {
+  const applicationsHeading = document.getElementById('applications-heading')
+  const applicationsArrow   = document.getElementById('applications-arrow')
+  const applicationTable    = document.getElementById('application-table')
+  const container = document.getElementById('applications-heading-container')
+  setDisplayBlock(container)
+  // const applicationTable = document.getElementsByClassName('.application-table-hidden')[0]
+  console.log("applicationTable", applicationTable);
+  // applicationTable.setAttribute('style', 'opacity: 0; transition: opacity 2s linear; -webkit-transition: opacity 2s linear;')
+
+  applicationsHeading.addEventListener('click', () => {
+    if (applicationsArrow.innerText === ' ▶') {
+      setTextContent(applicationsArrow, ' ▼')
+
+      applicationTable.classList.add('application-table-visible')
+      applicationTable.classList.remove('application-table-hidden')
+
+      if (document.getElementsByTagName('tr').length < 2) {
+        getApplications()
+        .then(json => {
+          if (!json) {
+            throw new Error("Error getting applications")
+            return
+          }
+          json.applications.forEach(app => createAppTableRow(app, url))
+        })
+        .catch(error => error)
+      }
+    } else {
+      applicationTable.classList.add('application-table-hidden')
+      applicationTable.classList.remove('application-table-visible')
+
+      setTextContent(applicationsArrow, ' ▶')
+      // setDisplayNone(applicationTable)
+    }
+  })
+}
+
 function getUserConfiguration(tab, url) {
   if (isTeamserverAccountPage(tab, url)) {
 
     setDisplayEmpty(document.getElementById('configure-extension'))
 
-    let configureExtensionHost = document.getElementById('configure-extension-host');
-    setTextContent(configureExtensionHost, "Make sure you trust this site: " + url.hostname);
+    let configureExtensionHost = document.getElementById('configure-extension-host')
+    setTextContent(configureExtensionHost, "Make sure you trust this site: " + url.hostname)
 
     renderConfigButton(tab)
   } else {
@@ -106,11 +136,15 @@ function renderConfigButton(tab) {
 }
 
 function renderActivityFeed(items, url) {
+  const applicationTable = document.getElementById("application-table")
+  applicationTable.classList.add('application-table-visible')
+  applicationTable.classList.remove('application-table-hidden')
+
   const host = getHost(url.host.split(":").join("_"))
 
   chrome.storage.local.get("APPS", (result) => {
 
-    // look in stored apps array for app tied to host
+    // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (!!result.APPS && !!result.APPS.filter(result => result[host])[0]) {
       showActivityFeed(items)
     } else {
@@ -123,16 +157,16 @@ function renderActivityFeed(items, url) {
           return
         }
 
-        let applications
-        if (!!result.APPS) {
+        let applications = json.applications
+
+        // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
+        if (!!result.APPS && !url.href.includes("Contrast")) {
           const appIds = result.APPS.map(Object.values).flatten()
-          applications = json.applications.filter(app => {
+          applications = applications.filter(app => {
 
             // include in applications if it's not in storage
             return !appIds.includes(app.app_id)
           })
-        } else {
-          applications = json.applications
         }
 
         // create a row for each application
@@ -143,17 +177,17 @@ function renderActivityFeed(items, url) {
 }
 
 /**
- * showActivityFeed - description
+ * showActivityFeed - renders the container for vulnerabilities
  *
- * @param  {type} items description
- * @return {type}       description
+ * @param  {Object} items - contains contrast credentials and info from storage
+ * @return {void}
  */
 function showActivityFeed(items) {
   const extensionId = chrome.runtime.id
 
   // find sections
-  let notConfiguredSection = document.getElementById('not-configured');
-  let configureExtension   = document.getElementById('configure-extension');
+  let notConfiguredSection = document.getElementById('not-configured')
+  let configureExtension   = document.getElementById('configure-extension')
 
   // if you don't need credentials, hide the signin functionality
   setDisplayNone(configureExtension)
@@ -201,22 +235,25 @@ function createAppTableRow(application, url) {
   row.appendChild(domainTD)
   row.appendChild(appIdTD)
 
-  setTextContent(domainTD, 'Click to Connect Domain')
-
+  // const applicationTable = document.getElementById('application-table')
+  const applicationTable = document.getElementsByClassName('.application-table-hidden')[0]
   const host = getHost(url.host.split(":").join("_"))
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!url.href.includes("Contrast")) {
+    setTextContent(domainTD, 'Click to Connect Domain')
+
     const nameBtn = document.createElement('button')
     nameBtn.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin nameBtn')
+
     setTextContent(nameBtn, application.name.titleize())
     nameTD.appendChild(nameBtn)
 
-    document.getElementById('application-table').style.display = 'table'
+    // applicationTable.style.display = 'table'
 
-    nameBtn.addEventListener('click', (event) => {
+    nameBtn.addEventListener('click', () => {
       chrome.storage.local.set({ "APPS": [{ [host]: application.app_id }] }, () => {
-        setDisplayNone(document.getElementById('application-table'))
+        setDisplayNone(applicationTable)
         indexFunction()
       })
     })
@@ -233,7 +270,7 @@ function createAppTableRow(application, url) {
         setTextContent(domainTD, host)
       }
       setTextContent(nameTD, application.name)
-      document.getElementById('application-table').style.display = 'table'
+      // applicationTable.style.display = 'table'
     })
   }
 }
