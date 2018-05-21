@@ -334,10 +334,10 @@ function processTeamserverUrl(teamserverUrlValue) {
       if (!teamserverUrlValue.endsWith("/Contrast")) {
         teamserverUrlValue += "/Contrast";
       }
-      teamserverUrlValue += "/api";
+      teamserverUrlValue += "/api"
     }
     if (!teamserverUrlValue.startsWith("http")) {
-      teamserverUrlValue = "https://" + teamserverUrlValue;
+      teamserverUrlValue = "https://" + teamserverUrlValue
     }
   }
   return teamserverUrlValue

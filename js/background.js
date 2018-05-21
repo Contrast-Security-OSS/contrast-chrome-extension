@@ -217,8 +217,6 @@ function getApplicationFromStorage(result, tab) {
 		return null
 	}
 
-	if (!application) return null
-
 	return application
 }
 
@@ -370,11 +368,4 @@ function getCredentials(tab) {
 	if (!TAB_CLOSED && conditions.some(c => !!c)) {
 		updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND)
 	}
-	// else if (!TAB_CLOSED && !chrome.runtime.lastError) {
-	// 	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
-	// 		if (result === CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT) {
-	// 			updateTabBadge(tab, '')
-	// 		}
-	// 	})
-	// }
 }
