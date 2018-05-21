@@ -39,7 +39,7 @@ const VALID_TEAMSERVER_HOSTNAMES = [
 ]
 
 const CONTRAST_ICON_BADGE_BACKGROUND = "#E63025"
-const CONTRAT_GREEN = "#65C0B2" // or is it #3CC3B2?
+const CONTRAST_GREEN = "#65C0B2" // or is it #3CC3B2?
 const CONTRAST_RED  = "#E63025"
 const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300"
 const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*"
@@ -49,6 +49,24 @@ const LISTENING_ON_DOMAIN = "<all_urls>"
 const GATHER_FORMS_ACTION = "gatherForms"
 const STORED_TRACES_KEY   = "traces"
 const TRACES_REQUEST      = "getStoredTraces"
+
+const BLACKLISTED_DOMAINS = [
+  "/Contrast/static",
+  "/Contrast/api",
+  "/Contrast/s/",
+  "google.com",
+  "ajax.googleapis.com",
+  "gstatic.net",
+  "cloudfront.com",
+  "developer.chrome",
+  "facebook.com",
+  "atlassian.net",
+  "cloudfront.net",
+  "cloudfront.com",
+  "cdn.sstatic.net",
+  "reddit.com",
+]
+const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length
 
 
 /**
@@ -105,8 +123,11 @@ function getAuthorizationHeader(username, serviceKey) {
   return btoa(username + ":" + serviceKey);
 }
 
-function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid) {
-  if (teamserverUrl && orgUuid) {
+function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
+  if (teamserverUrl && orgUuid && appId) {
+    return teamserverUrl + '/ng/' + orgUuid + '/traces/' + appId + '/ids';
+  }
+  else if (teamserverUrl && orgUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
   }
   throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined")
@@ -157,7 +178,13 @@ function getStoredCredentials() {
       CONTRAST_API_KEY,
       CONTRAST_ORG_UUID,
       TEAMSERVER_URL
-    ], items => resolve(items))
+    ], (items) => {
+      if (!items) {
+        reject("Error getting credentials")
+      } else {
+        resolve(items)
+      }
+    })
   })
 }
 
@@ -168,14 +195,16 @@ function getStoredCredentials() {
  * @param  {Function} onReadyStateChangeCallback description
  * @return {void}
  */
-function getOrganizationVulnerabilityIds(urls) {
+function getOrganizationVulnerabilityIds(urls, appId) {
   return getStoredCredentials()
   .then(items => {
-    const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID])
+    if (!items) throw new Error("Error retrieving credentials from storage")
+
+    const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId)
     const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
     const params = "?urls=" + urls
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
-  });
+  })
 }
 
 function getVulnerabilityShort(traceUuid) {
@@ -239,6 +268,7 @@ function isCredentialed(credentials) {
 
   // ES6
   const values = Object.values(credentials)
+
   return !!values && values.length > 0 && values.every(item => !!item)
 }
 
@@ -308,4 +338,28 @@ function processTeamserverUrl(teamserverUrlValue) {
     }
   }
   return teamserverUrlValue
+}
+
+function getHostFromUrl(url) {
+  const host      = url.host.split(":").join("_")
+  const hostArray = host.split(".")
+  if (hostArray.length < 3) {
+    return [hostArray[0]]
+  } else if (hostArray.length === 3) {
+    return [hostArray[1]]
+  } else {
+    return [hostname]
+  }
+}
+
+function isBlacklisted(request) {
+  if (!request || !request.url) return true
+  const url = request.url.toLowerCase()
+
+	for (let i = 0; i < BLACKLIST_LENGTH; i++) {
+		if (url.includes(BLACKLISTED_DOMAINS[i].toLowerCase())) {
+			return true
+		}
+	}
+	return false
 }

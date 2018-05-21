@@ -124,18 +124,17 @@ function renderConfigButton(tab) {
 }
 
 function renderActivityFeed(items, url) {
-  const applicationTable = document.getElementById("application-table")
-  applicationTable.classList.add('application-table-visible')
-  applicationTable.classList.remove('application-table-hidden')
-
-  const host = getHost(url.host.split(":").join("_"))
-
   chrome.storage.local.get("APPS", (result) => {
-    console.log("result", result);
+    const host = getHostFromUrl(url)
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
-    if (!!result.APPS && !!result.APPS.filter(result => result[host])[0]) {
+    if (!!result.APPS && result.APPS.filter(app => app[host])[0]) {
       showActivityFeed(items)
     } else {
+      const applicationTable = document.getElementById("application-table")
+      applicationTable.classList.add('application-table-visible')
+      applicationTable.classList.remove('application-table-hidden')
+
+      setDisplayNone(document.getElementById("vulnerabilities-found-on-page"))
 
       // if app is not stored, render the table with buttons to add the domain
       getApplications()
@@ -227,10 +226,10 @@ function createAppTableRow(application, url) {
 
   // const applicationTable = document.getElementById('application-table')
   const applicationTable = document.getElementById("application-table")
-  const host = getHost(url.host.split(":").join("_"))
+  const host = getHostFromUrl(url)
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
-  if (!url.href.includes("Contrast")) {
+  if (!url.href.includes("/Contrast/")) {
     setTextContent(domainTD, 'Click to Connect Domain')
 
     const nameBtn = document.createElement('button')
@@ -246,12 +245,24 @@ function createAppTableRow(application, url) {
 
     // on a contrast page - render the full collection of apps in a user org with respective domains
     chrome.storage.local.get("APPS", (result) => {
+      if (chrome.runtime.lastError) return
+
+      // result has not been defined yet
+      if (!result || !result.APPS) {
+        result = { APPS: [] }
+      }
+
       const storedApp = result.APPS.filter(app => {
-        return Object.values(app)[0] === application.app_id
+        if (app) {
+          return Object.values(app)[0] === application.app_id
+        }
       })[0]
 
       if (!!storedApp) {
-        const host = Object.keys(storedApp)[0]
+        let host = Object.keys(storedApp)[0]
+        if (host.includes("_")) {
+          host = host.split("_").join(":") // local dev stuff
+        }
         setTextContent(domainTD, host)
 
         const disconnectButton = document.createElement('button')
@@ -285,17 +296,6 @@ function _disconnectDomain(host, storedApps, application, disconnectButton) {
   chrome.storage.local.set({ "APPS": updatedStoredApps }, () => {
     disconnectButton.remove()
   })
-}
-
-function getHost(hostname) {
-  const hostArray = hostname.split(".")
-  if (hostArray.length < 3) {
-    return [hostArray[0]]
-  } else if (hostArray.length === 3) {
-    return [hostArray[1]]
-  } else {
-    return [hostname]
-  }
 }
 
 // --------- HELPER FUNCTIONS -------------

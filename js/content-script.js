@@ -26,7 +26,7 @@ function highlightForm(form) {
     if (inputs[i].type.toLowerCase() !== "submit") {
       inputs[i].setAttribute("style",
         `border-radius: 5px;
-         border: 3px solid ${CONTRAT_GREEN};
+         border: 3px solid ${CONTRAST_GREEN};
          `
       ); // highlight with contrast aquamarine color
       /*
@@ -176,7 +176,6 @@ function collectFormActions(sendResponse) {
     attributes: true,
     attributeOldValue: true,
     childList: true,
-    characterData: true,
   })
 }
 
@@ -195,7 +194,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   else if (request.url !== undefined && request.action === "INITIALIZE") {
-
     const teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX
     const orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
     request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX))
