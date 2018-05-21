@@ -118,64 +118,76 @@ function sendFormActionsToBackground(formActions, sendResponse) {
  * @return {void}
  */
 function collectFormActions(sendResponse) {
-  let messageSent = false
-  // MutationObserver watches for changes in DOM elements
-  // takes a callback reporting on mutations observed
-  const obs = new MutationObserver((mutations, observer) => {
-    // if forms have already been sent to backgroun for processing, don't repeat this
-    if (messageSent) {
-      observer.disconnect()
-      return
-    }
+  chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+    if (chrome.runtime.lastError) return
+    if (!result || !result[STORED_APPS_KEY]) return
 
-    let formActions = []
-    const mLength = mutations.length
+    console.log("window.location.url", window.location.href);
+    const url         = new URL(window.location.href)
+  	const host        = getHostFromUrl(url)
+  	const application = result[STORED_APPS_KEY].filter(app => app[host])[0]
 
-    // go through each mutation, looking for elements that have changed in a specific manner
-    for (let i = 0; i < mLength; i++) {
-      let mutation = mutations[i]
+    if (!application) return
 
-      let mutatedForms;
-      if (mutation.target.tagName === "FORM") {
-        mutatedForms = mutation.target
-      } else {
-        mutatedForms = mutation.target.getElementsByTagName("form")
+    let messageSent = false
+    // MutationObserver watches for changes in DOM elements
+    // takes a callback reporting on mutations observed
+    const obs = new MutationObserver((mutations, observer) => {
+      // if forms have already been sent to backgroun for processing, don't repeat this
+      if (messageSent) {
+        observer.disconnect()
+        return
       }
 
-      // if the mutated element has child forms
-      if (!!mutatedForms && mutatedForms.length > 0) {
-        for (let i = 0; i < mutatedForms.length; i++) {
-          highlightForm(mutatedForms[i])
+      let formActions = []
+      const mLength = mutations.length
+
+      // go through each mutation, looking for elements that have changed in a specific manner
+      for (let i = 0; i < mLength; i++) {
+        let mutation = mutations[i]
+
+        let mutatedForms;
+        if (mutation.target.tagName === "FORM") {
+          mutatedForms = mutation.target
+        } else {
+          mutatedForms = mutation.target.getElementsByTagName("form")
         }
-        let extractedActions = extractActionsFromForm(mutatedForms)
-        formActions = formActions.concat(extractedActions)
+
+        // if the mutated element has child forms
+        if (!!mutatedForms && mutatedForms.length > 0) {
+          for (let i = 0; i < mutatedForms.length; i++) {
+            highlightForm(mutatedForms[i])
+          }
+          let extractedActions = extractActionsFromForm(mutatedForms)
+          formActions = formActions.concat(extractedActions)
+        }
+      }
+
+      // send formActions to background and stop observation
+      if (formActions.length > 0) {
+        messageSent = true
+        sendFormActionsToBackground(formActions, sendResponse)
+        window.REFRESHED = false
+        observer.disconnect()
+      }
+    })
+
+    // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
+    if (window.REFRESHED === false) {
+      const actions = scrapeDOMForForms()
+      if (!!actions) {
+        messageSent = true
+        sendFormActionsToBackground(actions, sendResponse)
+        return;
       }
     }
 
-    // send formActions to background and stop observation
-    if (formActions.length > 0) {
-      messageSent = true
-      sendFormActionsToBackground(formActions, sendResponse)
-      window.REFRESHED = false
-      observer.disconnect()
-    }
-  })
-
-  // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
-  if (window.REFRESHED === false) {
-    const actions = scrapeDOMForForms()
-    if (!!actions) {
-      messageSent = true
-      sendFormActionsToBackground(actions, sendResponse)
-      return;
-    }
-  }
-
-  obs.observe(document.body, {
-    subtree: true,
-    attributes: true,
-    attributeOldValue: true,
-    childList: true,
+    obs.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeOldValue: true,
+      childList: true,
+    })
   })
 }
 

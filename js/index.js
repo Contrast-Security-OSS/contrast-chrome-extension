@@ -124,10 +124,10 @@ function renderConfigButton(tab) {
 }
 
 function renderActivityFeed(items, url) {
-  chrome.storage.local.get("APPS", (result) => {
+  chrome.storage.local.get(STORED_APPS_KEY, (result) => {
     const host = getHostFromUrl(url)
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
-    if (!!result.APPS && result.APPS.filter(app => app[host])[0]) {
+    if (!!result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
       showActivityFeed(items)
     } else {
       const applicationTable = document.getElementById("application-table")
@@ -147,8 +147,8 @@ function renderActivityFeed(items, url) {
         let applications = json.applications
 
         // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
-        if (!!result.APPS && !url.href.includes("Contrast")) {
-          const appIds = result.APPS.map(Object.values).flatten()
+        if (!!result[STORED_APPS_KEY] && !url.href.includes("Contrast")) {
+          const appIds = result[STORED_APPS_KEY].map(Object.values).flatten()
           applications = applications.filter(app => {
 
             // include in applications if it's not in storage
@@ -244,15 +244,15 @@ function createAppTableRow(application, url) {
   } else {
 
     // on a contrast page - render the full collection of apps in a user org with respective domains
-    chrome.storage.local.get("APPS", (result) => {
+    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
       if (chrome.runtime.lastError) return
 
       // result has not been defined yet
-      if (!result || !result.APPS) {
+      if (!result || !result[STORED_APPS_KEY]) {
         result = { APPS: [] }
       }
 
-      const storedApp = result.APPS.filter(app => {
+      const storedApp = result[STORED_APPS_KEY].filter(app => {
         if (app) {
           return Object.values(app)[0] === application.app_id
         }
@@ -278,11 +278,11 @@ function createAppTableRow(application, url) {
 }
 
 function _addDomainToStorage(host, application) {
-  chrome.storage.local.get("APPS", (result) => {
-    if (!result.APPS) result.APPS = [] // no applications stored so result.APPS is undefined
-    const updatedStoredApps = result.APPS.concat({ [host]: application.app_id })
+  chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+    if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [] // no applications stored so result[STORED_APPS_KEY] is undefined
+    const updatedStoredApps = result[STORED_APPS_KEY].concat({ [host]: application.app_id })
 
-    chrome.storage.local.set({ "APPS": updatedStoredApps }, () => {
+    chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
       setDisplayNone(document.getElementById("application-table"))
       indexFunction()
     })
@@ -290,10 +290,10 @@ function _addDomainToStorage(host, application) {
 }
 
 function _disconnectDomain(host, storedApps, application, disconnectButton) {
-  const updatedStoredApps = storedApps.APPS.filter(app => {
+  const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
     return app[host] !== application.app_id
   })
-  chrome.storage.local.set({ "APPS": updatedStoredApps }, () => {
+  chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
     disconnectButton.remove()
   })
 }

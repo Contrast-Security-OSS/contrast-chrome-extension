@@ -163,9 +163,8 @@ function updateVulnerabilities(tab) {
 			let evaluated = false
 			const credentialed = isCredentialed(items)
 
-			chrome.storage.local.get("APPS", (result) => {
+			chrome.storage.local.get(STORED_APPS_KEY, (result) => {
 				if (chrome.runtime.lastError || !result) {
-					console.log("chrome runtime error")
 					throw new Error("Error getting apps from storage")
 				}
 
@@ -204,12 +203,17 @@ function getApplicationFromStorage(result, tab) {
 	const host = getHostFromUrl(url)
 
 	let application
-	if (!!result.APPS) {
-		application = result.APPS.filter(app => app[host])[0]
+	if (!!result[STORED_APPS_KEY]) {
+		application = result[STORED_APPS_KEY].filter(app => app[host])[0]
 	}
 
-	if (!application && !TAB_CLOSED && tab.index >= 0) {
+	if (!application && !TAB_CLOSED && tab.index >= 0 && !isBlacklisted(tab)) {
 		updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND)
+		return null
+	}
+
+	if (!application && !TAB_CLOSED && tab.index >= 0 && isBlacklisted(tab)) {
+		updateTabBadge(tab, '', CONTRAST_GREEN)
 		return null
 	}
 
@@ -231,6 +235,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 	const host = getHostFromUrl(url)
 
 	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
+
 		// generate an array of only pathnames
 		const urlQueryString = generateURLString(traceUrls)
 
@@ -240,8 +245,11 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 		.then(json => {
 			if (!json) {
 				throw new Error("Error getting json from application trace ids")
+			} else if (json.traces.length === 0) {
+				updateTabBadge(tab, json.traces.length.toString(), CONTRAST_RED)
+			} else {
+				setToStorage(json.traces, tab)
 			}
-			setToStorage(json.traces, tab)
 		})
 		.catch(error => updateTabBadge(tab, "X", CONTRAST_RED))
 	} else if (hasCredentials && !!traceUrls && traceUrls.length === 0) {
@@ -249,26 +257,6 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 	} else {
 		getCredentials(tab)
 	}
-}
-
-/**
- * updateTabBadge - updates the extension badge on the toolbar
- *
- * @param  {Object} tab    Gives the state of the current tab
- * @param  {String} text   What the badge should display
- * @return {void}
- */
-function updateTabBadge(tab, text, color) {
-	if (chrome.runtime.lastError) {
-		return
-	}
-	try {
-		if (!TAB_CLOSED && tab.index >= 0) { // tab is visible
-			chrome.browserAction.setBadgeBackgroundColor({ color })
-			chrome.browserAction.setBadgeText({ tabId: tab.id, text })
-		}
-	} catch (e) { return null }
-		finally { TAB_CLOSED = false }
 }
 
 /**
@@ -282,7 +270,6 @@ function updateTabBadge(tab, text, color) {
  * @return {Promise}
  */
 function setToStorage(foundTraces, tab) {
-
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI
 		const traces = foundTraces.filter(t => !!t)
 
@@ -295,6 +282,7 @@ function setToStorage(foundTraces, tab) {
 			if (JSON.stringify(vulnerabilities).length > 0) {
 				VULNERABLE_TABS.push(tab.id)
 			}
+
 
 			// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
 			chrome.storage.local.set(storedTraces, () => {
@@ -354,7 +342,6 @@ function removeVulnerabilitiesFromStorage(tab) {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.remove(STORED_TRACES_KEY, () => {
 			if (chrome.runtime.lastError) {
-				console.log("chrome.runtime.lastError not null")
 				reject(null)
 			}
 
@@ -371,7 +358,6 @@ function removeVulnerabilitiesFromStorage(tab) {
  */
 function getCredentials(tab) {
 	if (chrome.runtime.lastError) {
-		console.log("chrome.runtime.lastError not null")
 		return
 	}
 
@@ -386,7 +372,6 @@ function getCredentials(tab) {
 	}
 	// else if (!TAB_CLOSED && !chrome.runtime.lastError) {
 	// 	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
-	// 		console.log("get badge text result", result);
 	// 		if (result === CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT) {
 	// 			updateTabBadge(tab, '')
 	// 		}

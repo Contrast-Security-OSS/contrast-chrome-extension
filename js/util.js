@@ -49,8 +49,11 @@ const LISTENING_ON_DOMAIN = "<all_urls>"
 const GATHER_FORMS_ACTION = "gatherForms"
 const STORED_TRACES_KEY   = "traces"
 const TRACES_REQUEST      = "getStoredTraces"
+const STORED_APPS_KEY     = "APPS"
 
 const BLACKLISTED_DOMAINS = [
+  "chrome://",
+  "file://",
   "/Contrast/static",
   "/Contrast/api",
   "/Contrast/s/",
@@ -362,4 +365,24 @@ function isBlacklisted(request) {
 		}
 	}
 	return false
+}
+
+/**
+ * updateTabBadge - updates the extension badge on the toolbar
+ *
+ * @param  {Object} tab    Gives the state of the current tab
+ * @param  {String} text   What the badge should display
+ * @return {void}
+ */
+function updateTabBadge(tab, text, color) {
+	if (chrome.runtime.lastError) {
+		return
+	}
+	try {
+		if (!TAB_CLOSED && tab.index >= 0) { // tab is visible
+			chrome.browserAction.setBadgeBackgroundColor({ color })
+			chrome.browserAction.setBadgeText({ tabId: tab.id, text })
+		}
+	} catch (e) { return null }
+		finally { TAB_CLOSED = false }
 }
