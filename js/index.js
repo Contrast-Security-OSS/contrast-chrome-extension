@@ -50,9 +50,6 @@ function renderApplicationsMenu(url) {
   const applicationTable    = document.getElementById('application-table')
   const container = document.getElementById('applications-heading-container')
   setDisplayBlock(container)
-  // const applicationTable = document.getElementsByClassName('.application-table-hidden')[0]
-  console.log("applicationTable", applicationTable);
-  // applicationTable.setAttribute('style', 'opacity: 0; transition: opacity 2s linear; -webkit-transition: opacity 2s linear;')
 
   applicationsHeading.addEventListener('click', () => {
     if (applicationsArrow.innerText === ' ▶') {
@@ -77,7 +74,6 @@ function renderApplicationsMenu(url) {
       applicationTable.classList.remove('application-table-visible')
 
       setTextContent(applicationsArrow, ' ▶')
-      // setDisplayNone(applicationTable)
     }
   })
 }
@@ -93,15 +89,7 @@ function getUserConfiguration(tab, url) {
     renderConfigButton(tab)
   } else {
     setDisplayEmpty(document.getElementById('not-configured'))
-
-    // let vulnsFound = document.getElementById('vulnerabilities-found-on-page')
-    // setDisplayBlock(vulnsFound)
-    // const noVulns = document.getElementById('no-vulnerabilities-found-on-page')
-    // noVulns.style.display = 'inline'
   }
-
-
-  // setDisplayNone(document.getElementById('vulnerabilities-found-on-page'))
 }
 
 function renderConfigButton(tab) {
@@ -143,7 +131,7 @@ function renderActivityFeed(items, url) {
   const host = getHost(url.host.split(":").join("_"))
 
   chrome.storage.local.get("APPS", (result) => {
-
+    console.log("result", result);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (!!result.APPS && !!result.APPS.filter(result => result[host])[0]) {
       showActivityFeed(items)
@@ -219,11 +207,12 @@ function showActivityFeed(items) {
  * @return {void} - adds rows to a table
  */
 function createAppTableRow(application, url) {
-  const tableBody = document.getElementById('application-table-body')
-  const row       = document.createElement('tr')
-  const nameTD    = document.createElement('td')
-  const appIdTD   = document.createElement('td')
-  const domainTD  = document.createElement('td')
+  const tableBody    = document.getElementById('application-table-body')
+  const row          = document.createElement('tr')
+  const nameTD       = document.createElement('td')
+  const appIdTD      = document.createElement('td')
+  const domainTD     = document.createElement('td')
+  const disconnectTD = document.createElement('td')
 
   row.setAttribute('scope', 'row')
 
@@ -234,9 +223,10 @@ function createAppTableRow(application, url) {
   row.appendChild(nameTD)
   row.appendChild(domainTD)
   row.appendChild(appIdTD)
+  row.appendChild(disconnectTD)
 
   // const applicationTable = document.getElementById('application-table')
-  const applicationTable = document.getElementsByClassName('.application-table-hidden')[0]
+  const applicationTable = document.getElementById("application-table")
   const host = getHost(url.host.split(":").join("_"))
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
@@ -251,12 +241,7 @@ function createAppTableRow(application, url) {
 
     // applicationTable.style.display = 'table'
 
-    nameBtn.addEventListener('click', () => {
-      chrome.storage.local.set({ "APPS": [{ [host]: application.app_id }] }, () => {
-        setDisplayNone(applicationTable)
-        indexFunction()
-      })
-    })
+    nameBtn.addEventListener('click', () => _addDomainToStorage(host, application))
   } else {
 
     // on a contrast page - render the full collection of apps in a user org with respective domains
@@ -268,11 +253,38 @@ function createAppTableRow(application, url) {
       if (!!storedApp) {
         const host = Object.keys(storedApp)[0]
         setTextContent(domainTD, host)
+
+        const disconnectButton = document.createElement('button')
+        disconnectButton.innerText = "Disconnect Domain"
+        disconnectButton.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin')
+        disconnectButton.addEventListener('click', () => _disconnectDomain(host, result, application, disconnectButton))
+
+        disconnectTD.appendChild(disconnectButton)
       }
       setTextContent(nameTD, application.name)
-      // applicationTable.style.display = 'table'
     })
   }
+}
+
+function _addDomainToStorage(host, application) {
+  chrome.storage.local.get("APPS", (result) => {
+    if (!result.APPS) result.APPS = [] // no applications stored so result.APPS is undefined
+    const updatedStoredApps = result.APPS.concat({ [host]: application.app_id })
+
+    chrome.storage.local.set({ "APPS": updatedStoredApps }, () => {
+      setDisplayNone(document.getElementById("application-table"))
+      indexFunction()
+    })
+  })
+}
+
+function _disconnectDomain(host, storedApps, application, disconnectButton) {
+  const updatedStoredApps = storedApps.APPS.filter(app => {
+    return app[host] !== application.app_id
+  })
+  chrome.storage.local.set({ "APPS": updatedStoredApps }, () => {
+    disconnectButton.remove()
+  })
 }
 
 function getHost(hostname) {
