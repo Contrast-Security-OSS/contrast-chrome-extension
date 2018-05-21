@@ -238,48 +238,6 @@ function setBadgeLoading(tab) {
 }
 
 /**
- * processTraces - description
- *
- * @param  {Array<String>} traces - array of trace uuids
- * @param  {Object} tab - Gives the state of the current tab
- * @return {Promise<Array>} - A promise that resolves to an array of trace objects
- */
-function processTraces(traces, tab) {
-	if (!traces || traces.length === 0) {
-		return Promise.resolve([])
-	}
-
-	/**
-	 * asyncRequest - not technically needed, could return getVulnerabilityFilter inside of traces.map below, but it looks cleaner
-	 *
-	 * @param  {String} trace - a trace uuid
-	 * @return {String} - blank or the trace uuid, after it has been checked against the URI of the tab vs. the URI of the trace request
-	 */
-	function asyncRequest(trace) {
-		return getVulnerabilityFilter(trace)
-		.then(json => {
-			if (!json) {
-				return ""
-			}
-			const request = json.trace.request
-
-			const url   = new URL(tab.url)
-			if (!url) return ""
-
-			const path  = url.pathname.match(/\/\w+/) // 1st index is string
-			if (!path) return ""
-
-			const match = request.uri.indexOf(path[0])
-			if (match === -1) return ""
-
-			return trace
-		})
-		.catch(error)
-	}
-	return Promise.all(traces.map(t => asyncRequest(t))) // eslint-disable-line consistent-return
-}
-
-/**
  * setToStorage - locals the trace ids of found vulnerabilities to storage
  * https://blog.lavrton.com/javascript-loops-how-to-handle-async-await-6252dd3c795
  * https://stackoverflow.com/a/37576787/6410635
@@ -290,12 +248,8 @@ function processTraces(traces, tab) {
  * @return {Promise}
  */
 function setToStorage(foundTraces, tab) {
-	// processTraces(foundTraces, tab)
-	// .then(traces => {
-	// 	console.log("traces", traces);
-	// 	if (!traces) return
 
-		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI (see processTraces)
+		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI
 		const traces = foundTraces.filter(t => !!t)
 
 		buildVulnerabilitiesArray(traces, tab)
