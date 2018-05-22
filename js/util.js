@@ -375,14 +375,55 @@ function isBlacklisted(request) {
  * @return {void}
  */
 function updateTabBadge(tab, text, color) {
-	if (chrome.runtime.lastError) {
-		return
-	}
-	try {
-		if (!TAB_CLOSED && tab.index >= 0) { // tab is visible
-			chrome.browserAction.setBadgeBackgroundColor({ color })
-			chrome.browserAction.setBadgeText({ tabId: tab.id, text })
-		}
-	} catch (e) { return null }
-		finally { TAB_CLOSED = false }
+	if (chrome.runtime.lastError) return
+
+  chrome.tabs.get(tab.id, (result) => {
+    if (chrome.runtime.lastError || !result) return
+
+    try {
+      // tab is visible
+  		if (!chrome.runtime.lastError && !TAB_CLOSED && tab.index >= 0) {
+  			chrome.browserAction.setBadgeBackgroundColor({ color })
+  			chrome.browserAction.setBadgeText({ tabId: tab.id, text })
+  		}
+  	} catch (e) { return null }
+  		finally { TAB_CLOSED = false }
+  })
+}
+
+function retrieveApplicationFromStorage(tab) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+      if (chrome.runtime.lastError) {
+        reject("Error retrieving stored applications")
+      }
+
+      if (!result || !result[STORED_APPS_KEY]) {
+        result = { APPS: [] }
+      }
+
+      const url  = new URL(tab.url)
+    	const host = getHostFromUrl(url)
+
+    	let application
+    	if (!!result[STORED_APPS_KEY]) {
+    		application = result[STORED_APPS_KEY].filter(app => app[host])[0]
+    	}
+
+      // isn't blacklisted
+    	if (!application && !TAB_CLOSED && tab.index >= 0 && !isBlacklisted(tab)) {
+    		updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND)
+    		resolve(null)
+    	}
+
+      // is blacklisted
+    	if (!application && !TAB_CLOSED && tab.index >= 0 && isBlacklisted(tab)) {
+    		updateTabBadge(tab, '', CONTRAST_GREEN)
+    		resolve(null)
+    	}
+
+    	resolve(application)
+    })
+  })
+
 }

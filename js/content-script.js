@@ -106,6 +106,9 @@ function scrapeDOMForForms() {
  * @return {void}
  */
 function sendFormActionsToBackground(formActions, sendResponse) {
+
+  console.log("sendFormActionsToBackground()", deDupeArray(formActions));
+
   sendResponse({
     sender: GATHER_FORMS_ACTION,
     formActions: deDupeArray(formActions)
@@ -122,7 +125,6 @@ function collectFormActions(sendResponse) {
     if (chrome.runtime.lastError) return
     if (!result || !result[STORED_APPS_KEY]) return
 
-    console.log("window.location.url", window.location.href);
     const url         = new URL(window.location.href)
   	const host        = getHostFromUrl(url)
   	const application = result[STORED_APPS_KEY].filter(app => app[host])[0]
