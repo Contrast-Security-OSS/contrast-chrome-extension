@@ -316,7 +316,7 @@ function createAppTableRow(application, url) {
           message.classList.add("visible")
           message.classList.remove("hidden")
 
-          _disconnectDomain(host, result, application, disconnectButton)
+          _disconnectDomain(result, application, disconnectButton)
           .then(disconnected => {
             if (disconnected) {
               setTextContent(message, "Successfully Disconnected Domain")
@@ -380,15 +380,13 @@ function _addDomainToStorage(host, application) {
  * @param  {Node} disconnectButton     button user clicks remove an application
  * @return {Promise}                   if the removal succeeded
  */
-function _disconnectDomain(host, storedApps, application, disconnectButton) {
-  const domain = host.split(":").join("_")
-
+function _disconnectDomain(storedApps, application, disconnectButton) {
   return new Promise((resolve, reject) => {
     const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
-      return app[domain] !== application.app_id
+      return Object.values(app)[0] !== application.app_id
     })
 
-    const domainElement = getDisconnectButtonSibling(disconnectButton, domain)
+    const domainElement = getDisconnectButtonSibling(disconnectButton, application.name)
     if (!domainElement) return
 
     chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
@@ -405,16 +403,19 @@ function _disconnectDomain(host, storedApps, application, disconnectButton) {
 /**
  * getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
  *
- * @param  {type} disconnectButton description
- * @param  {type} domain           description
- * @return {type}                  description
+ * @param  {Node} disconnectButton an HTML Element
+ * @param  {String} appName        name of the stored app we're removing
+ * @return {Node}                  an HTML element in the same row
  */
-function getDisconnectButtonSibling(disconnectButton, domain) {
+function getDisconnectButtonSibling(disconnectButton, appName) {
   // button is inside a td which is inside a row
   const row = disconnectButton.parentNode.parentNode
   const tds = row.querySelectorAll('td')
+
   for (let i = 0; i < tds.length; i++) {
-    if (tds[i].innerText === domain) {
+    // get the td in the row that doesn't have an appName and isn't blank (which is where the disconnect button was)
+
+    if (tds[i].innerText !== appName && tds[i].innerText !== "") {
       return tds[i]
     }
   }
