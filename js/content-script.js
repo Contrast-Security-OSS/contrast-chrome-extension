@@ -4,9 +4,17 @@ document,
 TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,
-MutationObserver,
 GATHER_FORMS_ACTION,
+CONTRAST_USERNAME,
+CONTRAST_SERVICE_KEY,
+CONTRAST_API_KEY,
+CONTRAST_ORG_UUID,
+CONTRAST_GREEN,
+STORED_APPS_KEY,
+TEAMSERVER_URL,
+MutationObserver,
 deDupeArray,
+getHostFromUrl,
 */
 "use strict";
 
@@ -17,7 +25,7 @@ if (window.performance.navigation.type === 1) {
 /**
 * highlightForm - description
 *
-* @param  {Element} form - A form on the DOM
+* @param  {Node} form - A form on the DOM
 * @return {void}
 */
 function highlightForm(traceUrls) {
@@ -31,7 +39,7 @@ function highlightForm(traceUrls) {
     let form = forms[i]
 
     // webgoat makes loading forms interesting, so we need to go up the DOM tree and verify that the form, and the form's parents are displayed
-    if (traceUrls.includes(form.action) && !formParentHasDisplayNone(form)) {
+    if (traceUrls.includes(form.action) && !elementParentHasDisplayNone(form)) {
       let inputs = form.getElementsByTagName('input')
       let input;
       for (let j = 0, len = inputs.length; j < len; j++) {
@@ -62,7 +70,13 @@ function highlightForm(traceUrls) {
   return false
 }
 
-function formParentHasDisplayNone(element) {
+/**
+ * elementParentHasDisplayNone - checks if any parent elements of a node has display: none styling
+ *
+ * @param  {Node} element an HTML element
+ * @return {Boolean}      if that element has a parent with display: none
+ */
+function elementParentHasDisplayNone(element) {
   if (element.style.display === 'none') {
     return true
   }
@@ -115,12 +129,17 @@ function parentHasDisplayNone(element) {
 * HTMLCollectionToArray - convert a collection of html form to an array
 *
 * @param  {HTMLCollection} collection - Collection of html elements
-* @return {Array<DOMNode>}
+* @return {Array<Node>}
 */
 function HTMLCollectionToArray(collection) {
   return Array.prototype.slice.call(collection)
 }
 
+/**
+ * scrapeDOMForForms - retrieve forms directly from the DOM
+ *
+ * @return {Array<String>} - an array of actions from forms
+ */
 function scrapeDOMForForms() {
   let forms = []
   let formActions = []
@@ -153,7 +172,7 @@ function sendFormActionsToBackground(formActions, sendResponse) {
 }
 
 /**
-* collectFormActions - scrapes DOM for forms and collects their actions
+* collectFormActions - scrapes DOM for forms and collects their actions, uses a mutation observer for SPAs and only for a connected application
 *
 * @return {void}
 */

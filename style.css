@@ -157,6 +157,11 @@ label {
   cursor: pointer;
 }
 
+#application-table-container-div {
+  width: 100%;
+  height: auto;
+}
+
 #applications-arrow {
   font-size: 10px;
 }
@@ -165,6 +170,20 @@ label {
 .configure-message {
   display: none;
   font-weight: bold;
+}
+
+#connected-domain-message {
+  text-align: center;
+  padding: 10px;
+  margin: 0px;
+}
+
+.visible {
+  display: block;
+}
+
+.hidden {
+  display: none;
 }
 
 #config-success {

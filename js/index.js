@@ -7,7 +7,13 @@
   TEAMSERVER_PROFILE_PATH_SUFFIX,
   URL,
   getStoredCredentials,
-  isCredentialed
+  isCredentialed,
+  isBlacklisted,
+  CONTRAST_RED,
+  CONTRAST_GREEN,
+  STORED_APPS_KEY,
+  getApplications,
+  getHostFromUrl,
 */
 "use strict"
 
@@ -44,6 +50,12 @@ function indexFunction() {
   })
 }
 
+/**
+ * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
+ *
+ * @param  {URL<Object>} url a url object of the current tab
+ * @return {void}
+ */
 function renderApplicationsMenu(url) {
   const applicationsHeading = document.getElementById('applications-heading')
   const applicationsArrow   = document.getElementById('applications-arrow')
@@ -63,7 +75,6 @@ function renderApplicationsMenu(url) {
         .then(json => {
           if (!json) {
             throw new Error("Error getting applications")
-            return
           }
           json.applications.forEach(app => createAppTableRow(app, url))
         })
@@ -78,6 +89,13 @@ function renderApplicationsMenu(url) {
   })
 }
 
+/**
+ * getUserConfiguration - renders the elements/dialog for a user configuring the connection from the extension to teamserver
+ *
+ * @param  {Object} tab the current tab
+ * @param  {URL<Object>} url a url object of the current tab
+ * @return {void}
+ */
 function getUserConfiguration(tab, url) {
   if (isTeamserverAccountPage(tab, url)) {
 
@@ -92,10 +110,16 @@ function getUserConfiguration(tab, url) {
   }
 }
 
+/**
+ * renderConfigButton - renders the button the user clicks to configure teamserver credentials
+ *
+ * @param  {Object} tab the current tab
+ * @return {void}
+ */
 function renderConfigButton(tab) {
   let configureExtensionButton = document.getElementById('configure-extension-button')
 
-  configureExtensionButton.addEventListener('click', (e) => {
+  configureExtensionButton.addEventListener('click', () => {
     configureExtensionButton.setAttribute('disabled', true)
 
     // credentials are set by sending a message to content-script
@@ -111,7 +135,7 @@ function renderConfigButton(tab) {
           configureExtensionButton.removeAttribute('disabled')
           setDisplayNone(successMessage)
           indexFunction()
-        }, 1000)
+        }, 2000)
       } else {
         configureExtensionButton.removeAttribute('disabled')
         const failureMessage = document.getElementById('config-failure')
@@ -123,7 +147,16 @@ function renderConfigButton(tab) {
   }, false)
 }
 
+/**
+ * renderActivityFeed - logic to render either the vulnerabilities in an app or the list of applications to connect to a domain. A user must connect a domain before the vulnerabilities section will be shown
+ *
+ * @param  {Object} items - teamserver credentials
+ * @param  {URL<Object>} url - URL object of current tab
+ * @return {type}
+ */
 function renderActivityFeed(items, url) {
+  if (isBlacklisted(url.host)) return
+
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
     const host = getHostFromUrl(url)
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
@@ -141,13 +174,13 @@ function renderActivityFeed(items, url) {
       .then(json => {
         if (!json) {
           throw new Error("Error getting applications")
-          return
         }
 
         let applications = json.applications
 
         // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
         if (!!result[STORED_APPS_KEY] && !url.href.includes("Contrast")) {
+
           const appIds = result[STORED_APPS_KEY].map(Object.values).flatten()
           applications = applications.filter(app => {
 
@@ -170,8 +203,6 @@ function renderActivityFeed(items, url) {
  * @return {void}
  */
 function showActivityFeed(items) {
-  const extensionId = chrome.runtime.id
-
   // find sections
   let notConfiguredSection = document.getElementById('not-configured')
   let configureExtension   = document.getElementById('configure-extension')
@@ -213,8 +244,6 @@ function createAppTableRow(application, url) {
   const domainTD     = document.createElement('td')
   const disconnectTD = document.createElement('td')
 
-  row.setAttribute('scope', 'row')
-
   setTextContent(appIdTD, application.app_id)
   setDisplayNone(appIdTD)
 
@@ -224,23 +253,40 @@ function createAppTableRow(application, url) {
   row.appendChild(appIdTD)
   row.appendChild(disconnectTD)
 
-  // const applicationTable = document.getElementById('application-table')
-  const applicationTable = document.getElementById("application-table")
   const host = getHostFromUrl(url)
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!url.href.includes("/Contrast/")) {
     setTextContent(domainTD, 'Click to Connect Domain')
 
-    const nameBtn = document.createElement('button')
-    nameBtn.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin nameBtn')
+    const domainBtn = document.createElement('button')
+    domainBtn.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin domainBtn')
 
-    setTextContent(nameBtn, application.name.titleize())
-    nameTD.appendChild(nameBtn)
+    setTextContent(domainBtn, application.name.titleize())
+    nameTD.appendChild(domainBtn)
 
-    // applicationTable.style.display = 'table'
+    domainBtn.addEventListener('click', () => {
+      const message = document.getElementById("connected-domain-message")
+      message.classList.add("visible")
+      message.classList.remove("hidden")
 
-    nameBtn.addEventListener('click', () => _addDomainToStorage(host, application))
+      _addDomainToStorage(host, application)
+      .then(result => {
+        if (result) {
+          setTextContent(message, "Successfully connected domain. You may need to reload the page.")
+          message.setAttribute('style', `color: ${CONTRAST_GREEN}`)
+        } else {
+          setTextContent(message, "Error Connecting Domain")
+          message.setAttribute('style', `color: ${CONTRAST_RED}`)
+        }
+        lingerMessage(message)
+      })
+      .catch(() => {
+        setTextContent(message, "Error Connecting Domain")
+        message.setAttribute('style', `color: ${CONTRAST_RED}`)
+        lingerMessage(message)
+      })
+    })
   } else {
 
     // on a contrast page - render the full collection of apps in a user org with respective domains
@@ -253,22 +299,41 @@ function createAppTableRow(application, url) {
       }
 
       const storedApp = result[STORED_APPS_KEY].filter(app => {
-        if (app) {
-          return Object.values(app)[0] === application.app_id
-        }
+        return Object.values(app)[0] === application.app_id
       })[0]
 
       if (!!storedApp) {
-        let host = Object.keys(storedApp)[0]
-        if (host.includes("_")) {
-          host = host.split("_").join(":") // local dev stuff
+        let domain = Object.keys(storedApp)[0]
+        if (domain.includes("_")) {
+          domain = domain.split("_").join(":") // local dev stuff
         }
-        setTextContent(domainTD, host)
+        setTextContent(domainTD, domain)
 
+        const message = document.getElementById("connected-domain-message")
         const disconnectButton = document.createElement('button')
-        disconnectButton.innerText = "Disconnect Domain"
         disconnectButton.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin')
-        disconnectButton.addEventListener('click', () => _disconnectDomain(host, result, application, disconnectButton))
+        disconnectButton.addEventListener('click', () => {
+          message.classList.add("visible")
+          message.classList.remove("hidden")
+
+          _disconnectDomain(host, result, application, disconnectButton)
+          .then(disconnected => {
+            if (disconnected) {
+              setTextContent(message, "Successfully Disconnected Domain")
+              message.setAttribute('style', `color: ${CONTRAST_GREEN}`)
+            } else {
+              setTextContent(message, "Error Disconnecting Domain")
+              message.setAttribute('style', `color: ${CONTRAST_RED}`)
+            }
+            lingerMessage(message)
+          })
+          .catch(() => {
+            setTextContent(message, "Error Disconnecting Domain")
+            message.setAttribute('style', `color: ${CONTRAST_RED}`)
+            lingerMessage(message)
+          })
+        })
+        setTextContent(disconnectButton, "Disconnect Domain")
 
         disconnectTD.appendChild(disconnectButton)
       }
@@ -277,25 +342,83 @@ function createAppTableRow(application, url) {
   }
 }
 
+/**
+ * _addDomainToStorage - add a domain + app name connection to chrome storage
+ *
+ * @param  {String} host        the host/domain of the application
+ * @param  {String} application the name of the application
+ * @return {Promise}            if storing the data succeeded
+ */
 function _addDomainToStorage(host, application) {
-  chrome.storage.local.get(STORED_APPS_KEY, (result) => {
-    if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [] // no applications stored so result[STORED_APPS_KEY] is undefined
-    const updatedStoredApps = result[STORED_APPS_KEY].concat({ [host]: application.app_id })
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+      if (chrome.storage.lastError) {
+        reject(new Error("Error retrieving stored apps"))
+      }
 
-    chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-      setDisplayNone(document.getElementById("application-table"))
-      indexFunction()
+      // no applications stored so result[STORED_APPS_KEY] is undefined
+      if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = []
+
+      const updatedStoredApps = result[STORED_APPS_KEY].concat({
+        [host]: application.app_id
+      })
+
+      chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
+        setDisplayNone(document.getElementById("application-table"))
+        resolve(!chrome.storage.lastError)
+      })
     })
   })
 }
 
+/**
+ * _disconnectDomain - removes an application + domain connection from storage
+ *
+ * @param  {String} host               the host/domain of the application
+ * @param  {Array<String>} storedApps  the array of stored apps
+ * @param  {String} application        the name of the application to remove
+ * @param  {Node} disconnectButton     button user clicks remove an application
+ * @return {Promise}                   if the removal succeeded
+ */
 function _disconnectDomain(host, storedApps, application, disconnectButton) {
-  const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
-    return app[host] !== application.app_id
+  const domain = host.split(":").join("_")
+
+  return new Promise((resolve, reject) => {
+    const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
+      return app[domain] !== application.app_id
+    })
+
+    const domainElement = getDisconnectButtonSibling(disconnectButton, domain)
+    if (!domainElement) return
+
+    chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError))
+      }
+      setTextContent(domainElement, '')
+      disconnectButton.remove()
+      resolve(!chrome.runtime.lastError)
+    })
   })
-  chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-    disconnectButton.remove()
-  })
+}
+
+/**
+ * getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
+ *
+ * @param  {type} disconnectButton description
+ * @param  {type} domain           description
+ * @return {type}                  description
+ */
+function getDisconnectButtonSibling(disconnectButton, domain) {
+  // button is inside a td which is inside a row
+  const row = disconnectButton.parentNode.parentNode
+  const tds = row.querySelectorAll('td')
+  for (let i = 0; i < tds.length; i++) {
+    if (tds[i].innerText === domain) {
+      return tds[i]
+    }
+  }
+  return null
 }
 
 // --------- HELPER FUNCTIONS -------------
@@ -324,13 +447,28 @@ function chromeExtensionSettingsUrl() {
   return 'chrome-extension://' + String(extensionId) + '/settings.html'
 }
 
-function isTeamserverAccountPage(tab, url) {
-  if (!tab || !url) return
+/**
+ * lingerMessage - leave a success/failure message on the screen for 2 seconds by toggling a class
+ *
+ * @param  {Node} element HTML Element to show for 2 seconds
+ * @return {void}
+ */
+function lingerMessage(element) {
+  setTimeout(() => {
+    element.classList.add("hidden")
+    element.classList.remove("visible")
+  }, 2000) // let the element linger
+}
 
-  // tab.url.startsWith("http") &&
-  // VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname) &&
-  // tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) || tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX)
-  //   && tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1
+/**
+ * isTeamserverAccountPage - checks if we're on the teamserver Your Account page
+ *
+ * @param  {Object} tab the current tab
+ * @param  {URL<Object>} url url object of the current tab
+ * @return {Boolean} if it is the teamserver page
+ */
+function isTeamserverAccountPage(tab, url) {
+  if (!tab || !url) return false
 
   const conditions = [
     tab.url.startsWith("http"),
