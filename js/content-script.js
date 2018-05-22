@@ -15,37 +15,77 @@ if (window.performance.navigation.type === 1) {
 }
 
 /**
- * highlightForm - description
- *
- * @param  {Element} form - A form on the DOM
- * @return {void}
- */
-function highlightForm(form) {
-  const inputs = form.getElementsByTagName('input')
-  for (let i = 0; i < inputs.length; i++) {
-    if (inputs[i].type.toLowerCase() !== "submit") {
-      inputs[i].setAttribute("style",
-        `border-radius: 5px;
-         border: 3px solid ${CONTRAST_GREEN};
-         `
-      ); // highlight with contrast aquamarine color
-      /*
-      * For adding contrast icon to background of input
-      * background-image: url(${chrome.extension.getURL(CONTRAST_ICON_16)});
-      * background-repeat: no-repeat;
-      * background-position: left;
-      * background-position-x: 2%;
-      */
+* highlightForm - description
+*
+* @param  {Element} form - A form on the DOM
+* @return {void}
+*/
+function highlightForm(traceUrls) {
+  // only want the trace path names
+  // traceUrls = traceUrls.map(t => new URL(t).pathname)
+  if (!traceUrls || traceUrls.length === 0) {
+    return false
+  }
+  const forms = document.getElementsByTagName('form')
+  for (let i = 0; i < forms.length; i++) {
+    let form = forms[i]
+
+    // webgoat makes loading forms interesting, so we need to go up the DOM tree and verify that the form, and the form's parents are displayed
+    if (traceUrls.includes(form.action) && !formParentHasDisplayNone(form)) {
+      let inputs = form.getElementsByTagName('input')
+      let input;
+      for (let j = 0, len = inputs.length; j < len; j++) {
+        if (!input && inputs[j].type === "submit") {
+          input = inputs[j]
+        }
+      }
+
+      // highlight with contrast aquamarine color
+      if (input) {
+        input.setAttribute("style",
+          `border-radius: 5px;
+          border: 3px solid ${CONTRAST_GREEN};`
+        );
+
+        return true
+      }
+
+    /*
+    * For adding contrast icon to background of input
+    * background-image: url(${chrome.extension.getURL(CONTRAST_ICON)});
+    * background-repeat: no-repeat;
+    * background-position: left;
+    * background-position-x: 2%;
+    */
     }
   }
+  return false
+}
+
+function formParentHasDisplayNone(element) {
+  if (element.style.display === 'none') {
+    return true
+  }
+
+  while (element.parentNode) {
+    element = element.parentNode
+    if (element.tagName === "BODY") {
+      return false
+    }
+
+    if (element.style.display === 'none') {
+      return true
+    }
+  }
+  return false;
 }
 
 /**
- * extractActionsFromForm - gets the form actions from each form in a collection
- *
- * @param  {HTMLCollection} forms collection of forms extracted from DOM
- * @return {Array<String>} array of form actions
- */
+* extractActionsFromForm - gets the form actions from each form in a collection
+*
+* @param  {HTMLCollection} forms collection of forms extracted from DOM
+* @return {Array<String>} array of form actions
+*/
 function extractActionsFromForm(forms) {
   let actions = []
   for (let i = 0; i < forms.length; i++) {
@@ -72,11 +112,11 @@ function parentHasDisplayNone(element) {
 }
 
 /**
- * HTMLCollectionToArray - convert a collection of html form to an array
- *
- * @param  {HTMLCollection} collection - Collection of html elements
- * @return {Array<DOMNode>}
- */
+* HTMLCollectionToArray - convert a collection of html form to an array
+*
+* @param  {HTMLCollection} collection - Collection of html elements
+* @return {Array<DOMNode>}
+*/
 function HTMLCollectionToArray(collection) {
   return Array.prototype.slice.call(collection)
 }
@@ -86,7 +126,7 @@ function scrapeDOMForForms() {
   let formActions = []
   let domForms = HTMLCollectionToArray(document.getElementsByTagName("form"))
   for (let i = 0; i < domForms.length; i++) {
-    highlightForm(domForms[i])
+    // highlightForm(domForms[i])
     // only collect forms that are shown on DOM
     // don't use `.splice()` because that mutates array we're running loop on
     if (!parentHasDisplayNone(domForms[i])) {
@@ -100,15 +140,12 @@ function scrapeDOMForForms() {
 }
 
 /**
- * sendFormActionsToBackground - sends the array for form actions to background
- *
- * @param  {Array<String>} formActions - actions from forms, scraped from DOM
- * @return {void}
- */
+* sendFormActionsToBackground - sends the array for form actions to background
+*
+* @param  {Array<String>} formActions - actions from forms, scraped from DOM
+* @return {void}
+*/
 function sendFormActionsToBackground(formActions, sendResponse) {
-
-  console.log("sendFormActionsToBackground()", deDupeArray(formActions));
-
   sendResponse({
     sender: GATHER_FORMS_ACTION,
     formActions: deDupeArray(formActions)
@@ -116,18 +153,18 @@ function sendFormActionsToBackground(formActions, sendResponse) {
 }
 
 /**
- * collectFormActions - scrapes DOM for forms and collects their actions
- *
- * @return {void}
- */
+* collectFormActions - scrapes DOM for forms and collects their actions
+*
+* @return {void}
+*/
 function collectFormActions(sendResponse) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
     if (chrome.runtime.lastError) return
     if (!result || !result[STORED_APPS_KEY]) return
 
     const url         = new URL(window.location.href)
-  	const host        = getHostFromUrl(url)
-  	const application = result[STORED_APPS_KEY].filter(app => app[host])[0]
+    const host        = getHostFromUrl(url)
+    const application = result[STORED_APPS_KEY].filter(app => app[host])[0]
 
     if (!application) return
 
@@ -157,9 +194,9 @@ function collectFormActions(sendResponse) {
 
         // if the mutated element has child forms
         if (!!mutatedForms && mutatedForms.length > 0) {
-          for (let i = 0; i < mutatedForms.length; i++) {
-            highlightForm(mutatedForms[i])
-          }
+          // for (let i = 0; i < mutatedForms.length; i++) {
+          //   highlightForm(mutatedForms[i])
+          // }
           let extractedActions = extractActionsFromForm(mutatedForms)
           formActions = formActions.concat(extractedActions)
         }
@@ -205,6 +242,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       collectFormActions(sendResponse)
     }
+  }
+
+  else if (request.action === "HIGHLIGHT_VULNERABLE_FORMS") {
+    sendResponse(highlightForm(request.traceUrls))
   }
 
   else if (request.url !== undefined && request.action === "INITIALIZE") {

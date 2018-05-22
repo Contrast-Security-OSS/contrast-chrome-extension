@@ -169,12 +169,18 @@ function updateVulnerabilities(tab) {
 				if (credentialed && !evaluated) {
 					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
 
+						if (!response) return
+
 						evaluated = true
 
-						if (!!response && !!response.formActions && response.formActions.length > 0) {
+						let conditions = [
+							response,
+							response.formActions,
+							response.formActions.length > 0,
+						]
+						if (conditions.every(c => !!c)) {
 							const { formActions } = response
-
-							const traceUrls = [tab.url].concat(formActions)
+							const traceUrls 			= [tab.url].concat(formActions)
 							evaluateVulnerabilities(credentialed, tab, traceUrls, application)
 						} else {
 							evaluateVulnerabilities(credentialed, tab, [tab.url], application)
@@ -217,6 +223,10 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 					updateTabBadge(tab, json.traces.length.toString(), CONTRAST_RED)
 				}
 			} else {
+				chrome.tabs.sendMessage(tab.id, {
+					action: "HIGHLIGHT_VULNERABLE_FORMS",
+					traceUrls
+				})
 				setToStorage(json.traces, tab)
 			}
 		})
