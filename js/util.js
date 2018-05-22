@@ -51,6 +51,7 @@ const STORED_TRACES_KEY   = "traces"
 const TRACES_REQUEST      = "getStoredTraces"
 const STORED_APPS_KEY     = "APPS"
 
+// don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
   "chrome://",
   "file://",
