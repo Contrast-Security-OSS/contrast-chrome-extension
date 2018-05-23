@@ -35,6 +35,7 @@ const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
+  'localhost'
 ]
 
 const CONTRAST_ICON_BADGE_BACKGROUND = "#E63025"

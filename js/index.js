@@ -124,6 +124,9 @@ function renderConfigButton(tab) {
 
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(tab.id, { url: tab.url, action: "INITIALIZE" }, (response) => {
+
+      // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
+
       if (response === "INITIALIZED") {
 
         chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' })
@@ -469,15 +472,15 @@ function lingerMessage(element) {
  * @return {Boolean} if it is the teamserver page
  */
 function isTeamserverAccountPage(tab, url) {
-  if (!tab || !url) return false
+  if (!tab || !url) return false;
 
   const conditions = [
     tab.url.startsWith("http"),
     VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname),
     tab.url.endsWith(TEAMSERVER_ACCOUNT_PATH_SUFFIX) || tab.url.endsWith(TEAMSERVER_PROFILE_PATH_SUFFIX),
     tab.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) !== -1
-  ]
-  return conditions.every(c => !!c)
+  ];
+  return conditions.every(c => !!c);
 }
 
 

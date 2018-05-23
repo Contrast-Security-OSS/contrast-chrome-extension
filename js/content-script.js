@@ -262,20 +262,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
     if (document.getElementsByTagName("form").length > 0) {
-      setTimeout(() => collectFormActions(sendResponse), 1000)
+      setTimeout(() => collectFormActions(sendResponse), 1000);
     } else {
-      collectFormActions(sendResponse)
+      collectFormActions(sendResponse);
     }
   }
 
   else if (request.action === "HIGHLIGHT_VULNERABLE_FORMS") {
-    sendResponse(highlightForm(request.traceUrls))
+    sendResponse(highlightForm(request.traceUrls));
   }
 
   else if (request.url !== undefined && request.action === "INITIALIZE") {
-    const teamServerUrl = request.url.substring(0, request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX)) + TEAMSERVER_API_PATH_SUFFIX
-    const orgUuid = request.url.substring(request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX) + TEAMSERVER_INDEX_PATH_SUFFIX.length,
-    request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX))
+    const tsIndex   = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
+    const tsAccount = request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX);
+
+    const teamServerUrl = request.url.substring(
+      0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
+    const orgUuid = request.url.substring(
+      tsIndex + TEAMSERVER_INDEX_PATH_SUFFIX.length, tsAccount);
 
     const profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
     const apiKey = document.getElementsByClassName('org-key').item(0).textContent;
@@ -287,9 +291,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       [CONTRAST_API_KEY]: apiKey.trim(),
       [CONTRAST_ORG_UUID]: orgUuid.trim(),
       [TEAMSERVER_URL]: teamServerUrl,
-    }, () => sendResponse("INITIALIZED"))
+    }, () => {
+      if (chrome.runtime.lastError) {
+        throw new Error("Error setting configuration");
+      }
+      sendResponse("INITIALIZED");
+    });
   }
 
   // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
-  return true // NOTE: Keep this
-})
+  return true; // NOTE: Keep this
+});
