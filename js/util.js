@@ -6,49 +6,49 @@ XMLHttpRequest, btoa, chrome
 "use strict";
 
 // keys for credentials
-const CONTRAST_USERNAME    = "contrast_username"
-const CONTRAST_SERVICE_KEY = "contrast_service_key"
-const CONTRAST_API_KEY     = "contrast_api_key"
-const CONTRAST_ORG_UUID    = "contrast_org_uuid"
-const TEAMSERVER_URL       = "teamserver_url"
+const CONTRAST_USERNAME    = "contrast_username";
+const CONTRAST_SERVICE_KEY = "contrast_service_key";
+const CONTRAST_API_KEY     = "contrast_api_key";
+const CONTRAST_ORG_UUID    = "contrast_org_uuid";
+const TEAMSERVER_URL       = "teamserver_url";
 
 // Vulnerability Severity Levels
-const SEVERITY_NOTE = "Note"
-const SEVERITY_LOW = "Low"
-const SEVERITY_MEDIUM = "Medium"
-const SEVERITY_HIGH = "High"
-const SEVERITY_CRITICAL = "Critical"
+const SEVERITY_NOTE = "Note";
+const SEVERITY_LOW = "Low";
+const SEVERITY_MEDIUM = "Medium";
+const SEVERITY_HIGH = "High";
+const SEVERITY_CRITICAL = "Critical";
 
 // Vulnerability Severity Icons
-const SEVERITY_NOTE_ICON_PATH = "../img/note.png"
-const SEVERITY_LOW_ICON_PATH = "../img/low.png"
-const SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png"
-const SEVERITY_HIGH_ICON_PATH = "../img/high.png"
-const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png"
+const SEVERITY_NOTE_ICON_PATH = "../img/note.png";
+const SEVERITY_LOW_ICON_PATH = "../img/low.png";
+const SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png";
+const SEVERITY_HIGH_ICON_PATH = "../img/high.png";
+const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
 
-const HTML_BODY = "body"
-const TEAMSERVER_INDEX_PATH_SUFFIX  = "/Contrast/static/ng/index.html#/"
-const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account"
-const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile"
-const TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api"
+const HTML_BODY = "body";
+const TEAMSERVER_INDEX_PATH_SUFFIX  = "/Contrast/static/ng/index.html#/";
+const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
+const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
+const TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api";
 const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
-]
+];
 
-const CONTRAST_ICON_BADGE_BACKGROUND = "#E63025"
-const CONTRAST_GREEN = "#65C0B2" // or is it #3CC3B2?
-const CONTRAST_RED  = "#E63025"
-const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300"
-const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*"
-const CONTRAST_ICON_16 = "../img/contrast16.png"
+const CONTRAST_ICON_BADGE_BACKGROUND = "#E63025";
+const CONTRAST_GREEN = "#65C0B2" // or is it #3CC3B2?;
+const CONTRAST_RED  = "#E63025";
+const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300";
+const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*";
+const CONTRAST_ICON_16 = "../img/contrast16.png";
 
-const LISTENING_ON_DOMAIN = "<all_urls>"
-const GATHER_FORMS_ACTION = "gatherForms"
-const STORED_TRACES_KEY   = "traces"
-const TRACES_REQUEST      = "getStoredTraces"
-const STORED_APPS_KEY     = "APPS"
+const LISTENING_ON_DOMAIN = "<all_urls>";
+const GATHER_FORMS_ACTION = "gatherForms";
+const STORED_TRACES_KEY   = "traces";
+const TRACES_REQUEST      = "getStoredTraces";
+const STORED_APPS_KEY     = "APPS";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -67,8 +67,8 @@ const BLACKLISTED_DOMAINS = [
   "cloudfront.com",
   "cdn.sstatic.net",
   "reddit.com",
-]
-const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length
+];
+const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
 
 /**
@@ -81,7 +81,7 @@ const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length
 */
 Array.prototype.flatten = function() {
   return this.reduce((newArray, val) => newArray.concat(val), []);
-}
+};
 
 
 /**
@@ -93,14 +93,14 @@ Array.prototype.flatten = function() {
 */
 String.prototype.titleize = function() {
   return this.replace(/\b([a-z])/g, function(captured) {
-    return captured.charAt(0).toUpperCase() + captured.substr(1).toLowerCase()
-  })
-}
+    return captured.charAt(0).toUpperCase() + captured.substr(1).toLowerCase();
+  });
+};
 
 // --------- HELPER FUNCTIONS -------------
 
 function fetchTeamserver(url, params, authHeader, apiKey) {
-  const requestUrl   = url + params
+  const requestUrl   = url + params;
   const fetchOptions = {
     method: "GET",
     headers: new Headers({
@@ -108,22 +108,22 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
       "API-Key": apiKey,
       "Accept": "application/json",
     }),
-  }
+  };
   return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
       if (response.status === 200 && response.ok) {
-        return response.json()
+        return response.json();
       }
-      throw new Error(response)
+      throw new Error(response);
     })
     .catch(error => false)
-  )
-}
+  );
+};
 
 function getAuthorizationHeader(username, serviceKey) {
   return btoa(username + ":" + serviceKey);
-}
+};
 
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
   if (teamserverUrl && orgUuid && appId) {
@@ -132,29 +132,22 @@ function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
   else if (teamserverUrl && orgUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
   }
-  throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined")
-}
+  throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined");
+};
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
   }
-  throw new Error("an argument to getVulnerabilityShortUrl was undefined")
-}
-
-function getVulnerabilityFilterUrl(teamserverUrl, orgUuid, traceUuid) {
-  if (teamserverUrl && orgUuid && traceUuid) {
-    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/filter/' + traceUuid + "?expand=request"; // ,events,notes,application,servers
-  }
-  throw new Error("an argument to getVulnerabilityFilterUrl was undefined")
-}
+  throw new Error("an argument to getVulnerabilityShortUrl was undefined");
+};
 
 function getApplicationsUrl(teamserverUrl, orgUuid) {
   if (teamserverUrl && orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
-  throw new Error("an argument to getApplicationsUrl was undefined")
-}
+  throw new Error("an argument to getApplicationsUrl was undefined");
+};
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
@@ -164,8 +157,8 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
     }
     return contrastURL + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
   }
-  throw new Error("argument to getVulnerabilityTeamserverUrl was undefined")
-}
+  throw new Error("argument to getVulnerabilityTeamserverUrl was undefined");
+};
 
 /**
 * getStoredCredentials - retrieve teamserver credentials from chrome storage
@@ -182,13 +175,13 @@ function getStoredCredentials() {
       TEAMSERVER_URL
     ], (items) => {
       if (!items) {
-        reject(new Error("Error getting credentials"))
+        reject(new Error("Error getting credentials"));
       } else {
-        resolve(items)
+        resolve(items);
       }
-    })
-  })
-}
+    });
+  });
+};
 
 /**
 * getOrganizationVulnerabilityIds - sets up the teamserver request
@@ -200,56 +193,53 @@ function getStoredCredentials() {
 function getOrganizationVulnerabilityIds(urls, appId) {
   return getStoredCredentials()
   .then(items => {
-    if (!items) throw new Error("Error retrieving credentials from storage")
+    if (!items) throw new Error("Error retrieving credentials from storage");
 
-    const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId)
-    const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY])
-    const params = "?urls=" + urls
+    const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId);
+    const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
+    const params = "?urls=" + urls;
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
-  })
-}
+  });
+};
 
+/**
+ * getVulnerabilityShort - Gets more details about a trace
+ *
+ * @param  {String} traceUuid the uuid of the trace we're getting details about
+ * @return {Promise<Object} A promise containing details about the trace
+ */
 function getVulnerabilityShort(traceUuid) {
   return getStoredCredentials()
   .then(items => {
     const url = getVulnerabilityShortUrl(
       items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
-    )
+    );
     const authHeader = getAuthorizationHeader(
       items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
     );
 
     return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
-  })
-}
+  });
+};
 
-function getVulnerabilityFilter(traceUuid) {
-  return getStoredCredentials()
-  .then(items => {
-    const url = getVulnerabilityFilterUrl(
-      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
-    )
-    const authHeader = getAuthorizationHeader(
-      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
-    );
-
-    return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
-  })
-}
-
+/**
+ * getApplications - Get the applications that belong to an organization
+ *
+ * @return {Promise<Array>} A promise containing a list of applications in an organization
+ */
 function getApplications() {
   return getStoredCredentials()
   .then(items => {
     const url = getApplicationsUrl(
       items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID]
-    )
+    );
     const authHeader = getAuthorizationHeader(
       items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
     );
 
     return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
-  })
-}
+  });
+};
 
 // ---------  OTHER HELPER FUNCTIONS -------------
 
@@ -269,10 +259,10 @@ function isCredentialed(credentials) {
   // return noUsername || noServiceKey || noApiKey || noTeamserverUrl;
 
   // ES6
-  const values = Object.values(credentials)
+  const values = Object.values(credentials);
 
-  return !!values && values.length > 0 && values.every(item => !!item)
-}
+  return !!values && values.length > 0 && values.every(item => !!item);
+};
 
 /**
 * deDupeArray - remove duplicate vlues from array
@@ -281,12 +271,10 @@ function isCredentialed(credentials) {
 * @return {Array}       new, deduped array
 */
 function deDupeArray(array) {
-  return array.filter((item, position, self) => self.indexOf(item) === position)
-}
-
-function notContrastRequest(url) {
-  !url.includes(TEAMSERVER_API_PATH_SUFFIX) && !url.includes(TEAMSERVER_INDEX_PATH_SUFFIX)
-}
+  return array.filter((item, position, self) => {
+    return self.indexOf(item) === position;
+  });
+};
 
 /**
 * generateURLString - creates a string of base64 encoded urls to send to TS as params
@@ -295,14 +283,12 @@ function notContrastRequest(url) {
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
 function generateURLString(traceUrls) {
-  if (!traceUrls || traceUrls.length === 0) {
-    return ""
-  }
+  if (!traceUrls || traceUrls.length === 0) return "";
 
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
   // http://localhost:3000/login vs /login
-  const prefix = new URL(document.URL).origin
-  const prefixedUrls = traceUrls.map(u => prefix + "/" + u)
+  const prefix = new URL(document.URL).origin;
+  const prefixedUrls = traceUrls.map(u => prefix + "/" + u);
 
   let urls = traceUrls.concat(prefixedUrls).map(u => {
     // return the full url
@@ -310,11 +296,11 @@ function generateURLString(traceUrls) {
     return [
       btoa(u),
       btoa(new URL(u).pathname)
-    ]
-  }).flatten()
+    ];
+  }).flatten();
 
   // return each base64 encoded url path with a common in between
-  return urls.join(',')
+  return urls.join(',');
 }
 
 /**
@@ -333,13 +319,13 @@ function processTeamserverUrl(teamserverUrlValue) {
       if (!teamserverUrlValue.endsWith("/Contrast")) {
         teamserverUrlValue += "/Contrast";
       }
-      teamserverUrlValue += "/api"
+      teamserverUrlValue += "/api";
     }
     if (!teamserverUrlValue.startsWith("http")) {
-      teamserverUrlValue = "https://" + teamserverUrlValue
+      teamserverUrlValue = "https://" + teamserverUrlValue;
     }
   }
-  return teamserverUrlValue
+  return teamserverUrlValue;
 }
 
 /**
@@ -349,15 +335,15 @@ function processTeamserverUrl(teamserverUrlValue) {
 * @return {type}     description
 */
 function getHostFromUrl(url) {
-  const host      = url.host.split(":").join("_")
-  const hostArray = host.split(".")
+  const host      = url.host.split(":").join("_");
+  const hostArray = host.split(".");
 
   if (hostArray.length < 3) {
-    return hostArray[0]
+    return hostArray[0];
   } else if (hostArray.length === 3) {
-    return hostArray[1]
+    return hostArray[1];
   }
-  return host
+  return host;
 }
 
 /**
@@ -367,15 +353,15 @@ function getHostFromUrl(url) {
 * @return {Boolean}      if the url is in the blacklist
 */
 function isBlacklisted(url) {
-  if (!url) return true
-  url = url.toLowerCase()
+  if (!url) return true;
+  url = url.toLowerCase();
 
   for (let i = 0; i < BLACKLIST_LENGTH; i++) {
     if (url.includes(BLACKLISTED_DOMAINS[i].toLowerCase())) {
-      return true
+      return true;
     }
   }
-  return false
+  return false;
 }
 
 /**
@@ -386,21 +372,21 @@ function isBlacklisted(url) {
 * @return {void}
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
-  if (chrome.runtime.lastError || !tab) return
+  if (chrome.runtime.lastError || !tab) return;
 
   chrome.tabs.get(tab.id, (result) => {
-    if (chrome.runtime.lastError || !result) return
+    if (chrome.runtime.lastError || !result) return;
 
     try {
       // tab is visible
       if (!chrome.runtime.lastError && tab.index >= 0) {
-        chrome.browserAction.setBadgeBackgroundColor({ color })
-        chrome.browserAction.setBadgeText({ tabId: tab.id, text })
+        chrome.browserAction.setBadgeBackgroundColor({ color });
+        chrome.browserAction.setBadgeText({ tabId: tab.id, text });
       }
-      return
-    } catch (e) { return }
-  })
-}
+      return;
+    } catch (e) { return; }
+  });
+};
 
 /**
  * removeLoadingBadge - checks if the current tab is the loading icon and removes it if it is
@@ -413,14 +399,14 @@ function removeLoadingBadge(tab) {
 		if (result === "↻") {
       chrome.browserAction.getBadgeBackgroundColor({ tabId: tab.id }, (color) => {
         if (!color) {
-          updateTabBadge(tab, '', CONTRAST_GREEN)
+          updateTabBadge(tab, '', CONTRAST_GREEN);
         } else {
-          updateTabBadge(tab, '', color)
+          updateTabBadge(tab, '', color);
         }
-      })
+      });
 		}
-	})
-}
+	});
+};
 
 /**
 * retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
@@ -432,32 +418,31 @@ function retrieveApplicationFromStorage(tab) {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(STORED_APPS_KEY, (result) => {
       if (chrome.runtime.lastError) {
-        reject(new Error("Error retrieving stored applications"))
+        reject(new Error("Error retrieving stored applications"));
       }
 
       if (!result || !result[STORED_APPS_KEY]) {
-        result = { APPS: [] }
+        result = { APPS: [] };
       }
 
-      const url  = new URL(tab.url)
-      const host = getHostFromUrl(url)
+      const url  = new URL(tab.url);
+      const host = getHostFromUrl(url);
 
       let application
       if (!!result[STORED_APPS_KEY]) {
-        application = result[STORED_APPS_KEY].filter(app => app[host])[0]
+        application = result[STORED_APPS_KEY].filter(app => app[host])[0];
       }
 
       if (!application && tab.index >= 0) {
         if (!isBlacklisted(tab.url)) {
-          updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND)
+          updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND);
         } else if (isBlacklisted(tab.url)) {
-          updateTabBadge(tab, '', CONTRAST_GREEN)
+          updateTabBadge(tab, '', CONTRAST_GREEN);
         }
-        resolve(null)
+        resolve(null);
       }
 
-      resolve(application)
-    })
-  })
-
-}
+      resolve(application);
+    });
+  });
+};

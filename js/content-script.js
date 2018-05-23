@@ -19,12 +19,12 @@ getHostFromUrl,
 "use strict";
 
 if (window.performance.navigation.type === 1) {
-  window.REFRESHED = true
+  window.REFRESHED = true;
 
   // reset to false after 1 second, window is no longer "refreshed"
   setTimeout(() => {
-    window.REFRESHED = false
-  }, 1000)
+    window.REFRESHED = false;
+  }, 1000);
 }
 
 /**
@@ -36,20 +36,19 @@ if (window.performance.navigation.type === 1) {
 function highlightForm(traceUrls) {
   // only want the trace path names
   // traceUrls = traceUrls.map(t => new URL(t).pathname)
-  if (!traceUrls || traceUrls.length === 0) {
-    return false
-  }
+  if (!traceUrls || traceUrls.length === 0) return false;
+
   const forms = document.getElementsByTagName('form')
   for (let i = 0; i < forms.length; i++) {
-    let form = forms[i]
+    let form = forms[i];
 
     // webgoat makes loading forms interesting, so we need to go up the DOM tree and verify that the form, and the form's parents are displayed
-    if (traceUrls.includes(form.action) && !elementParentHasDisplayNone(form)) {
-      let inputs = form.getElementsByTagName('input')
+    if (traceUrls.includes(form.action) && !parentHasDisplayNone(form)) {
+      let inputs = form.getElementsByTagName('input');
       let input;
       for (let j = 0, len = inputs.length; j < len; j++) {
         if (!input && inputs[j].type === "submit") {
-          input = inputs[j]
+          input = inputs[j];
         }
       }
 
@@ -60,44 +59,12 @@ function highlightForm(traceUrls) {
           border: 3px solid ${CONTRAST_GREEN};`
         );
 
-        return true
+        return true;
       }
-
-    /*
-    * For adding contrast icon to background of input
-    * background-image: url(${chrome.extension.getURL(CONTRAST_ICON)});
-    * background-repeat: no-repeat;
-    * background-position: left;
-    * background-position-x: 2%;
-    */
-    }
-  }
-  return false
-}
-
-/**
- * elementParentHasDisplayNone - checks if any parent elements of a node has display: none styling
- *
- * @param  {Node} element an HTML element
- * @return {Boolean}      if that element has a parent with display: none
- */
-function elementParentHasDisplayNone(element) {
-  if (element.style.display === 'none') {
-    return true
-  }
-
-  while (element.parentNode) {
-    element = element.parentNode
-    if (element.tagName === "BODY") {
-      return false
-    }
-
-    if (element.style.display === 'none') {
-      return true
     }
   }
   return false;
-}
+};
 
 /**
 * extractActionsFromForm - gets the form actions from each form in a collection
@@ -106,29 +73,33 @@ function elementParentHasDisplayNone(element) {
 * @return {Array<String>} array of form actions
 */
 function extractActionsFromForm(forms) {
-  let actions = []
+  let actions = [];
   for (let i = 0; i < forms.length; i++) {
-    let form = forms[i]
+    let form = forms[i];
     let conditions = [
       form,
       !!form.action && form.action.length > 0,
-    ]
+    ];
     if (conditions.every(c => !!c)) {
-      actions.push(form.action)
+      actions.push(form.action);
     }
   }
-  return actions
-}
+  return actions;
+};
 
+/**
+ * parentHasDisplayNone - checks if any parent elements of a node has display: none styling
+ *
+ * @param  {Node} element an HTML element
+ * @return {Boolean}      if that element has a parent with display: none
+ */
 function parentHasDisplayNone(element) {
   while (element.tagName !== "BODY") {
-    if (element.style.display === "none") {
-      return true
-    }
-    element = element.parentNode
+    if (element.style.display === "none") return true;
+    element = element.parentNode;
   }
-  return false
-}
+  return false;
+};
 
 /**
 * HTMLCollectionToArray - convert a collection of html form to an array
@@ -137,8 +108,8 @@ function parentHasDisplayNone(element) {
 * @return {Array<Node>}
 */
 function HTMLCollectionToArray(collection) {
-  return Array.prototype.slice.call(collection)
-}
+  return Array.prototype.slice.call(collection);
+};
 
 /**
  * scrapeDOMForForms - retrieve forms directly from the DOM
@@ -146,22 +117,22 @@ function HTMLCollectionToArray(collection) {
  * @return {Array<String>} - an array of actions from forms
  */
 function scrapeDOMForForms() {
-  let forms = []
-  let formActions = []
+  let forms       = [];
+  let formActions = [];
   let domForms = HTMLCollectionToArray(document.getElementsByTagName("form"))
   for (let i = 0; i < domForms.length; i++) {
     // highlightForm(domForms[i])
     // only collect forms that are shown on DOM
     // don't use `.splice()` because that mutates array we're running loop on
     if (!parentHasDisplayNone(domForms[i])) {
-      forms.push(domForms[i])
+      forms.push(domForms[i]);
     }
   }
   if (forms.length > 0) {
-    formActions = formActions.concat(extractActionsFromForm(forms))
+    formActions = formActions.concat(extractActionsFromForm(forms));
   }
-  return formActions
-}
+  return formActions;
+};
 
 /**
 * sendFormActionsToBackground - sends the array for form actions to background
@@ -173,8 +144,8 @@ function sendFormActionsToBackground(formActions, sendResponse) {
   sendResponse({
     sender: GATHER_FORMS_ACTION,
     formActions: deDupeArray(formActions)
-  })
-}
+  });
+};
 
 /**
 * collectFormActions - scrapes DOM for forms and collects their actions, uses a mutation observer for SPAs and only for a connected application
@@ -184,64 +155,60 @@ function sendFormActionsToBackground(formActions, sendResponse) {
 function collectFormActions(sendResponse) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
 
-    if (chrome.runtime.lastError) return
-    if (!result || !result[STORED_APPS_KEY]) return
+    if (chrome.runtime.lastError) return;
+    if (!result || !result[STORED_APPS_KEY]) return;
 
-    const url         = new URL(window.location.href)
-    const host        = getHostFromUrl(url)
-    const application = result[STORED_APPS_KEY].filter(app => app[host])[0]
+    const url         = new URL(window.location.href);
+    const host        = getHostFromUrl(url);
+    const application = result[STORED_APPS_KEY].filter(app => app[host])[0];
 
-    if (!application) return
+    if (!application) return;
 
-    let messageSent = false
+    let messageSent = false;
     // MutationObserver watches for changes in DOM elements
     // takes a callback reporting on mutations observed
     const obs = new MutationObserver((mutations, observer) => {
       // if forms have already been sent to backgroun for processing, don't repeat this
       if (messageSent) {
-        observer.disconnect()
-        return
+        observer.disconnect();
+        return;
       }
 
-      let formActions = []
-      const mLength = mutations.length
+      let formActions = [];
 
       // go through each mutation, looking for elements that have changed in a specific manner
-      for (let i = 0; i < mLength; i++) {
-        let mutation = mutations[i]
+      for (let i = 0, len = mutations.length; i < len; i++) {
+        let mutation = mutations[i];
 
         let mutatedForms;
         if (mutation.target.tagName === "FORM") {
-          mutatedForms = mutation.target
+          mutatedForms = mutation.target;
         } else {
-          mutatedForms = mutation.target.getElementsByTagName("form")
+          mutatedForms = mutation.target.getElementsByTagName("form");
         }
 
         // if the mutated element has child forms
         if (!!mutatedForms && mutatedForms.length > 0) {
-          // for (let i = 0; i < mutatedForms.length; i++) {
-          //   highlightForm(mutatedForms[i])
-          // }
-          let extractedActions = extractActionsFromForm(mutatedForms)
-          formActions = formActions.concat(extractedActions)
+          let extractedActions = extractActionsFromForm(mutatedForms);
+          formActions = formActions.concat(extractedActions);
         }
       }
 
       // send formActions to background and stop observation
       if (formActions.length > 0) {
-        messageSent = true
-        sendFormActionsToBackground(formActions, sendResponse)
-        window.REFRESHED = false
-        observer.disconnect()
+        messageSent = true;
+        sendFormActionsToBackground(formActions, sendResponse);
+        window.REFRESHED = false;
+        observer.disconnect();
       }
     })
 
     // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
     if (window.REFRESHED === false) {
-      const actions = scrapeDOMForForms()
+      const actions = scrapeDOMForForms();
       if (!!actions) {
-        messageSent = true
-        sendFormActionsToBackground(actions, sendResponse)
+        messageSent = true;
+        sendFormActionsToBackground(actions, sendResponse);
         return;
       }
     }
@@ -251,9 +218,9 @@ function collectFormActions(sendResponse) {
       attributes: true,
       attributeOldValue: true,
       childList: true,
-    })
-  })
-}
+    });
+  });
+};
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
