@@ -56,7 +56,7 @@ function highlightForm(traceUrls) {
       if (input) {
         input.setAttribute("style",
           `border-radius: 5px;
-          border: 3px solid ${CONTRAST_GREEN};`
+          border: 3px solid ${CONTRAST_GREEN}`
         );
 
         return true;
@@ -64,7 +64,7 @@ function highlightForm(traceUrls) {
     }
   }
   return false;
-};
+}
 
 /**
 * extractActionsFromForm - gets the form actions from each form in a collection
@@ -85,7 +85,7 @@ function extractActionsFromForm(forms) {
     }
   }
   return actions;
-};
+}
 
 /**
  * parentHasDisplayNone - checks if any parent elements of a node has display: none styling
@@ -99,7 +99,7 @@ function parentHasDisplayNone(element) {
     element = element.parentNode;
   }
   return false;
-};
+}
 
 /**
 * HTMLCollectionToArray - convert a collection of html form to an array
@@ -109,7 +109,7 @@ function parentHasDisplayNone(element) {
 */
 function HTMLCollectionToArray(collection) {
   return Array.prototype.slice.call(collection);
-};
+}
 
 /**
  * scrapeDOMForForms - retrieve forms directly from the DOM
@@ -132,7 +132,7 @@ function scrapeDOMForForms() {
     formActions = formActions.concat(extractActionsFromForm(forms));
   }
   return formActions;
-};
+}
 
 /**
 * sendFormActionsToBackground - sends the array for form actions to background
@@ -145,7 +145,7 @@ function sendFormActionsToBackground(formActions, sendResponse) {
     sender: GATHER_FORMS_ACTION,
     formActions: deDupeArray(formActions)
   });
-};
+}
 
 /**
 * collectFormActions - scrapes DOM for forms and collects their actions, uses a mutation observer for SPAs and only for a connected application
@@ -220,7 +220,7 @@ function collectFormActions(sendResponse) {
       childList: true,
     });
   });
-};
+}
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

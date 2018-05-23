@@ -48,7 +48,7 @@ function indexFunction() {
       }, false);
     });
   });
-};
+}
 
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
@@ -59,7 +59,7 @@ function indexFunction() {
 function renderApplicationsMenu(url) {
   const applicationsHeading = document.getElementById('applications-heading');
   const applicationsArrow   = document.getElementById('applications-arrow');
-  const applicationTable    = document.getElementById('application-table');;
+  const applicationTable    = document.getElementById('application-table');
   const container = document.getElementById('applications-heading-container');
   setDisplayBlock(container);
 
@@ -67,8 +67,8 @@ function renderApplicationsMenu(url) {
     if (applicationsArrow.innerText === ' ▶') {
       setTextContent(applicationsArrow, ' ▼');
 
-      applicationTable.classList.add('application-table-visible');;
-      applicationTable.classList.remove('application-table-hidden');;
+      applicationTable.classList.add('application-table-visible');
+      applicationTable.classList.remove('application-table-hidden');
 
       if (document.getElementsByTagName('tr').length < 2) {
         getApplications()
@@ -81,13 +81,13 @@ function renderApplicationsMenu(url) {
         .catch(error => error)
       }
     } else {
-      applicationTable.classList.add('application-table-hidden');;
-      applicationTable.classList.remove('application-table-visible');;
+      applicationTable.classList.add('application-table-hidden');
+      applicationTable.classList.remove('application-table-visible');
 
       setTextContent(applicationsArrow, ' ▶');
     }
   });
-};
+}
 
 /**
  * getUserConfiguration - renders the elements/dialog for a user configuring the connection from the extension to teamserver
@@ -108,7 +108,7 @@ function getUserConfiguration(tab, url) {
   } else {
     setDisplayEmpty(document.getElementById('not-configured'));
   }
-};
+}
 
 /**
  * renderConfigButton - renders the button the user clicks to configure teamserver credentials
@@ -197,7 +197,7 @@ function renderActivityFeed(items, url) {
       });
     }
   });
-};
+}
 
 /**
  * showActivityFeed - renders the container for vulnerabilities
@@ -229,7 +229,7 @@ function showActivityFeed(items) {
   signInButtonConfigurationProblem.addEventListener('click', () => {
     chrome.tabs.create({ url: chromeExtensionSettingsUrl() });
   }, false);
-};
+}
 
 
 /**
@@ -298,7 +298,7 @@ function createAppTableRow(application, url) {
 
       // result has not been defined yet
       if (!result || !result[STORED_APPS_KEY]) {
-        result = { APPS: [] };
+        result = { APPS: [] }
       }
 
       const storedApp = result[STORED_APPS_KEY].filter(app => {
@@ -343,7 +343,7 @@ function createAppTableRow(application, url) {
       setTextContent(nameTD, application.name);
     });
   }
-};
+}
 
 /**
  * _addDomainToStorage - add a domain + app name connection to chrome storage
@@ -363,7 +363,7 @@ function _addDomainToStorage(host, application) {
       if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
 
       const updatedStoredApps = result[STORED_APPS_KEY].concat({
-        [host]: application.app_id;
+        [host]: application.app_id
       });
 
       chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
@@ -372,7 +372,7 @@ function _addDomainToStorage(host, application) {
       });
     });
   });
-};
+}
 
 /**
  * _disconnectDomain - removes an application + domain connection from storage
@@ -401,7 +401,7 @@ function _disconnectDomain(storedApps, application, disconnectButton) {
       resolve(!chrome.runtime.lastError);
     });
   });
-};
+}
 
 /**
  * getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
@@ -423,33 +423,33 @@ function getDisconnectButtonSibling(disconnectButton, appName) {
     }
   }
   return null;
-};
+}
 
 // --------- HELPER FUNCTIONS -------------
 function setDisplayNone(element) {
   if (!element) return;
   element.style.display = 'none';
-};
+}
 
 function setDisplayEmpty(element) {
   if (!element) return;
   element.style.display = '';
-};
+}
 
 function setDisplayBlock(element) {
   if (!element) return;
   element.style.display = 'block';
-};
+}
 
 function setTextContent(element, text) {
   if (!element || (!text && text !== "")) return;
   element.textContent = text;
-};
+}
 
 function chromeExtensionSettingsUrl() {
   const extensionId = chrome.runtime.id;
   return 'chrome-extension://' + String(extensionId) + '/settings.html';
-};
+}
 
 /**
  * lingerMessage - leave a success/failure message on the screen for 2 seconds by toggling a class
@@ -462,7 +462,7 @@ function lingerMessage(element) {
     element.classList.add("hidden");
     element.classList.remove("visible");
   }, 2000); // let the element linger
-};
+}
 
 /**
  * isTeamserverAccountPage - checks if we're on the teamserver Your Account page

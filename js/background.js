@@ -192,7 +192,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  */
 function tabUpdateComplete(changeInfo, tab) {
 	return changeInfo.status === "complete" && tab.url.startsWith("http");
-};
+}
 
 
 /**
@@ -259,7 +259,7 @@ function updateVulnerabilities(tab) {
 		}).catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
 	}).catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
 	return;
-};
+}
 
 /**
  * evaluateVulnerabilities - method used by tab url, xhr and form actions to check TS for vulnerabilities
@@ -302,7 +302,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 	} else {
 		getCredentials(tab);
 	}
-};
+}
 
 /**
  * setToStorage - locals the trace ids of found vulnerabilities to storage
@@ -341,7 +341,7 @@ function setToStorage(foundTraces, tab) {
 			});
 		})
 		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
-};
+}
 
 /**
  * buildVulnerabilitiesArray - builds an array of trace ids, retrieving previously stored ids and deduping

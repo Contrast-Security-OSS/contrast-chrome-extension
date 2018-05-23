@@ -81,7 +81,7 @@ const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 */
 Array.prototype.flatten = function() {
   return this.reduce((newArray, val) => newArray.concat(val), []);
-};
+}
 
 
 /**
@@ -95,7 +95,7 @@ String.prototype.titleize = function() {
   return this.replace(/\b([a-z])/g, function(captured) {
     return captured.charAt(0).toUpperCase() + captured.substr(1).toLowerCase();
   });
-};
+}
 
 // --------- HELPER FUNCTIONS -------------
 
@@ -119,11 +119,11 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
     })
     .catch(error => false)
   );
-};
+}
 
 function getAuthorizationHeader(username, serviceKey) {
   return btoa(username + ":" + serviceKey);
-};
+}
 
 function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
   if (teamserverUrl && orgUuid && appId) {
@@ -133,21 +133,21 @@ function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/ids';
   }
   throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined");
-};
+}
 
 function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
   }
   throw new Error("an argument to getVulnerabilityShortUrl was undefined");
-};
+}
 
 function getApplicationsUrl(teamserverUrl, orgUuid) {
   if (teamserverUrl && orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
   throw new Error("an argument to getApplicationsUrl was undefined");
-};
+}
 
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
@@ -158,7 +158,7 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
     return contrastURL + '/static/ng/index.html#/' + orgUuid + '/vulns/' + traceUuid + "/overview";
   }
   throw new Error("argument to getVulnerabilityTeamserverUrl was undefined");
-};
+}
 
 /**
 * getStoredCredentials - retrieve teamserver credentials from chrome storage
@@ -181,7 +181,7 @@ function getStoredCredentials() {
       }
     });
   });
-};
+}
 
 /**
 * getOrganizationVulnerabilityIds - sets up the teamserver request
@@ -200,7 +200,7 @@ function getOrganizationVulnerabilityIds(urls, appId) {
     const params = "?urls=" + urls;
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });
-};
+}
 
 /**
  * getVulnerabilityShort - Gets more details about a trace
@@ -220,7 +220,7 @@ function getVulnerabilityShort(traceUuid) {
 
     return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
   });
-};
+}
 
 /**
  * getApplications - Get the applications that belong to an organization
@@ -239,7 +239,7 @@ function getApplications() {
 
     return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
   });
-};
+}
 
 // ---------  OTHER HELPER FUNCTIONS -------------
 
@@ -262,7 +262,7 @@ function isCredentialed(credentials) {
   const values = Object.values(credentials);
 
   return !!values && values.length > 0 && values.every(item => !!item);
-};
+}
 
 /**
 * deDupeArray - remove duplicate vlues from array
@@ -274,7 +274,7 @@ function deDupeArray(array) {
   return array.filter((item, position, self) => {
     return self.indexOf(item) === position;
   });
-};
+}
 
 /**
 * generateURLString - creates a string of base64 encoded urls to send to TS as params
@@ -386,7 +386,7 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
       return;
     } catch (e) { return; }
   });
-};
+}
 
 /**
  * removeLoadingBadge - checks if the current tab is the loading icon and removes it if it is
@@ -406,7 +406,7 @@ function removeLoadingBadge(tab) {
       });
 		}
 	});
-};
+}
 
 /**
 * retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
@@ -445,4 +445,4 @@ function retrieveApplicationFromStorage(tab) {
       resolve(application);
     });
   });
-};
+}
