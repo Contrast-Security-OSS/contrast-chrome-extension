@@ -22,6 +22,7 @@
 	generateURLString,
 	getHostFromUrl,
 	updateTabBadge,
+	removeLoadingBadge,
 	retrieveApplicationFromStorage,
 */
 
@@ -81,12 +82,15 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 		const tab = tabs[0]
-		updateTabBadge(tab, "↻", CONTRAST_GREEN)
+
+		// NOTE: UPDATEBADGE
+		// Don't update badge when popup is opened, when popup is opened, it requests traces
+		if (request !== TRACES_REQUEST) {
+			updateTabBadge(tab, "↻", CONTRAST_GREEN)
+		}
 
 		if (!isBlacklisted(tab.url)) {
 			handleRuntimeOnMessage(request, sender, sendResponse)
-		} else {
-			removeLoadingBadge(tab)
 		}
 	})
 
@@ -138,15 +142,16 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 function handleTabActivated() {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
-		if (!tabs || tabs.length === 0) {
-			removeLoadingBadge(tab)
+		if (!tabs || tabs.length === 0) return
+
+		const tab = tabs[0]
+
+		if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 			return
 		}
 
-		const tab = tabs[0]
-		// updateTabBadge(tab, "↻", CONTRAST_GREEN) // GET STUCK ON LOADING
-
 		if (!isBlacklisted(tab.url)) {
+			updateTabBadge(tab, "↻", CONTRAST_GREEN) // GET STUCK ON LOADING
 			updateVulnerabilities(tab)
 		}
 	})
@@ -165,15 +170,19 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		return
 	}
 
+	// Don't run logic when user opens a new tab, or when url isn't http (ex. chrome://)
+	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
+		return
+	}
+
 	// GET STUCK ON LOADING if done for both "loading" and "complete"
 	if (changeInfo.status === "loading") {
+		// NOTE: UPDATEBADGE
 		updateTabBadge(tab, "↻", CONTRAST_GREEN)
 	}
 
 	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
 		updateVulnerabilities(tab)
-	} else if (isBlacklisted(tab.url)) {
-		removeLoadingBadge(tab)
 	}
 })
 
@@ -213,7 +222,6 @@ chrome.tabs.onRemoved.addListener(() => {
 function updateVulnerabilities(tab) {
 	// reset XHR global request array to empty, now accepting new requests
 	XHR_REQUESTS = []
-
 	// first remove old vulnerabilities since tab has updated
 	removeVulnerabilitiesFromStorage(tab).then(() => {
 		getStoredCredentials().then(items => {
@@ -221,17 +229,13 @@ function updateVulnerabilities(tab) {
 			const credentialed = isCredentialed(items)
 
 			retrieveApplicationFromStorage(tab).then(application => {
-
-				if (!application) {
-					removeLoadingBadge(tab)
-					return
-				}
+				if (!application) return
 
 				if (credentialed && !evaluated) {
 					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
 
 						if (!response) {
-							updateTabBadge(tab, '', CONTRAST_GREEN)
+							removeLoadingBadge(tab)
 							return
 						}
 
@@ -272,15 +276,9 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 	const url  = new URL(tab.url)
 	const host = getHostFromUrl(url)
 
-	// console.log("traceUrls", traceUrls)
-	// console.log("app", application)
-
 	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
 
-		if (!application) {
-			removeLoadingBadge(tab)
-			return
-		}
+		if (!application) return
 
 		// generate an array of only pathnames
 		const urlQueryString = generateURLString(traceUrls)
@@ -288,7 +286,6 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 		getOrganizationVulnerabilityIds(urlQueryString, application[host])
 		.then(json => {
 			if (!json) {
-				removeLoadingBadge(tab)
 				throw new Error("Error getting json from application trace ids")
 			} else if (json.traces.length === 0) {
 				if (!chrome.runtime.lastError) {
@@ -420,13 +417,4 @@ function getCredentials(tab) {
 	if (!TAB_CLOSED && conditions.some(c => !!c)) {
 		updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND)
 	}
-}
-
-
-function removeLoadingBadge(tab) {
-	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
-		if (result === "↻") {
-			updateTabBadge(tab, '', CONTRAST_GREEN)
-		}
-	})
 }

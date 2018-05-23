@@ -404,6 +404,26 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
 }
 
 /**
+ * removeLoadingBadge - checks if the current tab is the loading icon and removes it if it is
+ *
+ * @param  {Object} tab the current tab
+ * @return {void}
+ */
+function removeLoadingBadge(tab) {
+	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
+		if (result === "↻") {
+      chrome.browserAction.getBadgeBackgroundColor({ tabId: tab.id }, (color) => {
+        if (!color) {
+          updateTabBadge(tab, '', CONTRAST_GREEN)
+        } else {
+          updateTabBadge(tab, '', color)
+        }
+      })
+		}
+	})
+}
+
+/**
 * retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
 *
 * @param  {Object} tab the active tab in the active window

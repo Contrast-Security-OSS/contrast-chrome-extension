@@ -20,6 +20,11 @@ getHostFromUrl,
 
 if (window.performance.navigation.type === 1) {
   window.REFRESHED = true
+
+  // reset to false after 1 second, window is no longer "refreshed"
+  setTimeout(() => {
+    window.REFRESHED = false
+  }, 1000)
 }
 
 /**
@@ -178,6 +183,7 @@ function sendFormActionsToBackground(formActions, sendResponse) {
 */
 function collectFormActions(sendResponse) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+
     if (chrome.runtime.lastError) return
     if (!result || !result[STORED_APPS_KEY]) return
 
@@ -255,7 +261,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
-
     if (document.getElementsByTagName("form").length > 0) {
       setTimeout(() => collectFormActions(sendResponse), 1000)
     } else {
