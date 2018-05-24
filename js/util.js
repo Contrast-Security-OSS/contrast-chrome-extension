@@ -286,7 +286,7 @@ function generateURLString(traceUrls) {
   if (!traceUrls || traceUrls.length === 0) return "";
 
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
-  // http://localhost:3000/login vs /login
+  // example.com/login vs another-example.com/login
   const prefix = new URL(document.URL).origin;
   const prefixedUrls = traceUrls.map(u => prefix + "/" + u);
 
