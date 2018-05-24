@@ -4,6 +4,6 @@ echo "Installing Git hooks..."
 if [ -L $GIT_DIR/hooks/pre-push ]; then
     echo "Git hooks found, skipping"
 else
-ln -s scripts/pre_push.sh $GIT_DIR/hooks/pre-push
-chmod +x scripts/pre_push.sh
+  ln -s ../../scripts/pre_push.sh $GIT_DIR/hooks/pre-push
+  chmod +x scripts/pre_push.sh
 fi
