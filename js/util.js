@@ -378,6 +378,8 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
     if (!result) return;
 
     chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
+      if (badge !== "" && !badge) return;
+
       if (tab.index >= 0) {
         chrome.browserAction.setBadgeBackgroundColor({ color });
         chrome.browserAction.setBadgeText({ tabId: tab.id, text });
