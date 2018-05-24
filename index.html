@@ -14,7 +14,7 @@
   <script src="js/index.js"></script>
 </head>
 
-<body class="normal">
+<body>
 
   <section id="vulnerabilities" class="panel panel-default">
 
@@ -41,12 +41,30 @@
       <h5>To start using the extension, please log into Teamserver and navigate to "Your Account"</h5>
     </div>
 
+    <div id="application-table-container-div">
+      <p id="connected-domain-message" class="hidden"></p>
+      <div id="applications-heading-container">
+        <h5 id="applications-heading">Your Applications</h5><span id="applications-arrow"> ▶</span>
+      </div>
+      <table class="table table-responsive table-striped application-table-hidden" id="application-table">
+        <thead>
+          <th>Application</th>
+          <th>Domain</th>
+          <th></th>
+        </thead>
+        <tbody id="application-table-body">
+        </tbody>
+      </table>
+    </div>
+
     <div style="display: none;" class="color-gray panel-body" id="configure-extension">
       <h5>Would you like to configure Contrast extension for Chrome?</h5>
       <h5 id="configure-extension-host"></h5>
       <button id="configure-extension-button" class="btn btn-primary btn-contrast-plugin">
         Configure
       </button>
+      <h5 id="config-success" class="configure-message">Successfully Configured Contrast Extension!</h5>
+      <h5 id="config-failure" class="configure-message">Error Configuring Extension, try reloading the page.</h5>
     </div>
 
     <div style="display: none;" id="vulnerabilities-found-on-page" class="panel-body">
