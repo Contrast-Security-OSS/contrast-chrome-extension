@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# need something here for now
 # NOTE: YOU MUST INSTALL GNU SED FIRST
 # With Homebrew: brew install gnu-sed
 
@@ -26,8 +25,8 @@ for file in $localhost_file; do
   $(sed -i '/localhost/d' $file)
 done
 
-$(git add .)
+git add .
 
 echo $(git status)
 
-$(git commit --amend --no-edit)
+git commit --amend --no-edit
