@@ -212,7 +212,6 @@ function collectFormActions(sendResponse) {
     })
 
     // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
-    console.log("window.REFRESHED", window.REFRESHED);
     if (window.REFRESHED === false) {
       const actions = scrapeDOMForForms();
       if (!!actions) {
@@ -233,7 +232,6 @@ function collectFormActions(sendResponse) {
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("on message", request);
   if (request.action === GATHER_FORMS_ACTION) {
 
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
