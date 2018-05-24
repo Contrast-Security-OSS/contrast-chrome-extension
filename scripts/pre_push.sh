@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# need something here for now
 # NOTE: YOU MUST INSTALL GNU SED FIRST
 # With Homebrew: brew install gnu-sed
 

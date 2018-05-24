@@ -111,7 +111,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @return {void}
  */
 function handleRuntimeOnMessage(request, sendResponse, tab) {
-	console.log("chrome tab on message", tab, request);
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result.traces) {
@@ -151,7 +150,6 @@ function handleTabActivated() {
 
 		const tab = tabs[0];
 
-		console.log("chrome tab activated", tab);
 
 		if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 			return;
@@ -182,7 +180,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		return;
 	}
 
-	console.log("chrome tab updated", tab, changeInfo);
 
 	// GET STUCK ON LOADING if done for both "loading" and "complete"
 	if (changeInfo.status === "loading") {
@@ -239,13 +236,10 @@ function updateVulnerabilities(tab) {
 			const credentialed = isCredentialed(items);
 
 			retrieveApplicationFromStorage(tab).then(application => {
-				console.log("retrieveApplicationFromStorage() application", application);
 				if (!application) return;
-				console.log("credentialed && !evaluated", credentialed && !evaluated);
 				if (credentialed && !evaluated) {
 					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
 
-						console.log("response", response);
 
 						// NOTE: An undefined reponse usually occurrs only in dev, when a user navigates to a tab after reloading the extension and doesn't refresh the page.
 						if (!response) {
