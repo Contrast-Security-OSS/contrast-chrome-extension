@@ -29,5 +29,5 @@ current_branch=$(git branch | grep -e "^*" | cut -d' ' -f 2)
 
 echo "Current Branch is $current_branch"
 
-$($current_branch git add .)
-$($current_branch git commit --amend)
+$(git add .)
+$(git commit --amend)
