@@ -18,13 +18,21 @@ getHostFromUrl,
 */
 "use strict";
 
+// Apply different gloabls depending on how user navigates to a page
+// https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigation
 if (window.performance.navigation.type === 1) {
   window.REFRESHED = true;
 
-  // reset to false after 1 second, window is no longer "refreshed"
-  setTimeout(() => {
+  // after window has finished loading, set window.REFRESHED to false
+  // only do this if the window has been refreshed
+  window.onload = function() {
     window.REFRESHED = false;
-  }, 1000);
+  }
+  document.addEventListener("DOMContentLoaded", function() {
+    window.REFRESHED = false;
+  });
+} else {
+  window.REFRESHED = false;
 }
 
 /**
@@ -204,6 +212,7 @@ function collectFormActions(sendResponse) {
     })
 
     // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
+    console.log("window.REFRESHED", window.REFRESHED);
     if (window.REFRESHED === false) {
       const actions = scrapeDOMForForms();
       if (!!actions) {
@@ -224,6 +233,7 @@ function collectFormActions(sendResponse) {
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("on message", request);
   if (request.action === GATHER_FORMS_ACTION) {
 
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM

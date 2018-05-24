@@ -372,19 +372,17 @@ function isBlacklisted(url) {
 * @return {void}
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
-  if (chrome.runtime.lastError || !tab) return;
+  if (!tab) return;
 
   chrome.tabs.get(tab.id, (result) => {
-    if (chrome.runtime.lastError || !result) return;
+    if (!result) return;
 
-    try {
-      // tab is visible
-      if (!chrome.runtime.lastError && tab.index >= 0) {
+    chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
+      if (tab.index >= 0) {
         chrome.browserAction.setBadgeBackgroundColor({ color });
         chrome.browserAction.setBadgeText({ tabId: tab.id, text });
       }
-      return;
-    } catch (e) { return; }
+    });
   });
 }
 
@@ -395,6 +393,8 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
  * @return {void}
  */
 function removeLoadingBadge(tab) {
+  if (!tab) return;
+
 	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
 		if (result === "↻") {
       chrome.browserAction.getBadgeBackgroundColor({ tabId: tab.id }, (color) => {
