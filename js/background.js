@@ -94,6 +94,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 		if (!isBlacklisted(tab.url)) {
 			handleRuntimeOnMessage(request, sender, sendResponse);
+		} else {
+			removeLoadingBadge(tab)
 		}
 	});
 
@@ -152,6 +154,8 @@ function handleTabActivated() {
 		if (!isBlacklisted(tab.url)) {
 			updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
 			updateVulnerabilities(tab);
+		} else {
+			removeLoadingBadge(tab)
 		}
 	})
 }
@@ -180,6 +184,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
 		updateVulnerabilities(tab);
+	} else if (isBlacklisted(tab.url)) {
+		removeLoadingBadge(tab)
 	}
 });
 
