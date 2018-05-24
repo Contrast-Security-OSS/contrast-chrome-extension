@@ -30,3 +30,5 @@ git add .
 echo $(git status)
 
 git commit --amend --no-edit
+
+npm test && eslint js/

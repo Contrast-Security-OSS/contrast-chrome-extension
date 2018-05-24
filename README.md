@@ -22,8 +22,7 @@ We're using QUnit: https://qunitjs.com/
 
 ### Setup
 
-Install Git Hook that removes all `console.log`, `debugger` and `localhost` strings.
-`./setup.sh`
+Run `./setup.sh`, it installs a Git Hook that removes all `console.log`, `debugger` and `localhost` strings from files in the `js` directory.
 
 Install QUnit for testing.
 `npm install -g qunit`
