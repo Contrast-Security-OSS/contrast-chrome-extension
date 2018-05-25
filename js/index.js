@@ -34,7 +34,6 @@ function indexFunction() {
     const url = new URL(tab.url);
 
     getStoredCredentials().then(items => {
-
       if (!isCredentialed(items)) {
         getUserConfiguration(tab, url);
       } else if (isCredentialed(items) && isTeamserverAccountPage(tab, url)) {
@@ -68,30 +67,38 @@ function renderApplicationsMenu(url) {
   const container = document.getElementById('applications-heading-container');
   setDisplayBlock(container);
 
+
   applicationsHeading.addEventListener('click', () => {
-    if (applicationsArrow.innerText === ' ▶') {
-      setTextContent(applicationsArrow, ' ▼');
-
-      applicationTable.classList.add('application-table-visible');
-      applicationTable.classList.remove('application-table-hidden');
-
-      if (document.getElementsByTagName('tr').length < 2) {
-        getApplications()
-        .then(json => {
-          if (!json) {
-            throw new Error("Error getting applications");
-          }
-          json.applications.forEach(app => createAppTableRow(app, url));
-        })
-        .catch(error => error)
-      }
-    } else {
-      applicationTable.classList.add('application-table-hidden');
-      applicationTable.classList.remove('application-table-visible');
-
-      setTextContent(applicationsArrow, ' ▶');
-    }
+    unrollApplications(applicationsArrow, applicationTable, url);
   });
+  applicationsArrow.addEventListener('click', () => {
+    unrollApplications(applicationsArrow, applicationTable, url);
+  });
+}
+
+function unrollApplications(applicationsArrow, applicationTable, url) {
+  if (applicationsArrow.innerText === ' ▶') {
+    setTextContent(applicationsArrow, ' ▼');
+
+    applicationTable.classList.add('application-table-visible');
+    applicationTable.classList.remove('application-table-hidden');
+
+    if (document.getElementsByTagName('tr').length < 2) {
+      getApplications()
+      .then(json => {
+        if (!json) {
+          throw new Error("Error getting applications");
+        }
+        json.applications.forEach(app => createAppTableRow(app, url));
+      })
+      .catch(error => error);
+    }
+  } else {
+    applicationTable.classList.add('application-table-hidden');
+    applicationTable.classList.remove('application-table-visible');
+
+    setTextContent(applicationsArrow, ' ▶');
+  }
 }
 
 /**
