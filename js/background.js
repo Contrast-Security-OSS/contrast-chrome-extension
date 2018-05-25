@@ -80,8 +80,7 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
  * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	// removed currentWindow: true for inspecting popup
-	chrome.tabs.query({ active: true }, (tabs) => {
+	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 		const tab = tabs[0];
 
 		// NOTE: UPDATEBADGE

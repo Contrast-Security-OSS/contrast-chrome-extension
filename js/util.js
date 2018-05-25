@@ -13,24 +13,30 @@ const CONTRAST_ORG_UUID    = "contrast_org_uuid";
 const TEAMSERVER_URL       = "teamserver_url";
 
 // Vulnerability Severity Levels
-const SEVERITY_NOTE = "Note";
-const SEVERITY_LOW = "Low";
-const SEVERITY_MEDIUM = "Medium";
-const SEVERITY_HIGH = "High";
+const SEVERITY_NOTE     = "Note";
+const SEVERITY_LOW      = "Low";
+const SEVERITY_MEDIUM   = "Medium";
+const SEVERITY_HIGH     = "High";
 const SEVERITY_CRITICAL = "Critical";
+const SEVERITY = {
+  [SEVERITY_NOTE]: 0,
+  [SEVERITY_LOW]: 1,
+  [SEVERITY_MEDIUM]: 2,
+  [SEVERITY_HIGH]: 3,
+  [SEVERITY_CRITICAL]: 4,
+};
 
 // Vulnerability Severity Icons
-const SEVERITY_NOTE_ICON_PATH = "../img/note.png";
-const SEVERITY_LOW_ICON_PATH = "../img/low.png";
-const SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png";
-const SEVERITY_HIGH_ICON_PATH = "../img/high.png";
+const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
+const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
+const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
+const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
 const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
 
-const HTML_BODY = "body";
-const TEAMSERVER_INDEX_PATH_SUFFIX  = "/Contrast/static/ng/index.html#/";
+const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
 const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
 const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
-const TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api";
+const TEAMSERVER_API_PATH_SUFFIX     = "/Contrast/api";
 const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
@@ -445,4 +451,30 @@ function retrieveApplicationFromStorage(tab) {
       resolve(application);
     });
   });
+}
+
+// --------- DOM HELPER FUNCTIONS -------------
+function setDisplayNone(element) {
+  if (!element) return;
+  element.style.display = 'none';
+}
+
+function setDisplayEmpty(element) {
+  if (!element) return;
+  element.style.display = '';
+}
+
+function setDisplayBlock(element) {
+  if (!element) return;
+  element.style.display = 'block';
+}
+
+function setTextContent(element, text) {
+  if (!element || (!text && text !== "")) return;
+  element.textContent = text;
+}
+
+function chromeExtensionSettingsUrl() {
+  const extensionId = chrome.runtime.id;
+  return 'chrome-extension://' + String(extensionId) + '/settings.html';
 }

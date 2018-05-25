@@ -425,32 +425,6 @@ function getDisconnectButtonSibling(disconnectButton, appName) {
   return null;
 }
 
-// --------- HELPER FUNCTIONS -------------
-function setDisplayNone(element) {
-  if (!element) return;
-  element.style.display = 'none';
-}
-
-function setDisplayEmpty(element) {
-  if (!element) return;
-  element.style.display = '';
-}
-
-function setDisplayBlock(element) {
-  if (!element) return;
-  element.style.display = 'block';
-}
-
-function setTextContent(element, text) {
-  if (!element || (!text && text !== "")) return;
-  element.textContent = text;
-}
-
-function chromeExtensionSettingsUrl() {
-  const extensionId = chrome.runtime.id;
-  return 'chrome-extension://' + String(extensionId) + '/settings.html';
-}
-
 /**
  * lingerMessage - leave a success/failure message on the screen for 2 seconds by toggling a class
  *
