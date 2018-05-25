@@ -54,7 +54,7 @@ const STORED_APPS_KEY     = "APPS";
 const BLACKLISTED_DOMAINS = [
   "chrome://",
   "file://",
-  "/Contrast/api",
+  "/Contrast/api/ng/",
   "/Contrast/s/",
   "google.com",
   "ajax.googleapis.com",
@@ -362,6 +362,21 @@ function isBlacklisted(url) {
     }
   }
   return false;
+}
+
+/**
+ * isContrastTeamserver - check if we're on a Contrast teamserver page or not
+ *
+ * @param  {String} url - the url of the current page
+ * @return {Boolen} - if we're on a contrast teamserver page or not
+ */
+function isContrastTeamserver(url) {
+  const contrast = [
+    "/Contrast/api/ng/",
+    "/Contrast/s/",
+    "/Contrast/static/ng/index"
+  ]
+  return contrast.some(c => url.includes(c))
 }
 
 /**
