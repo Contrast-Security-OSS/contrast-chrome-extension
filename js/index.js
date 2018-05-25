@@ -14,6 +14,11 @@
   STORED_APPS_KEY,
   getApplications,
   getHostFromUrl,
+  setDisplayNone,
+  setDisplayEmpty,
+  setDisplayBlock,
+  setTextContent,
+  chromeExtensionSettingsUrl
 */
 "use strict"
 
