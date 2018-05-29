@@ -439,10 +439,12 @@ function getDisconnectButtonSibling(disconnectButton, appName) {
  * @return {void}
  */
 function lingerMessage(element, callback) {
-  setTimeout(() => {
+  setTimeout(() => { // eslint-disable-line consistent-return
     element.classList.add("hidden");
     element.classList.remove("visible");
-    if (callback) callback();
+    if (callback) {
+      return callback();
+    }
   }, 2000); // let the element linger
 }
 
