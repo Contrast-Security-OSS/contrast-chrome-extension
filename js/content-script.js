@@ -18,13 +18,21 @@ getHostFromUrl,
 */
 "use strict";
 
+// Apply different gloabls depending on how user navigates to a page
+// https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigation
 if (window.performance.navigation.type === 1) {
   window.REFRESHED = true;
 
-  // reset to false after 1 second, window is no longer "refreshed"
-  setTimeout(() => {
+  // after window has finished loading, set window.REFRESHED to false
+  // only do this if the window has been refreshed
+  window.onload = function() {
     window.REFRESHED = false;
-  }, 1000);
+  }
+  document.addEventListener("DOMContentLoaded", function() {
+    window.REFRESHED = false;
+  });
+} else {
+  window.REFRESHED = false;
 }
 
 /**

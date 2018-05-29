@@ -54,7 +54,7 @@ const STORED_APPS_KEY     = "APPS";
 const BLACKLISTED_DOMAINS = [
   "chrome://",
   "file://",
-  "/Contrast/api",
+  "/Contrast/api/ng/",
   "/Contrast/s/",
   "google.com",
   "ajax.googleapis.com",
@@ -286,7 +286,7 @@ function generateURLString(traceUrls) {
   if (!traceUrls || traceUrls.length === 0) return "";
 
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
-  // http://localhost:3000/login vs /login
+  // example.com/login vs another-example.com/login
   const prefix = new URL(document.URL).origin;
   const prefixedUrls = traceUrls.map(u => prefix + "/" + u);
 
@@ -365,6 +365,21 @@ function isBlacklisted(url) {
 }
 
 /**
+ * isContrastTeamserver - check if we're on a Contrast teamserver page or not
+ *
+ * @param  {String} url - the url of the current page
+ * @return {Boolen} - if we're on a contrast teamserver page or not
+ */
+function isContrastTeamserver(url) {
+  const contrast = [
+    "/Contrast/api/ng/",
+    "/Contrast/s/",
+    "/Contrast/static/ng/index"
+  ]
+  return contrast.some(c => url.includes(c))
+}
+
+/**
 * updateTabBadge - updates the extension badge on the toolbar
 *
 * @param  {Object} tab    Gives the state of the current tab
@@ -372,19 +387,19 @@ function isBlacklisted(url) {
 * @return {void}
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
-  if (chrome.runtime.lastError || !tab) return;
+  if (!tab) return;
 
   chrome.tabs.get(tab.id, (result) => {
-    if (chrome.runtime.lastError || !result) return;
+    if (!result) return;
 
-    try {
-      // tab is visible
-      if (!chrome.runtime.lastError && tab.index >= 0) {
+    chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
+      if (badge !== "" && !badge) return;
+
+      if (tab.index >= 0) {
         chrome.browserAction.setBadgeBackgroundColor({ color });
         chrome.browserAction.setBadgeText({ tabId: tab.id, text });
       }
-      return;
-    } catch (e) { return; }
+    });
   });
 }
 
@@ -395,6 +410,8 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
  * @return {void}
  */
 function removeLoadingBadge(tab) {
+  if (!tab) return;
+
 	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
 		if (result === "↻") {
       chrome.browserAction.getBadgeBackgroundColor({ tabId: tab.id }, (color) => {

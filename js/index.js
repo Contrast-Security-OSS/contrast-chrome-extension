@@ -14,6 +14,7 @@
   STORED_APPS_KEY,
   getApplications,
   getHostFromUrl,
+  isContrastTeamserver,
 */
 "use strict"
 
@@ -182,7 +183,7 @@ function renderActivityFeed(items, url) {
         let applications = json.applications;
 
         // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
-        if (!!result[STORED_APPS_KEY] && !url.href.includes("Contrast")) {
+        if (!!result[STORED_APPS_KEY] && !isContrastTeamserver(url.href)) {
 
           const appIds = result[STORED_APPS_KEY].map(Object.values).flatten();
           applications = applications.filter(app => {
@@ -259,7 +260,7 @@ function createAppTableRow(application, url) {
   const host = getHostFromUrl(url);
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
-  if (!url.href.includes("/Contrast/")) {
+  if (!isContrastTeamserver(url.href)) {
     setTextContent(domainTD, 'Click to Connect Domain');
 
     const domainBtn = document.createElement('button');
