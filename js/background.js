@@ -4,7 +4,7 @@
 	TEAMSERVER_INDEX_PATH_SUFFIX,
 	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
   VALID_TEAMSERVER_HOSTNAMES,
-  CONTRAST_CONFIGURE,
+  CONTRAST_CONFIGURE_TEXT,
   CONTRAST_YELLOW,
   getOrganizationVulnerabilityIds,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
@@ -416,6 +416,6 @@ function getCredentials(tab) {
 		!chrome.runtime.lastError
 	];
 	if (!TAB_CLOSED && conditions.some(c => !!c)) {
-		updateTabBadge(tab, CONTRAST_CONFIGURE, CONTRAST_YELLOW);
+		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 	}
 }

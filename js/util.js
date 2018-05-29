@@ -46,11 +46,11 @@ const VALID_TEAMSERVER_HOSTNAMES = [
   'localhost'
 ];
 
-// Contrast stylings and markup
-const CONTRAST_GREEN      = "#65C0B2" // or is it #3CC3B2?;
-const CONTRAST_RED        = "#E63025";
-const CONTRAST_YELLOW     = "#FFD300";
-const CONTRAST_CONFIGURE  = "*";
+// Contrast stylings and configuration text
+const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
+const CONTRAST_RED             = "#E63025";
+const CONTRAST_YELLOW          = "#FFD300";
+const CONTRAST_CONFIGURE_TEXT  = "*";
 
 // chrome storage and message event keys
 const LISTENING_ON_DOMAIN = "<all_urls>";
@@ -456,7 +456,7 @@ function retrieveApplicationFromStorage(tab) {
 
       if (!application && tab.index >= 0) {
         if (!isBlacklisted(tab.url)) {
-          updateTabBadge(tab, CONTRAST_CONFIGURE, CONTRAST_YELLOW);
+          updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
         } else if (isBlacklisted(tab.url)) {
           updateTabBadge(tab, '', CONTRAST_GREEN);
         }
