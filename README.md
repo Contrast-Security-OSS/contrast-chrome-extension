@@ -23,7 +23,10 @@ We're using QUnit: https://qunitjs.com/
 
 ### Setup
 
+Install QUnit for testing and eslint for linting.
 `npm install -g qunit eslint`
+
+Run `./setup.sh`, it installs a Git Hook that removes all `console.log`, `debugger` and `localhost` strings from files in the `js` directory.
 
 ### Run Tests
 

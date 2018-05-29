@@ -1,29 +1,29 @@
 /*global
-	URL,
-	chrome,
-	TEAMSERVER_INDEX_PATH_SUFFIX,
-	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
-  VALID_TEAMSERVER_HOSTNAMES,
-  CONTRAST_CONFIGURE_TEXT,
-  CONTRAST_YELLOW,
-  getOrganizationVulnerabilityIds,
-  TEAMSERVER_PROFILE_PATH_SUFFIX,
-	TEAMSERVER_API_PATH_SUFFIX,
-	CONTRAST_RED,
-	CONTRAST_GREEN,
-	LISTENING_ON_DOMAIN,
-	TRACES_REQUEST,
-	GATHER_FORMS_ACTION,
-	STORED_TRACES_KEY,
-	getStoredCredentials,
-	isCredentialed,
-	isBlacklisted,
-	deDupeArray,
-	generateURLString,
-	getHostFromUrl,
-	updateTabBadge,
-	removeLoadingBadge,
-	retrieveApplicationFromStorage,
+URL,
+chrome,
+TEAMSERVER_INDEX_PATH_SUFFIX,
+TEAMSERVER_ACCOUNT_PATH_SUFFIX,
+VALID_TEAMSERVER_HOSTNAMES,
+CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT,
+CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND,
+getOrganizationVulnerabilityIds,
+TEAMSERVER_PROFILE_PATH_SUFFIX,
+TEAMSERVER_API_PATH_SUFFIX,
+CONTRAST_RED,
+CONTRAST_GREEN,
+LISTENING_ON_DOMAIN,
+TRACES_REQUEST,
+GATHER_FORMS_ACTION,
+STORED_TRACES_KEY,
+getStoredCredentials,
+isCredentialed,
+isBlacklisted,
+deDupeArray,
+generateURLString,
+getHostFromUrl,
+updateTabBadge,
+removeLoadingBadge,
+retrieveApplicationFromStorage,
 */
 
 "use strict";
@@ -92,10 +92,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			updateTabBadge(tab, "↻", CONTRAST_GREEN);
 		}
 
-		if (!isBlacklisted(tab.url)) {
-			handleRuntimeOnMessage(request, sender, sendResponse);
+		if (!!tab && !isBlacklisted(tab.url)) {
+			handleRuntimeOnMessage(request, sendResponse, tab);
 		} else {
-			removeLoadingBadge(tab)
+			removeLoadingBadge(tab);
 		}
 	});
 
@@ -106,16 +106,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * handleRuntimeOnMessage - called when the background receives a message
  *
  * @param  {Object} request
- * @param  {Object} sender
  * @param  {Function} sendResponse
+ * @param  {Object} tab
  * @return {void}
  */
-function handleRuntimeOnMessage(request, sender, sendResponse) {
+function handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result.traces) {
 				sendResponse({ traces: JSON.parse(result.traces) });
+			} else {
+				sendResponse({ traces: [] });
 			}
+			removeLoadingBadge(tab);
 		})
 	}
 
@@ -124,7 +127,7 @@ function handleRuntimeOnMessage(request, sender, sendResponse) {
 		.then(creds => {
 			const { formActions } = request;
 			if (!!formActions) {
-				evaluateVulnerabilities(isCredentialed(creds), sender.tab, formActions);
+				evaluateVulnerabilities(isCredentialed(creds), tab, formActions);
 			}
 		})
 	}
@@ -146,6 +149,7 @@ function handleTabActivated() {
 		if (!tabs || tabs.length === 0) return;
 
 		const tab = tabs[0];
+
 
 		if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 			return;
@@ -176,6 +180,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		return;
 	}
 
+
 	// GET STUCK ON LOADING if done for both "loading" and "complete"
 	if (changeInfo.status === "loading") {
 		// NOTE: UPDATEBADGE
@@ -185,7 +190,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
 		updateVulnerabilities(tab);
 	} else if (isBlacklisted(tab.url)) {
-		removeLoadingBadge(tab)
+		removeLoadingBadge(tab);
 	}
 });
 
@@ -212,7 +217,6 @@ chrome.tabs.onRemoved.addListener(() => {
 
 
 
-
 /*****************************************************************************
  ************************** VULNERABILITY FUNCTIONS **************************
  *****************************************************************************/
@@ -233,12 +237,16 @@ function updateVulnerabilities(tab) {
 
 			retrieveApplicationFromStorage(tab).then(application => {
 				if (!application) return;
-
 				if (credentialed && !evaluated) {
 					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
 
+
+						// NOTE: An undefined reponse usually occurrs only in dev, when a user navigates to a tab after reloading the extension and doesn't refresh the page.
 						if (!response) {
-							removeLoadingBadge(tab);
+							// removeLoadingBadge(tab);
+							updateTabBadge(tab, "X", CONTRAST_RED)
+							// maybe don't use an X
+							// chrome.tabs.reload(tab.id) // NOTE: Possibly dangerous if !response even after reload
 							return
 						}
 
