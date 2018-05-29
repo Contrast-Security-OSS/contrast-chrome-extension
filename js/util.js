@@ -18,6 +18,8 @@ const SEVERITY_LOW      = "Low";
 const SEVERITY_MEDIUM   = "Medium";
 const SEVERITY_HIGH     = "High";
 const SEVERITY_CRITICAL = "Critical";
+
+// Useful for ordering vulnerabilities by severity
 const SEVERITY = {
   [SEVERITY_NOTE]: 0,
   [SEVERITY_LOW]: 1,
@@ -41,15 +43,16 @@ const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
+  'localhost'
 ];
 
-const CONTRAST_ICON_BADGE_BACKGROUND = "#E63025";
-const CONTRAST_GREEN = "#65C0B2" // or is it #3CC3B2?;
-const CONTRAST_RED  = "#E63025";
-const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300";
-const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*";
-const CONTRAST_ICON_16 = "../img/contrast16.png";
+// Contrast stylings and markup
+const CONTRAST_GREEN      = "#65C0B2" // or is it #3CC3B2?;
+const CONTRAST_RED        = "#E63025";
+const CONTRAST_YELLOW     = "#FFD300";
+const CONTRAST_CONFIGURE  = "*";
 
+// chrome storage and message event keys
 const LISTENING_ON_DOMAIN = "<all_urls>";
 const GATHER_FORMS_ACTION = "gatherForms";
 const STORED_TRACES_KEY   = "traces";
@@ -441,7 +444,7 @@ function retrieveApplicationFromStorage(tab) {
 
       if (!application && tab.index >= 0) {
         if (!isBlacklisted(tab.url)) {
-          updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND);
+          updateTabBadge(tab, CONTRAST_CONFIGURE, CONTRAST_YELLOW);
         } else if (isBlacklisted(tab.url)) {
           updateTabBadge(tab, '', CONTRAST_GREEN);
         }
