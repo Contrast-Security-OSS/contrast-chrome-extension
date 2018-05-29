@@ -80,6 +80,18 @@ const BLACKLISTED_DOMAINS = [
 const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
 
+HTMLElement.prototype.hide = function(display = "none") {
+  this.style.display = display;
+}
+
+HTMLElement.prototype.show = function(display = "block") {
+  this.style.display = display;
+}
+
+HTMLElement.prototype.text = function(text = "") {
+  this.innerText = text;
+}
+
 /**
 * Array.prototype.flatten - reduce multi-dimensional arrays to single dimension
 *
@@ -274,7 +286,7 @@ function isCredentialed(credentials) {
 }
 
 /**
-* deDupeArray - remove duplicate vlues from array
+* deDupeArray - remove duplicate vlues from array, indexOf finds the index of the first item in an array, so all similar items after the first will evaluate to false when compared to their position
 *
 * @param  {Array} array array from which to remove duplicates
 * @return {Array}       new, deduped array
@@ -454,30 +466,4 @@ function retrieveApplicationFromStorage(tab) {
       resolve(application);
     });
   });
-}
-
-// --------- DOM HELPER FUNCTIONS -------------
-function setDisplayNone(element) {
-  if (!element) return;
-  element.style.display = 'none';
-}
-
-function setDisplayEmpty(element) {
-  if (!element) return;
-  element.style.display = '';
-}
-
-function setDisplayBlock(element) {
-  if (!element) return;
-  element.style.display = 'block';
-}
-
-function setTextContent(element, text) {
-  if (!element || (!text && text !== "")) return;
-  element.textContent = text;
-}
-
-function chromeExtensionSettingsUrl() {
-  const extensionId = chrome.runtime.id;
-  return 'chrome-extension://' + String(extensionId) + '/settings.html';
 }
