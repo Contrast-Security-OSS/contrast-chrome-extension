@@ -23,6 +23,15 @@
 */
 "use strict"
 
+const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
+const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";
+const CONNECT_FAILURE_MESSAGE = "Error Connecting Domain. Try refreshing the page.";
+const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected Domain";
+const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting Domain";
+const DISCONNECT_BUTTON_TEXT     = "Disconnect Domain";
+
+const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin";
+
 /**
  * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
  *
@@ -122,7 +131,7 @@ function getUserConfiguration(tab, url) {
     setElementDisplay(configExtension, "block");
 
     const configExtensionHost = document.getElementById('configure-extension-host');
-    setElementText(configExtensionHost, "Make sure you trust this site: " + url.hostname);
+    setElementText(configExtensionHost, `Make sure you trust this site: ${url.hostname}`);
 
     renderConfigButton(tab, configButton);
   } else {
@@ -270,10 +279,10 @@ function createAppTableRow(application, url) {
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(url.href)) {
-    setElementText(domainTD, 'Click to Connect Domain');
+    setElementText(domainTD, CONNECT_BUTTON_TEXT);
 
     const domainBtn = document.createElement('button');
-    domainBtn.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin domainBtn');
+    domainBtn.setAttribute('class', `CONTRAST_BUTTON_CLASS ${domainBtn}`);
 
     setElementText(domainBtn, application.name.titleize());
     nameTD.appendChild(domainBtn);
@@ -286,16 +295,16 @@ function createAppTableRow(application, url) {
       _addDomainToStorage(host, application)
       .then(result => {
         if (result) {
-          setElementText(message, "Successfully connected domain. You may need to reload the page.");
+          setElementText(message, CONNECT_SUCCESS_MESSAGE);
           message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
         } else {
-          setElementText(message, "Error Connecting Domain");
+          setElementText(message, CONNECT_FAILURE_MESSAGE);
           message.setAttribute('style', `color: ${CONTRAST_RED}`);
         }
         _hideElementAfterTimeout(message, indexFunction);
       })
       .catch(() => {
-        setElementText(message, "Error Connecting Domain");
+        setElementText(message, CONNECT_FAILURE_MESSAGE);
         message.setAttribute('style', `color: ${CONTRAST_RED}`);
         _hideElementAfterTimeout(message);
       });
@@ -324,7 +333,7 @@ function createAppTableRow(application, url) {
 
         const message = document.getElementById("connected-domain-message");
         const disconnectButton = document.createElement('button');
-        disconnectButton.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin');
+        disconnectButton.setAttribute('class', CONTRAST_BUTTON_CLASS);
         disconnectButton.addEventListener('click', () => {
           message.classList.add("visible");
           message.classList.remove("hidden");
@@ -332,21 +341,21 @@ function createAppTableRow(application, url) {
           _disconnectDomain(result, application, disconnectButton)
           .then(disconnected => {
             if (disconnected) {
-              setElementText(message, "Successfully Disconnected Domain");
+              setElementText(message, DISCONNECT_SUCCESS_MESSAGE);
               message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
             } else {
-              setElementText(message, "Error Disconnecting Domain");
+              setElementText(message, DISCONNECT_FAILURE_MESSAGE);
               message.setAttribute('style', `color: ${CONTRAST_RED}`);
             }
             _hideElementAfterTimeout(message);
           })
           .catch(() => {
-            setElementText(message, "Error Disconnecting Domain");
+            setElementText(message, DISCONNECT_FAILURE_MESSAGE);
             message.setAttribute('style', `color: ${CONTRAST_RED}`);
             _hideElementAfterTimeout(message);
           });
         });
-        setElementText(disconnectButton, "Disconnect Domain");
+        setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
 
         disconnectTD.appendChild(disconnectButton);
       }
@@ -439,7 +448,7 @@ function _getDisconnectButtonSibling(disconnectButton, appName) {
 // --------- HELPER FUNCTIONS -------------
 function _chromeExtensionSettingsUrl() {
   const extensionId = chrome.runtime.id;
-  return 'chrome-extension://' + String(extensionId) + '/settings.html';
+  return `chrome-extension://${String(extensionId)}/settings.html`;
 }
 
 /**
@@ -450,7 +459,7 @@ function _chromeExtensionSettingsUrl() {
  */
 function _renderContrastUsername(items) {
   const userEmail = document.getElementById('user-email');
-  setElementText(userEmail, "User: " + items[CONTRAST_USERNAME]);
+  setElementText(userEmail, `User: ${items[CONTRAST_USERNAME]}`);
   setElementDisplay(userEmail, "block");
   userEmail.addEventListener('click', () => {
     const contrastIndex = items.teamserver_url.indexOf("/Contrast/api");
