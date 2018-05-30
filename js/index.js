@@ -15,7 +15,7 @@
   STORED_TRACES_KEY,
   getApplications,
   getHostFromUrl,
-  chromeExtensionSettingsUrl
+  _chromeExtensionSettingsUrl
   isContrastTeamserver,
   setElementText,
   setElementDisplay,
@@ -37,22 +37,25 @@ function indexFunction() {
     .then(items => {
       if (!isCredentialed(items)) {
         getUserConfiguration(tab, url);
-      } else if (isCredentialed(items) && isTeamserverAccountPage(tab, url)) {
+      } else if (isCredentialed(items) && _isTeamserverAccountPage(tab, url)) {
         getUserConfiguration(tab, url);
         renderApplicationsMenu(url);
+        _renderContrastUsername(items);
       } else {
         renderActivityFeed(items, url);
+        _renderContrastUsername(items);
       }
 
       //configure button opens up settings page in new tab
       const configureGearIcon = document.getElementById('configure-gear');
       configureGearIcon.addEventListener('click', () => {
-        chrome.tabs.create({ url: chromeExtensionSettingsUrl() })
+        chrome.tabs.create({ url: _chromeExtensionSettingsUrl() })
       }, false);
     })
     .catch(error => new Error(error));
   });
 }
+
 
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
@@ -110,7 +113,7 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
  * @return {void}
  */
 function getUserConfiguration(tab, url) {
-  if (isTeamserverAccountPage(tab, url)) {
+  if (_isTeamserverAccountPage(tab, url)) {
     const configButton = document.getElementById('configure-extension-button');
     setElementText(configButton, "Reconfigure");
 
@@ -163,14 +166,14 @@ function renderConfigButton(tab, configButton) {
         const successMessage = document.getElementById('config-success');
         successMessage.classList.add("visible");
         successMessage.classList.remove("hidden");
-        hideElementAfterTimeout(successMessage, () => {
+        _hideElementAfterTimeout(successMessage, () => {
           configButton.removeAttribute('disabled');
         });
       } else {
         const failureMessage = document.getElementById('config-failure');
         failureMessage.classList.add("visible");
         failureMessage.classList.remove("hidden");
-        hideElementAfterTimeout(failureMessage, () => {
+        _hideElementAfterTimeout(failureMessage, () => {
           configButton.removeAttribute('disabled');
         });
       }
@@ -243,24 +246,8 @@ function showActivityFeed(items) {
   const configureExtension   = document.getElementById('configure-extension');
 
   // if you don't need credentials, hide the signin functionality
-  setElementDisplay(configureExtension, "none");
+  setElementDisplay(configureExtension, "block");
   setElementDisplay(notConfiguredSection, "none");
-
-  const visitOrgLink = document.getElementById('visit-org');
-  const userEmail    = document.getElementById('user-email');
-  setElementText(userEmail, "User: " + items.contrast_username);
-
-  visitOrgLink.addEventListener('click', () => {
-    const contrastIndex = items.teamserver_url.indexOf("/Contrast/api");
-    const teamserverUrl = items.teamserver_url.substring(0, contrastIndex);
-    chrome.tabs.create({ url: teamserverUrl });
-  }, false);
-
-  const signInButtonConfigurationProblem = document.getElementById('sign-in-button-configuration-problem');
-
-  signInButtonConfigurationProblem.addEventListener('click', () => {
-    chrome.tabs.create({ url: chromeExtensionSettingsUrl() });
-  }, false);
 }
 
 
@@ -314,12 +301,12 @@ function createAppTableRow(application, url) {
           setElementText(message, "Error Connecting Domain");
           message.setAttribute('style', `color: ${CONTRAST_RED}`);
         }
-        hideElementAfterTimeout(message, indexFunction);
+        _hideElementAfterTimeout(message, indexFunction);
       })
       .catch(() => {
         setElementText(message, "Error Connecting Domain");
         message.setAttribute('style', `color: ${CONTRAST_RED}`);
-        hideElementAfterTimeout(message);
+        _hideElementAfterTimeout(message);
       });
     });
   } else {
@@ -360,12 +347,12 @@ function createAppTableRow(application, url) {
               setElementText(message, "Error Disconnecting Domain");
               message.setAttribute('style', `color: ${CONTRAST_RED}`);
             }
-            hideElementAfterTimeout(message);
+            _hideElementAfterTimeout(message);
           })
           .catch(() => {
             setElementText(message, "Error Disconnecting Domain");
             message.setAttribute('style', `color: ${CONTRAST_RED}`);
-            hideElementAfterTimeout(message);
+            _hideElementAfterTimeout(message);
           });
         });
         setElementText(disconnectButton, "Disconnect Domain");
@@ -459,18 +446,35 @@ function _getDisconnectButtonSibling(disconnectButton, appName) {
 }
 
 // --------- HELPER FUNCTIONS -------------
-function chromeExtensionSettingsUrl() {
+function _chromeExtensionSettingsUrl() {
   const extensionId = chrome.runtime.id;
   return 'chrome-extension://' + String(extensionId) + '/settings.html';
 }
 
 /**
- * hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
+ * renderContrastUsername - renders the email address of the contrast user
+ *
+ * @param  {Object} items contrast creds
+ * @return {void}
+ */
+function _renderContrastUsername(items) {
+  const userEmail = document.getElementById('user-email');
+  setElementText(userEmail, "User: " + items[CONTRAST_USERNAME]);
+  setElementDisplay(userEmail, "block");
+  userEmail.addEventListener('click', () => {
+    const contrastIndex = items.teamserver_url.indexOf("/Contrast/api");
+    const teamserverUrl = items.teamserver_url.substring(0, contrastIndex);
+    chrome.tabs.create({ url: teamserverUrl });
+  }, false);
+}
+
+/**
+ * _hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
  *
  * @param  {Node} element HTML Element to show for 2 seconds
  * @return {void}
  */
-function hideElementAfterTimeout(element, callback) {
+function _hideElementAfterTimeout(element, callback) {
   setTimeout(() => { // eslint-disable-line consistent-return
     element.classList.add("hidden");
     element.classList.remove("visible");
@@ -481,13 +485,13 @@ function hideElementAfterTimeout(element, callback) {
 }
 
 /**
- * isTeamserverAccountPage - checks if we're on the teamserver Your Account page
+ * _isTeamserverAccountPage - checks if we're on the teamserver Your Account page
  *
  * @param  {Object} tab the current tab
  * @param  {URL<Object>} url url object of the current tab
  * @return {Boolean} if it is the teamserver page
  */
-function isTeamserverAccountPage(tab, url) {
+function _isTeamserverAccountPage(tab, url) {
   if (!tab || !url) return false;
 
   const conditions = [

@@ -141,7 +141,7 @@ label {
 }
 
 /* gear button in bottom right corner */
-#configure {
+#configure-gear {
   outline: none;
 }
 
@@ -164,6 +164,10 @@ label {
 
 #applications-arrow {
   font-size: 10px;
+}
+
+#user-email {
+  cursor: pointer;
 }
 
 /* Hide success/error message and show when user clicks configure button after installing extension */
@@ -201,6 +205,7 @@ label {
 .application-table-visible {
   transition-property: visibility, opacity;
   transition-duration: 0s, 1s;
+  margin-bottom: 0px;
 }
 
 .application-table-hidden {
