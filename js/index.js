@@ -6,6 +6,7 @@
   TEAMSERVER_INDEX_PATH_SUFFIX,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
   URL,
+  CONTRAST_USERNAME,
   getStoredCredentials,
   isCredentialed,
   isBlacklisted,
@@ -196,7 +197,13 @@ function renderActivityFeed(items, url) {
     const host = getHostFromUrl(url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (!!result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
-      showActivityFeed(items);
+      // find sections
+      const notConfiguredSection = document.getElementById('not-configured');
+      const configureExtension   = document.getElementById('configure-extension');
+
+      // if you don't need credentials, hide the signin functionality
+      setElementDisplay(configureExtension, "none");
+      setElementDisplay(notConfiguredSection, "none");
     } else {
       const applicationTable = document.getElementById("application-table");
 
@@ -232,22 +239,6 @@ function renderActivityFeed(items, url) {
       });
     }
   });
-}
-
-/**
- * showActivityFeed - renders the container for vulnerabilities
- *
- * @param  {Object} items - contains contrast credentials and info from storage
- * @return {void}
- */
-function showActivityFeed(items) {
-  // find sections
-  const notConfiguredSection = document.getElementById('not-configured');
-  const configureExtension   = document.getElementById('configure-extension');
-
-  // if you don't need credentials, hide the signin functionality
-  setElementDisplay(configureExtension, "block");
-  setElementDisplay(notConfiguredSection, "none");
 }
 
 
