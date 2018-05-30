@@ -79,18 +79,6 @@ const BLACKLISTED_DOMAINS = [
 const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
 
-HTMLElement.prototype.hide = function(display = "none") {
-  this.style.display = display;
-}
-
-HTMLElement.prototype.show = function(display = "block") {
-  this.style.display = display;
-}
-
-HTMLElement.prototype.text = function(text = "") {
-  this.innerText = text;
-}
-
 /**
 * Array.prototype.flatten - reduce multi-dimensional arrays to single dimension
 *
@@ -482,4 +470,29 @@ function retrieveApplicationFromStorage(tab) {
       resolve(application);
     });
   });
+}
+
+// -------------- DOM MANIPULATION HELPERS --------------
+function setElementDisplay(element, display) {
+  if (!element || !display) {
+    throw new Error("Either no element or display received when setting display");
+    return;
+  }
+  try {
+    element.style.display = display;
+  } catch (e) {
+    new Error(e)
+  }
+}
+
+function setElementText(element, text) {
+  if (!element || typeof text !== "string") {
+    throw new Error("Either no element or text received when setting element text");
+    return;
+  }
+  try {
+    element.innerText = text;
+  } catch (e) {
+    new Error(e)
+  }
 }

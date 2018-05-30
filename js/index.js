@@ -16,6 +16,8 @@
   getHostFromUrl,
   chromeExtensionSettingsUrl
   isContrastTeamserver,
+  setElementText,
+  setElementDisplay,
 */
 "use strict"
 
@@ -35,7 +37,7 @@ function indexFunction() {
         getUserConfiguration(tab, url);
       } else if (isCredentialed(items) && isTeamserverAccountPage(tab, url)) {
         document.getElementById('configure-extension-button')
-                .text("Reconfigure");
+                setElementText(, "Reconfigure");
         getUserConfiguration(tab, url);
         renderApplicationsMenu(url);
       } else {
@@ -62,7 +64,7 @@ function renderApplicationsMenu(url) {
   const applicationsArrow   = document.getElementById('applications-arrow');
   const applicationTable    = document.getElementById('application-table');
 
-  document.getElementById('applications-heading-container').show();
+  setElementDisplay(document.getElementById('applications-heading-container'), "block");
 
   applicationsHeading.addEventListener('click', () => {
     unrollApplications(applicationsArrow, applicationTable, url);
@@ -74,7 +76,7 @@ function renderApplicationsMenu(url) {
 
 function unrollApplications(applicationsArrow, applicationTable, url) {
   if (applicationsArrow.innerText === ' ▶') {
-    applicationsArrow.text(' ▼');
+    setElementText(applicationsArrow, ' ▼');
 
     applicationTable.classList.add('application-table-visible');
     applicationTable.classList.remove('application-table-hidden');
@@ -93,7 +95,7 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
     applicationTable.classList.add('application-table-hidden');
     applicationTable.classList.remove('application-table-visible');
 
-    applicationsArrow.text(' ▶');
+    setElementText(applicationsArrow, ' ▶');
   }
 }
 
@@ -106,15 +108,15 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
  */
 function getUserConfiguration(tab, url) {
   if (isTeamserverAccountPage(tab, url)) {
-    document.getElementById('configure-extension').show();
+    setElementDisplay(document.getElementById('configure-extension'), "block");
 
     let configureExtensionHost = document.getElementById('configure-extension-host');
-    // configureExtensionHost.text("Make sure you trust this site: " + url.hostname);
-    configureExtensionHost.text("Make sure you trust this site: " + url.hostname)
+    setElementText(// configureExtensionHost, "Make sure you trust this site: " + url.hostname);
+    setElementText(configureExtensionHost, "Make sure you trust this site: " + url.hostname)
 
     renderConfigButton(tab);
   } else {
-    document.getElementById('not-configured').hide("")
+    setElementDisplay(document.getElementById('not-configured'), "")
   }
 }
 
@@ -141,17 +143,17 @@ function renderConfigButton(tab) {
 
         // recurse on this method, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
         const successMessage = document.getElementById('config-success');
-        successMessage.show();
+        setElementDisplay(successMessage, "block");
         setTimeout(() => {
           configureExtensionButton.removeAttribute('disabled');
-          successMessage.hide();
+          setElementDisplay(successMessage, "none");
           indexFunction();
         }, 2000);
       } else {
         configureExtensionButton.removeAttribute('disabled');
         const failureMessage = document.getElementById('config-failure');
-        failureMessage.show();
-        setTimeout(() => failureMessage.hide(), 2000);
+        setElementDisplay(failureMessage, "block");
+        setElementDisplay(setTimeout(() => failureMessage, "none"), 2000);
       }
       return;
     })
@@ -178,7 +180,7 @@ function renderActivityFeed(items, url) {
       applicationTable.classList.add('application-table-visible');
       applicationTable.classList.remove('application-table-hidden');
 
-      document.getElementById("vulnerabilities-found-on-page").hide();
+      setElementDisplay(document.getElementById("vulnerabilities-found-on-page"), "none");
 
       // if app is not stored, render the table with buttons to add the domain
       getApplications()
@@ -219,12 +221,12 @@ function showActivityFeed(items) {
   let configureExtension   = document.getElementById('configure-extension');
 
   // if you don't need credentials, hide the signin functionality
-  configureExtension.hide();
-  notConfiguredSection.hide();
+  setElementDisplay(configureExtension, "none");
+  setElementDisplay(notConfiguredSection, "none");
 
   let visitOrgLink = document.getElementById('visit-org');
   let userEmail    = document.getElementById('user-email');
-  userEmail.text("User: " + items.contrast_username);
+  setElementText(userEmail, "User: " + items.contrast_username);
 
   visitOrgLink.addEventListener('click', () => {
     const contrastIndex = items.teamserver_url.indexOf("/Contrast/api");
@@ -255,8 +257,8 @@ function createAppTableRow(application, url) {
   const domainTD     = document.createElement('td');
   const disconnectTD = document.createElement('td');
 
-  appIdTD.text(application.app_id);
-  appIdTD.hide();
+  setElementText(appIdTD, application.app_id);
+  setElementDisplay(appIdTD, "none");
 
   tableBody.appendChild(row);
   row.appendChild(nameTD);
@@ -268,12 +270,12 @@ function createAppTableRow(application, url) {
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(url.href)) {
-    domainTD.text('Click to Connect Domain');
+    setElementText(domainTD, 'Click to Connect Domain');
 
     const domainBtn = document.createElement('button');
     domainBtn.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin domainBtn');
 
-    domainBtn.text(application.name.titleize());
+    setElementText(domainBtn, application.name.titleize());
     nameTD.appendChild(domainBtn);
 
     domainBtn.addEventListener('click', () => {
@@ -284,16 +286,16 @@ function createAppTableRow(application, url) {
       _addDomainToStorage(host, application)
       .then(result => {
         if (result) {
-          message.text("Successfully connected domain. You may need to reload the page.");
+          setElementText(message, "Successfully connected domain. You may need to reload the page.");
           message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
         } else {
-          message.text("Error Connecting Domain");
+          setElementText(message, "Error Connecting Domain");
           message.setAttribute('style', `color: ${CONTRAST_RED}`);
         }
         lingerMessage(message, indexFunction);
       })
       .catch(() => {
-        message.text("Error Connecting Domain");
+        setElementText(message, "Error Connecting Domain");
         message.setAttribute('style', `color: ${CONTRAST_RED}`);
         lingerMessage(message);
       });
@@ -318,7 +320,7 @@ function createAppTableRow(application, url) {
         if (domain.includes("_")) {
           domain = domain.split("_").join(":"); // local dev stuff
         }
-        domainTD.text(domain);
+        setElementText(domainTD, domain);
 
         const message = document.getElementById("connected-domain-message");
         const disconnectButton = document.createElement('button');
@@ -330,25 +332,25 @@ function createAppTableRow(application, url) {
           _disconnectDomain(result, application, disconnectButton)
           .then(disconnected => {
             if (disconnected) {
-              message.text("Successfully Disconnected Domain");
+              setElementText(message, "Successfully Disconnected Domain");
               message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
             } else {
-              message.text("Error Disconnecting Domain");
+              setElementText(message, "Error Disconnecting Domain");
               message.setAttribute('style', `color: ${CONTRAST_RED}`);
             }
             lingerMessage(message);
           })
           .catch(() => {
-            message.text("Error Disconnecting Domain");
+            setElementText(message, "Error Disconnecting Domain");
             message.setAttribute('style', `color: ${CONTRAST_RED}`);
             lingerMessage(message);
           });
         });
-        disconnectButton.text("Disconnect Domain");
+        setElementText(disconnectButton, "Disconnect Domain");
 
         disconnectTD.appendChild(disconnectButton);
       }
-      nameTD.text(application.name);
+      setElementText(nameTD, application.name);
     });
   }
 }
@@ -375,7 +377,7 @@ function _addDomainToStorage(host, application) {
       });
 
       chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-        document.getElementById("application-table").hide();
+        setElementDisplay(document.getElementById("application-table"), "none");
         resolve(!chrome.storage.lastError);
       });
     });
@@ -404,7 +406,7 @@ function _disconnectDomain(storedApps, application, disconnectButton) {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError));
       }
-      domainElement.text('');
+      setElementText(domainElement, '');
       disconnectButton.remove();
       resolve(!chrome.runtime.lastError);
     });
