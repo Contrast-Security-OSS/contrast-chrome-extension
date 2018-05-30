@@ -12,6 +12,7 @@
   CONTRAST_RED,
   CONTRAST_GREEN,
   STORED_APPS_KEY,
+  STORED_TRACES_KEY,
   getApplications,
   getHostFromUrl,
   chromeExtensionSettingsUrl
@@ -141,7 +142,7 @@ function renderConfigButton(tab, configButton) {
     configButton.setAttribute('disabled', true);
 
     // whenever user configures, remove all traces and apps, useful for when reconfiguring
-    chrome.storage.local.remove([STORED_APPS_KEY, STORED_TRACES_KEY], () => {
+    chrome.storage.local.remove([STORED_APPS_KEY, STORED_TRACES_KEY], () => { // eslint-disable-line array-element-newline
       if (chrome.runtime.lastError) {
         throw new Error("Error removing stored apps and stored traces");
       }
@@ -157,15 +158,15 @@ function renderConfigButton(tab, configButton) {
 
         // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
         const successMessage = document.getElementById('config-success');
-        successMessage.classList.add("visible")
-        successMessage.classList.remove("hidden")
+        successMessage.classList.add("visible");
+        successMessage.classList.remove("hidden");
         hideElementAfterTimeout(successMessage, () => {
           configButton.removeAttribute('disabled');
         });
       } else {
         const failureMessage = document.getElementById('config-failure');
-        failureMessage.classList.add("visible")
-        failureMessage.classList.remove("hidden")
+        failureMessage.classList.add("visible");
+        failureMessage.classList.remove("hidden");
         hideElementAfterTimeout(failureMessage, () => {
           configButton.removeAttribute('disabled');
         });
