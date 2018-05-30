@@ -282,7 +282,7 @@ function createAppTableRow(application, url) {
     setElementText(domainTD, CONNECT_BUTTON_TEXT);
 
     const domainBtn = document.createElement('button');
-    domainBtn.setAttribute('class', `CONTRAST_BUTTON_CLASS ${domainBtn}`);
+    domainBtn.setAttribute('class', `${CONTRAST_BUTTON_CLASS} domainBtn`);
 
     setElementText(domainBtn, application.name.titleize());
     nameTD.appendChild(domainBtn);
