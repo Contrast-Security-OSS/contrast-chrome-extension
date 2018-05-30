@@ -43,6 +43,7 @@ const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
+  'alpha.contrastsecurity.com',
 ];
 
 // Contrast stylings and configuration text
@@ -53,10 +54,10 @@ const CONTRAST_CONFIGURE_TEXT  = "*";
 
 // chrome storage and message event keys
 const LISTENING_ON_DOMAIN = "<all_urls>";
-const GATHER_FORMS_ACTION = "gatherForms";
-const STORED_TRACES_KEY   = "traces";
-const TRACES_REQUEST      = "getStoredTraces";
-const STORED_APPS_KEY     = "APPS";
+const GATHER_FORMS_ACTION = "contrast__gatherForms";
+const STORED_TRACES_KEY   = "contrast__traces";
+const TRACES_REQUEST      = "contrast__getStoredTraces";
+const STORED_APPS_KEY     = "contrast__APPS";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [

@@ -140,6 +140,13 @@ function renderConfigButton(tab, configButton) {
   configButton.addEventListener('click', () => {
     configButton.setAttribute('disabled', true);
 
+    // whenever user configures, remove all traces and apps, useful for when reconfiguring
+    chrome.storage.local.remove([STORED_APPS_KEY, STORED_TRACES_KEY], () => {
+      if (chrome.runtime.lastError) {
+        throw new Error("Error removing stored apps and stored traces");
+      }
+    });
+
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(tab.id, { url: tab.url, action: "INITIALIZE" }, (response) => {
 
