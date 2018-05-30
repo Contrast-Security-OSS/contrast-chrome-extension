@@ -23,13 +23,12 @@ getHostFromUrl,
 if (window.performance.navigation.type === 1) {
   window.REFRESHED = true;
 
-  // after window has finished loading, set window.REFRESHED to false
+  // after document has finished loading, set window.REFRESHED to false
   // only do this if the window has been refreshed
-  window.onload = function() {
-    window.REFRESHED = false;
-  }
-  document.addEventListener("DOMContentLoaded", function() {
-    window.REFRESHED = false;
+  document.addEventListener("load", function() {
+    if (window.REFRESHED === true) {
+      window.REFRESHED = false;
+    }
   });
 } else {
   window.REFRESHED = false;

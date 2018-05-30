@@ -476,23 +476,21 @@ function retrieveApplicationFromStorage(tab) {
 function setElementDisplay(element, display) {
   if (!element || !display) {
     throw new Error("Either no element or display received when setting display");
-    return;
   }
   try {
     element.style.display = display;
   } catch (e) {
-    new Error(e)
+    throw new Error(e)
   }
 }
 
 function setElementText(element, text) {
   if (!element || typeof text !== "string") {
     throw new Error("Either no element or text received when setting element text");
-    return;
   }
   try {
     element.innerText = text;
   } catch (e) {
-    new Error(e)
+    throw new Error(e)
   }
 }

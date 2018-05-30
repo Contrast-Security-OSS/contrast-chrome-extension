@@ -32,12 +32,11 @@ function indexFunction() {
     const tab = tabs[0];
     const url = new URL(tab.url);
 
-    getStoredCredentials().then(items => {
+    getStoredCredentials()
+    .then(items => {
       if (!isCredentialed(items)) {
         getUserConfiguration(tab, url);
       } else if (isCredentialed(items) && isTeamserverAccountPage(tab, url)) {
-        document.getElementById('configure-extension-button')
-                setElementText(, "Reconfigure");
         getUserConfiguration(tab, url);
         renderApplicationsMenu(url);
       } else {
@@ -45,11 +44,12 @@ function indexFunction() {
       }
 
       //configure button opens up settings page in new tab
-      let configureButton = document.getElementById('configure');
-      configureButton.addEventListener('click', () => {
+      const configureGearIcon = document.getElementById('configure-gear');
+      configureGearIcon.addEventListener('click', () => {
         chrome.tabs.create({ url: chromeExtensionSettingsUrl() })
       }, false);
-    });
+    })
+    .catch(error => new Error(error));
   });
 }
 
@@ -64,7 +64,8 @@ function renderApplicationsMenu(url) {
   const applicationsArrow   = document.getElementById('applications-arrow');
   const applicationTable    = document.getElementById('application-table');
 
-  setElementDisplay(document.getElementById('applications-heading-container'), "block");
+  const applicationsHeadingContainer = document.getElementById('applications-heading-container');
+  setElementDisplay(applicationsHeadingContainer, "block");
 
   applicationsHeading.addEventListener('click', () => {
     unrollApplications(applicationsArrow, applicationTable, url);
@@ -81,6 +82,7 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
     applicationTable.classList.add('application-table-visible');
     applicationTable.classList.remove('application-table-hidden');
 
+    // if less than 2 then only the heading row has been rendered
     if (document.getElementsByTagName('tr').length < 2) {
       getApplications()
       .then(json => {
@@ -108,15 +110,19 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
  */
 function getUserConfiguration(tab, url) {
   if (isTeamserverAccountPage(tab, url)) {
-    setElementDisplay(document.getElementById('configure-extension'), "block");
+    const configButton = document.getElementById('configure-extension-button');
+    setElementText(configButton, "Reconfigure");
 
-    let configureExtensionHost = document.getElementById('configure-extension-host');
-    setElementText(// configureExtensionHost, "Make sure you trust this site: " + url.hostname);
-    setElementText(configureExtensionHost, "Make sure you trust this site: " + url.hostname)
+    const configExtension = document.getElementById('configure-extension');
+    setElementDisplay(configExtension, "block");
 
-    renderConfigButton(tab);
+    const configExtensionHost = document.getElementById('configure-extension-host');
+    setElementText(configExtensionHost, "Make sure you trust this site: " + url.hostname);
+
+    renderConfigButton(tab, configButton);
   } else {
-    setElementDisplay(document.getElementById('not-configured'), "")
+    const notConfigured = document.getElementById('not-configured');
+    setElementDisplay(notConfigured, "");
   }
 }
 
@@ -126,11 +132,13 @@ function getUserConfiguration(tab, url) {
  * @param  {Object} tab the current tab
  * @return {void}
  */
-function renderConfigButton(tab) {
-  let configureExtensionButton = document.getElementById('configure-extension-button');
+function renderConfigButton(tab, configButton) {
+  if (!configButton) {
+    configButton = document.getElementById('configure-extension-button');
+  }
 
-  configureExtensionButton.addEventListener('click', () => {
-    configureExtensionButton.setAttribute('disabled', true);
+  configButton.addEventListener('click', () => {
+    configButton.setAttribute('disabled', true);
 
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(tab.id, { url: tab.url, action: "INITIALIZE" }, (response) => {
@@ -138,22 +146,22 @@ function renderConfigButton(tab) {
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
 
       if (response === "INITIALIZED") {
-
         chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
 
-        // recurse on this method, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
+        // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
         const successMessage = document.getElementById('config-success');
-        setElementDisplay(successMessage, "block");
-        setTimeout(() => {
-          configureExtensionButton.removeAttribute('disabled');
-          setElementDisplay(successMessage, "none");
-          indexFunction();
-        }, 2000);
+        successMessage.classList.add("visible")
+        successMessage.classList.remove("hidden")
+        hideElementAfterTimeout(successMessage, () => {
+          configButton.removeAttribute('disabled');
+        });
       } else {
-        configureExtensionButton.removeAttribute('disabled');
         const failureMessage = document.getElementById('config-failure');
-        setElementDisplay(failureMessage, "block");
-        setElementDisplay(setTimeout(() => failureMessage, "none"), 2000);
+        failureMessage.classList.add("visible")
+        failureMessage.classList.remove("hidden")
+        hideElementAfterTimeout(failureMessage, () => {
+          configButton.removeAttribute('disabled');
+        });
       }
       return;
     })
@@ -177,10 +185,13 @@ function renderActivityFeed(items, url) {
       showActivityFeed(items);
     } else {
       const applicationTable = document.getElementById("application-table");
+
+      // transitions on these classes, not a simple display none/table
       applicationTable.classList.add('application-table-visible');
       applicationTable.classList.remove('application-table-hidden');
 
-      setElementDisplay(document.getElementById("vulnerabilities-found-on-page"), "none");
+      const vulnsFound = document.getElementById("vulnerabilities-found-on-page")
+      setElementDisplay(vulnsFound, "none");
 
       // if app is not stored, render the table with buttons to add the domain
       getApplications()
@@ -217,15 +228,15 @@ function renderActivityFeed(items, url) {
  */
 function showActivityFeed(items) {
   // find sections
-  let notConfiguredSection = document.getElementById('not-configured');
-  let configureExtension   = document.getElementById('configure-extension');
+  const notConfiguredSection = document.getElementById('not-configured');
+  const configureExtension   = document.getElementById('configure-extension');
 
   // if you don't need credentials, hide the signin functionality
   setElementDisplay(configureExtension, "none");
   setElementDisplay(notConfiguredSection, "none");
 
-  let visitOrgLink = document.getElementById('visit-org');
-  let userEmail    = document.getElementById('user-email');
+  const visitOrgLink = document.getElementById('visit-org');
+  const userEmail    = document.getElementById('user-email');
   setElementText(userEmail, "User: " + items.contrast_username);
 
   visitOrgLink.addEventListener('click', () => {
@@ -234,7 +245,7 @@ function showActivityFeed(items) {
     chrome.tabs.create({ url: teamserverUrl });
   }, false);
 
-  let signInButtonConfigurationProblem = document.getElementById('sign-in-button-configuration-problem');
+  const signInButtonConfigurationProblem = document.getElementById('sign-in-button-configuration-problem');
 
   signInButtonConfigurationProblem.addEventListener('click', () => {
     chrome.tabs.create({ url: chromeExtensionSettingsUrl() });
@@ -292,12 +303,12 @@ function createAppTableRow(application, url) {
           setElementText(message, "Error Connecting Domain");
           message.setAttribute('style', `color: ${CONTRAST_RED}`);
         }
-        lingerMessage(message, indexFunction);
+        hideElementAfterTimeout(message, indexFunction);
       })
       .catch(() => {
         setElementText(message, "Error Connecting Domain");
         message.setAttribute('style', `color: ${CONTRAST_RED}`);
-        lingerMessage(message);
+        hideElementAfterTimeout(message);
       });
     });
   } else {
@@ -338,12 +349,12 @@ function createAppTableRow(application, url) {
               setElementText(message, "Error Disconnecting Domain");
               message.setAttribute('style', `color: ${CONTRAST_RED}`);
             }
-            lingerMessage(message);
+            hideElementAfterTimeout(message);
           })
           .catch(() => {
             setElementText(message, "Error Disconnecting Domain");
             message.setAttribute('style', `color: ${CONTRAST_RED}`);
-            lingerMessage(message);
+            hideElementAfterTimeout(message);
           });
         });
         setElementText(disconnectButton, "Disconnect Domain");
@@ -376,8 +387,9 @@ function _addDomainToStorage(host, application) {
         [host]: application.app_id
       });
 
+      const applicationTable = document.getElementById("application-table");
       chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-        setElementDisplay(document.getElementById("application-table"), "none");
+        setElementDisplay(applicationTable, "none");
         resolve(!chrome.storage.lastError);
       });
     });
@@ -397,9 +409,9 @@ function _disconnectDomain(storedApps, application, disconnectButton) {
   return new Promise((resolve, reject) => {
     const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
       return Object.values(app)[0] !== application.app_id;
-    })
+    });
 
-    const domainElement = getDisconnectButtonSibling(disconnectButton, application.name);
+    const domainElement = _getDisconnectButtonSibling(disconnectButton, application.name);
     if (!domainElement) return;
 
     chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
@@ -414,13 +426,13 @@ function _disconnectDomain(storedApps, application, disconnectButton) {
 }
 
 /**
- * getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
+ * _getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
  *
  * @param  {Node} disconnectButton an HTML Element
  * @param  {String} appName        name of the stored app we're removing
  * @return {Node}                  an HTML element in the same row
  */
-function getDisconnectButtonSibling(disconnectButton, appName) {
+function _getDisconnectButtonSibling(disconnectButton, appName) {
   // button is inside a td which is inside a row
   const row = disconnectButton.parentNode.parentNode;
   const tds = row.querySelectorAll('td');
@@ -435,13 +447,19 @@ function getDisconnectButtonSibling(disconnectButton, appName) {
   return null;
 }
 
+// --------- HELPER FUNCTIONS -------------
+function chromeExtensionSettingsUrl() {
+  const extensionId = chrome.runtime.id;
+  return 'chrome-extension://' + String(extensionId) + '/settings.html';
+}
+
 /**
- * lingerMessage - leave a success/failure message on the screen for 2 seconds by toggling a class
+ * hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
  *
  * @param  {Node} element HTML Element to show for 2 seconds
  * @return {void}
  */
-function lingerMessage(element, callback) {
+function hideElementAfterTimeout(element, callback) {
   setTimeout(() => { // eslint-disable-line consistent-return
     element.classList.add("hidden");
     element.classList.remove("visible");
@@ -470,11 +488,7 @@ function isTeamserverAccountPage(tab, url) {
   return conditions.every(c => !!c);
 }
 
-
+/**
+ * Run when popup loads
+ */
 document.addEventListener('DOMContentLoaded', indexFunction, false);
-
-// --------- HELPER FUNCTIONS -------------
-function chromeExtensionSettingsUrl() {
-  const extensionId = chrome.runtime.id;
-  return 'chrome-extension://' + String(extensionId) + '/settings.html';
-}
