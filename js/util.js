@@ -181,7 +181,7 @@ function getStoredCredentials() {
       CONTRAST_SERVICE_KEY,
       CONTRAST_API_KEY,
       CONTRAST_ORG_UUID,
-      TEAMSERVER_URL
+      TEAMSERVER_URL,
     ], (items) => {
       if (!items) {
         reject(new Error("Error getting credentials"));

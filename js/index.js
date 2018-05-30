@@ -142,7 +142,10 @@ function renderConfigButton(tab, configButton) {
     configButton.setAttribute('disabled', true);
 
     // whenever user configures, remove all traces and apps, useful for when reconfiguring
-    chrome.storage.local.remove([STORED_APPS_KEY, STORED_TRACES_KEY], () => { // eslint-disable-line array-element-newline
+    chrome.storage.local.remove([
+      STORED_APPS_KEY,
+      STORED_TRACES_KEY,
+    ], () => {
       if (chrome.runtime.lastError) {
         throw new Error("Error removing stored apps and stored traces");
       }

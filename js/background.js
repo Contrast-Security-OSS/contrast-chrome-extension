@@ -50,7 +50,7 @@ let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
  * @param {Object} filter - allows limiting the requests for which events are triggered in various dimensions including urls
  * @return {void}
  */
-chrome.webRequest.onBeforeRequest.addListener((request) => {
+chrome.webRequest.onBeforeRequest.addListener(request => {
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
 	if (request.type === "xmlhttprequest" && !isBlacklisted(request.url)) {
@@ -100,7 +100,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	});
 
 	return true;
-})
+});
 
 /**
  * handleRuntimeOnMessage - called when the background receives a message
@@ -113,8 +113,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
-			if (!!result && !!result.traces) {
-				sendResponse({ traces: JSON.parse(result.traces) });
+			if (!!result && !!result[STORED_TRACES_KEY]) {
+				sendResponse({ traces: JSON.parse(result[STORED_TRACES_KEY]) });
 			} else {
 				sendResponse({ traces: [] });
 			}
@@ -135,7 +135,7 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 
 chrome.tabs.onActivated.addListener(activeInfo => {
 	handleTabActivated(activeInfo);
-})
+});
 
 /**
  * handleTabActivated - description
