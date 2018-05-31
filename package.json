@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "node qunit",
+    "test": "qunit test/tests.js",
     "lint": "eslint js/"
   },
   "devDependencies": {
