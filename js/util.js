@@ -13,42 +13,51 @@ const CONTRAST_ORG_UUID    = "contrast_org_uuid";
 const TEAMSERVER_URL       = "teamserver_url";
 
 // Vulnerability Severity Levels
-const SEVERITY_NOTE = "Note";
-const SEVERITY_LOW = "Low";
-const SEVERITY_MEDIUM = "Medium";
-const SEVERITY_HIGH = "High";
+const SEVERITY_NOTE     = "Note";
+const SEVERITY_LOW      = "Low";
+const SEVERITY_MEDIUM   = "Medium";
+const SEVERITY_HIGH     = "High";
 const SEVERITY_CRITICAL = "Critical";
 
+// Useful for ordering vulnerabilities by severity
+const SEVERITY = {
+  [SEVERITY_NOTE]: 0,
+  [SEVERITY_LOW]: 1,
+  [SEVERITY_MEDIUM]: 2,
+  [SEVERITY_HIGH]: 3,
+  [SEVERITY_CRITICAL]: 4,
+};
+
 // Vulnerability Severity Icons
-const SEVERITY_NOTE_ICON_PATH = "../img/note.png";
-const SEVERITY_LOW_ICON_PATH = "../img/low.png";
-const SEVERITY_MEDIUM_ICON_PATH = "../img/medium.png";
-const SEVERITY_HIGH_ICON_PATH = "../img/high.png";
+const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
+const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
+const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
+const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
 const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
 
-const HTML_BODY = "body";
-const TEAMSERVER_INDEX_PATH_SUFFIX  = "/Contrast/static/ng/index.html#/";
+const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
 const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
 const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
-const TEAMSERVER_API_PATH_SUFFIX = "/Contrast/api";
+const TEAMSERVER_API_PATH_SUFFIX     = "/Contrast/api";
 const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
+  'alpha.contrastsecurity.com',
 ];
 
-const CONTRAST_ICON_BADGE_BACKGROUND = "#E63025";
-const CONTRAST_GREEN = "#65C0B2" // or is it #3CC3B2?;
-const CONTRAST_RED  = "#E63025";
-const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND = "#FFD300";
-const CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT = "*";
-const CONTRAST_ICON_16 = "../img/contrast16.png";
+// Contrast stylings and configuration text
+const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
+const CONTRAST_RED             = "#E63025";
+const CONTRAST_YELLOW          = "#FFD300";
+const CONTRAST_CONFIGURE_TEXT  = "*";
 
+// chrome storage and message event keys
 const LISTENING_ON_DOMAIN = "<all_urls>";
-const GATHER_FORMS_ACTION = "gatherForms";
-const STORED_TRACES_KEY   = "traces";
-const TRACES_REQUEST      = "getStoredTraces";
-const STORED_APPS_KEY     = "APPS";
+const GATHER_FORMS_ACTION = "contrast__gatherForms";
+const STORED_TRACES_KEY   = "contrast__traces";
+const TRACES_REQUEST      = "contrast__getStoredTraces";
+const STORED_APPS_KEY     = "contrast__APPS";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -172,7 +181,7 @@ function getStoredCredentials() {
       CONTRAST_SERVICE_KEY,
       CONTRAST_API_KEY,
       CONTRAST_ORG_UUID,
-      TEAMSERVER_URL
+      TEAMSERVER_URL,
     ], (items) => {
       if (!items) {
         reject(new Error("Error getting credentials"));
@@ -265,7 +274,7 @@ function isCredentialed(credentials) {
 }
 
 /**
-* deDupeArray - remove duplicate vlues from array
+* deDupeArray - remove duplicate vlues from array, indexOf finds the index of the first item in an array, so all similar items after the first will evaluate to false when compared to their position
 *
 * @param  {Array} array array from which to remove duplicates
 * @return {Array}       new, deduped array
@@ -452,7 +461,7 @@ function retrieveApplicationFromStorage(tab) {
 
       if (!application && tab.index >= 0) {
         if (!isBlacklisted(tab.url)) {
-          updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND);
+          updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
         } else if (isBlacklisted(tab.url)) {
           updateTabBadge(tab, '', CONTRAST_GREEN);
         }
@@ -462,4 +471,27 @@ function retrieveApplicationFromStorage(tab) {
       resolve(application);
     });
   });
+}
+
+// -------------- DOM MANIPULATION HELPERS --------------
+function setElementDisplay(element, display) {
+  if (!element || !display) {
+    throw new Error("Either no element or display received when setting display");
+  }
+  try {
+    element.style.display = display;
+  } catch (e) {
+    throw new Error(e)
+  }
+}
+
+function setElementText(element, text) {
+  if (!element || typeof text !== "string") {
+    throw new Error("Either no element or text received when setting element text");
+  }
+  try {
+    element.innerText = text;
+  } catch (e) {
+    throw new Error(e)
+  }
 }

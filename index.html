@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-  <script src="jquery/jquery-3.3.1.min.js"></script>
   <script src="js/util.js"></script>
   <script src="js/vulnerability.js"></script>
   <script src="js/index.js"></script>
@@ -33,7 +32,7 @@
       </div>
     </div>
 
-    <div style="display: none;" class="color-gray panel-body" id="no-vulnerabilities-found-on-page">
+    <div style="display: none;" class="color-gray panel-body" id="no-vulnerabilities-found">
       <h5>No vulnerabilities were found.</h5>
     </div>
 
@@ -77,37 +76,13 @@
         <div class="col-xs-10 color-gray" id="user-email">
         </div>
         <div class="col-xs-2">
-          <a href="#" id="configure">
+          <a href="#" id="configure-gear">
             <span class="glyphicon glyphicon-cog color-gray"></span>
           </a>
         </div>
       </div>
     </div>
 
-  </section>
-
-  <section style="display:none;" id="no-results">
-    <div id="get-started" style="display:none">
-      <img src="img/getStarted.png" id="get-started-img" />
-      <div id="get-started-description" align="center">
-        <a id="visit-org">Visit your organization on Contrast</a> to onboard some applications.
-      </div>
-    </div>
-
-    <div id="configuration-problem">
-      <img src="img/getStarted.png" id="get-started-img" />
-      <div id="get-started-description" align="center">
-        We could not contact Contrast.
-        <br/> Sorry about that.
-        <br/> Please check your configration and try again.
-
-        <br>
-        <br>
-        <button id="sign-in-button-configuration-problem" class="btn btn-primary btn-contrast-plugin">
-          <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span> Sign In
-        </button>
-      </div>
-    </div>
   </section>
 </body>
 

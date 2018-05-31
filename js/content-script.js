@@ -21,19 +21,16 @@ getHostFromUrl,
 // Apply different gloabls depending on how user navigates to a page
 // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigation
 if (window.performance.navigation.type === 1) {
-  window.REFRESHED = true;
-
-  // after window has finished loading, set window.REFRESHED to false
-  // only do this if the window has been refreshed
-  window.onload = function() {
-    window.REFRESHED = false;
-  }
-  document.addEventListener("DOMContentLoaded", function() {
-    window.REFRESHED = false;
-  });
+  window.CONTRAST__REFRESHED = true;
 } else {
-  window.REFRESHED = false;
+  window.CONTRAST__REFRESHED = false;
 }
+
+window.addEventListener("load", function() {
+  setTimeout(function() {
+    window.CONTRAST__REFRESHED = false;
+  }, 1000);
+});
 
 /**
 * highlightForm - description
@@ -206,13 +203,13 @@ function collectFormActions(sendResponse) {
       if (formActions.length > 0) {
         messageSent = true;
         sendFormActionsToBackground(formActions, sendResponse);
-        window.REFRESHED = false;
+        window.CONTRAST__REFRESHED = false;
         observer.disconnect();
       }
     })
 
     // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
-    if (window.REFRESHED === false) {
+    if (window.CONTRAST__REFRESHED === false) {
       const actions = scrapeDOMForForms();
       if (!!actions) {
         messageSent = true;
@@ -233,7 +230,6 @@ function collectFormActions(sendResponse) {
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === GATHER_FORMS_ACTION) {
-
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
     if (document.getElementsByTagName("form").length > 0) {

@@ -6,17 +6,31 @@
   TEAMSERVER_INDEX_PATH_SUFFIX,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
   URL,
+  CONTRAST_USERNAME,
   getStoredCredentials,
   isCredentialed,
   isBlacklisted,
   CONTRAST_RED,
   CONTRAST_GREEN,
   STORED_APPS_KEY,
+  STORED_TRACES_KEY,
   getApplications,
   getHostFromUrl,
+  _chromeExtensionSettingsUrl
   isContrastTeamserver,
+  setElementText,
+  setElementDisplay,
 */
 "use strict"
+
+const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
+const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";
+const CONNECT_FAILURE_MESSAGE = "Error Connecting Domain. Try refreshing the page.";
+const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected Domain";
+const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting Domain";
+const DISCONNECT_BUTTON_TEXT     = "Disconnect Domain";
+
+const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin";
 
 /**
  * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
@@ -29,27 +43,29 @@ function indexFunction() {
     const tab = tabs[0];
     const url = new URL(tab.url);
 
-    getStoredCredentials().then(items => {
-
+    getStoredCredentials()
+    .then(items => {
       if (!isCredentialed(items)) {
         getUserConfiguration(tab, url);
-      } else if (isCredentialed(items) && isTeamserverAccountPage(tab, url)) {
-        let configureExtensionButton = document.getElementById('configure-extension-button');
-        setTextContent(configureExtensionButton, "Reconfigure");
+      } else if (isCredentialed(items) && _isTeamserverAccountPage(tab, url)) {
         getUserConfiguration(tab, url);
         renderApplicationsMenu(url);
+        _renderContrastUsername(items);
       } else {
         renderActivityFeed(items, url);
+        _renderContrastUsername(items);
       }
 
       //configure button opens up settings page in new tab
-      let configureButton = document.getElementById('configure');
-      configureButton.addEventListener('click', () => {
-        chrome.tabs.create({ url: chromeExtensionSettingsUrl() })
+      const configureGearIcon = document.getElementById('configure-gear');
+      configureGearIcon.addEventListener('click', () => {
+        chrome.tabs.create({ url: _chromeExtensionSettingsUrl() })
       }, false);
-    });
+    })
+    .catch(error => new Error(error));
   });
 }
+
 
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
@@ -61,33 +77,42 @@ function renderApplicationsMenu(url) {
   const applicationsHeading = document.getElementById('applications-heading');
   const applicationsArrow   = document.getElementById('applications-arrow');
   const applicationTable    = document.getElementById('application-table');
-  const container = document.getElementById('applications-heading-container');
-  setDisplayBlock(container);
+
+  const applicationsHeadingContainer = document.getElementById('applications-heading-container');
+  setElementDisplay(applicationsHeadingContainer, "block");
 
   applicationsHeading.addEventListener('click', () => {
-    if (applicationsArrow.innerText === ' ▶') {
-      setTextContent(applicationsArrow, ' ▼');
-
-      applicationTable.classList.add('application-table-visible');
-      applicationTable.classList.remove('application-table-hidden');
-
-      if (document.getElementsByTagName('tr').length < 2) {
-        getApplications()
-        .then(json => {
-          if (!json) {
-            throw new Error("Error getting applications");
-          }
-          json.applications.forEach(app => createAppTableRow(app, url));
-        })
-        .catch(error => error)
-      }
-    } else {
-      applicationTable.classList.add('application-table-hidden');
-      applicationTable.classList.remove('application-table-visible');
-
-      setTextContent(applicationsArrow, ' ▶');
-    }
+    unrollApplications(applicationsArrow, applicationTable, url);
   });
+  applicationsArrow.addEventListener('click', () => {
+    unrollApplications(applicationsArrow, applicationTable, url);
+  });
+}
+
+function unrollApplications(applicationsArrow, applicationTable, url) {
+  if (applicationsArrow.innerText === ' ▶') {
+    setElementText(applicationsArrow, ' ▼');
+
+    applicationTable.classList.add('application-table-visible');
+    applicationTable.classList.remove('application-table-hidden');
+
+    // if less than 2 then only the heading row has been rendered
+    if (document.getElementsByTagName('tr').length < 2) {
+      getApplications()
+      .then(json => {
+        if (!json) {
+          throw new Error("Error getting applications");
+        }
+        json.applications.forEach(app => createAppTableRow(app, url));
+      })
+      .catch(error => new Error(error));
+    }
+  } else {
+    applicationTable.classList.add('application-table-hidden');
+    applicationTable.classList.remove('application-table-visible');
+
+    setElementText(applicationsArrow, ' ▶');
+  }
 }
 
 /**
@@ -98,16 +123,20 @@ function renderApplicationsMenu(url) {
  * @return {void}
  */
 function getUserConfiguration(tab, url) {
-  if (isTeamserverAccountPage(tab, url)) {
+  if (_isTeamserverAccountPage(tab, url)) {
+    const configButton = document.getElementById('configure-extension-button');
+    setElementText(configButton, "Reconfigure");
 
-    setDisplayEmpty(document.getElementById('configure-extension'));
+    const configExtension = document.getElementById('configure-extension');
+    setElementDisplay(configExtension, "block");
 
-    let configureExtensionHost = document.getElementById('configure-extension-host');
-    setTextContent(configureExtensionHost, "Make sure you trust this site: " + url.hostname);
+    const configExtensionHost = document.getElementById('configure-extension-host');
+    setElementText(configExtensionHost, `Make sure you trust this site: ${url.hostname}`);
 
-    renderConfigButton(tab);
+    renderConfigButton(tab, configButton);
   } else {
-    setDisplayEmpty(document.getElementById('not-configured'));
+    const notConfigured = document.getElementById('not-configured');
+    setElementDisplay(notConfigured, "");
   }
 }
 
@@ -117,11 +146,23 @@ function getUserConfiguration(tab, url) {
  * @param  {Object} tab the current tab
  * @return {void}
  */
-function renderConfigButton(tab) {
-  let configureExtensionButton = document.getElementById('configure-extension-button');
+function renderConfigButton(tab, configButton) {
+  if (!configButton) {
+    configButton = document.getElementById('configure-extension-button');
+  }
 
-  configureExtensionButton.addEventListener('click', () => {
-    configureExtensionButton.setAttribute('disabled', true);
+  configButton.addEventListener('click', () => {
+    configButton.setAttribute('disabled', true);
+
+    // whenever user configures, remove all traces and apps, useful for when reconfiguring
+    chrome.storage.local.remove([
+      STORED_APPS_KEY,
+      STORED_TRACES_KEY,
+    ], () => {
+      if (chrome.runtime.lastError) {
+        throw new Error("Error removing stored apps and stored traces");
+      }
+    });
 
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(tab.id, { url: tab.url, action: "INITIALIZE" }, (response) => {
@@ -129,22 +170,22 @@ function renderConfigButton(tab) {
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
 
       if (response === "INITIALIZED") {
-
         chrome.browserAction.setBadgeText({ tabId: tab.id, text: '' });
 
-        // recurse on this method, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
+        // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
         const successMessage = document.getElementById('config-success');
-        setDisplayBlock(successMessage);
-        setTimeout(() => {
-          configureExtensionButton.removeAttribute('disabled');
-          setDisplayNone(successMessage);
-          indexFunction();
-        }, 2000);
+        successMessage.classList.add("visible");
+        successMessage.classList.remove("hidden");
+        _hideElementAfterTimeout(successMessage, () => {
+          configButton.removeAttribute('disabled');
+        });
       } else {
-        configureExtensionButton.removeAttribute('disabled');
         const failureMessage = document.getElementById('config-failure');
-        setDisplayBlock(failureMessage);
-        setTimeout(() => setDisplayNone(failureMessage), 2000);
+        failureMessage.classList.add("visible");
+        failureMessage.classList.remove("hidden");
+        _hideElementAfterTimeout(failureMessage, () => {
+          configButton.removeAttribute('disabled');
+        });
       }
       return;
     })
@@ -165,13 +206,22 @@ function renderActivityFeed(items, url) {
     const host = getHostFromUrl(url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (!!result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
-      showActivityFeed(items);
+      // find sections
+      const notConfiguredSection = document.getElementById('not-configured');
+      const configureExtension   = document.getElementById('configure-extension');
+
+      // if you don't need credentials, hide the signin functionality
+      setElementDisplay(configureExtension, "none");
+      setElementDisplay(notConfiguredSection, "none");
     } else {
       const applicationTable = document.getElementById("application-table");
+
+      // transitions on these classes, not a simple display none/table
       applicationTable.classList.add('application-table-visible');
       applicationTable.classList.remove('application-table-hidden');
 
-      setDisplayNone(document.getElementById("vulnerabilities-found-on-page"));
+      const vulnsFound = document.getElementById("vulnerabilities-found-on-page")
+      setElementDisplay(vulnsFound, "none");
 
       // if app is not stored, render the table with buttons to add the domain
       getApplications()
@@ -200,38 +250,6 @@ function renderActivityFeed(items, url) {
   });
 }
 
-/**
- * showActivityFeed - renders the container for vulnerabilities
- *
- * @param  {Object} items - contains contrast credentials and info from storage
- * @return {void}
- */
-function showActivityFeed(items) {
-  // find sections
-  let notConfiguredSection = document.getElementById('not-configured');
-  let configureExtension   = document.getElementById('configure-extension');
-
-  // if you don't need credentials, hide the signin functionality
-  setDisplayNone(configureExtension);
-  setDisplayNone(notConfiguredSection);
-
-  let visitOrgLink = document.getElementById('visit-org');
-  let userEmail    = document.getElementById('user-email');
-  setTextContent(userEmail, "User: " + items.contrast_username);
-
-  visitOrgLink.addEventListener('click', () => {
-    const contrastIndex = items.teamserver_url.indexOf("/Contrast/api");
-    const teamserverUrl = items.teamserver_url.substring(0, contrastIndex);
-    chrome.tabs.create({ url: teamserverUrl });
-  }, false);
-
-  let signInButtonConfigurationProblem = document.getElementById('sign-in-button-configuration-problem');
-
-  signInButtonConfigurationProblem.addEventListener('click', () => {
-    chrome.tabs.create({ url: chromeExtensionSettingsUrl() });
-  }, false);
-}
-
 
 /**
  * createAppTableRow - renders a table row, either with a button if it's not a contrast url, or with a domain (or blank) if it's a contrast url showing in tab
@@ -248,8 +266,8 @@ function createAppTableRow(application, url) {
   const domainTD     = document.createElement('td');
   const disconnectTD = document.createElement('td');
 
-  setTextContent(appIdTD, application.app_id);
-  setDisplayNone(appIdTD);
+  setElementText(appIdTD, application.app_id);
+  setElementDisplay(appIdTD, "none");
 
   tableBody.appendChild(row);
   row.appendChild(nameTD);
@@ -261,12 +279,12 @@ function createAppTableRow(application, url) {
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(url.href)) {
-    setTextContent(domainTD, 'Click to Connect Domain');
+    setElementText(domainTD, CONNECT_BUTTON_TEXT);
 
     const domainBtn = document.createElement('button');
-    domainBtn.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin domainBtn');
+    domainBtn.setAttribute('class', `${CONTRAST_BUTTON_CLASS} domainBtn`);
 
-    setTextContent(domainBtn, application.name.titleize());
+    setElementText(domainBtn, application.name.titleize());
     nameTD.appendChild(domainBtn);
 
     domainBtn.addEventListener('click', () => {
@@ -277,18 +295,18 @@ function createAppTableRow(application, url) {
       _addDomainToStorage(host, application)
       .then(result => {
         if (result) {
-          setTextContent(message, "Successfully connected domain. You may need to reload the page.");
+          setElementText(message, CONNECT_SUCCESS_MESSAGE);
           message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
         } else {
-          setTextContent(message, "Error Connecting Domain");
+          setElementText(message, CONNECT_FAILURE_MESSAGE);
           message.setAttribute('style', `color: ${CONTRAST_RED}`);
         }
-        lingerMessage(message);
+        _hideElementAfterTimeout(message, indexFunction);
       })
       .catch(() => {
-        setTextContent(message, "Error Connecting Domain");
+        setElementText(message, CONNECT_FAILURE_MESSAGE);
         message.setAttribute('style', `color: ${CONTRAST_RED}`);
-        lingerMessage(message);
+        _hideElementAfterTimeout(message);
       });
     });
   } else {
@@ -311,11 +329,11 @@ function createAppTableRow(application, url) {
         if (domain.includes("_")) {
           domain = domain.split("_").join(":"); // local dev stuff
         }
-        setTextContent(domainTD, domain);
+        setElementText(domainTD, domain);
 
         const message = document.getElementById("connected-domain-message");
         const disconnectButton = document.createElement('button');
-        disconnectButton.setAttribute('class', 'btn btn-primary btn-xs btn-contrast-plugin');
+        disconnectButton.setAttribute('class', CONTRAST_BUTTON_CLASS);
         disconnectButton.addEventListener('click', () => {
           message.classList.add("visible");
           message.classList.remove("hidden");
@@ -323,25 +341,25 @@ function createAppTableRow(application, url) {
           _disconnectDomain(result, application, disconnectButton)
           .then(disconnected => {
             if (disconnected) {
-              setTextContent(message, "Successfully Disconnected Domain");
+              setElementText(message, DISCONNECT_SUCCESS_MESSAGE);
               message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
             } else {
-              setTextContent(message, "Error Disconnecting Domain");
+              setElementText(message, DISCONNECT_FAILURE_MESSAGE);
               message.setAttribute('style', `color: ${CONTRAST_RED}`);
             }
-            lingerMessage(message);
+            _hideElementAfterTimeout(message);
           })
           .catch(() => {
-            setTextContent(message, "Error Disconnecting Domain");
+            setElementText(message, DISCONNECT_FAILURE_MESSAGE);
             message.setAttribute('style', `color: ${CONTRAST_RED}`);
-            lingerMessage(message);
+            _hideElementAfterTimeout(message);
           });
         });
-        setTextContent(disconnectButton, "Disconnect Domain");
+        setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
 
         disconnectTD.appendChild(disconnectButton);
       }
-      setTextContent(nameTD, application.name);
+      setElementText(nameTD, application.name);
     });
   }
 }
@@ -367,8 +385,9 @@ function _addDomainToStorage(host, application) {
         [host]: application.app_id
       });
 
+      const applicationTable = document.getElementById("application-table");
       chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-        setDisplayNone(document.getElementById("application-table"));
+        setElementDisplay(applicationTable, "none");
         resolve(!chrome.storage.lastError);
       });
     });
@@ -388,16 +407,16 @@ function _disconnectDomain(storedApps, application, disconnectButton) {
   return new Promise((resolve, reject) => {
     const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
       return Object.values(app)[0] !== application.app_id;
-    })
+    });
 
-    const domainElement = getDisconnectButtonSibling(disconnectButton, application.name);
+    const domainElement = _getDisconnectButtonSibling(disconnectButton, application.name);
     if (!domainElement) return;
 
     chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError));
       }
-      setTextContent(domainElement, '');
+      setElementText(domainElement, '');
       disconnectButton.remove();
       resolve(!chrome.runtime.lastError);
     });
@@ -405,13 +424,13 @@ function _disconnectDomain(storedApps, application, disconnectButton) {
 }
 
 /**
- * getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
+ * _getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
  *
  * @param  {Node} disconnectButton an HTML Element
  * @param  {String} appName        name of the stored app we're removing
  * @return {Node}                  an HTML element in the same row
  */
-function getDisconnectButtonSibling(disconnectButton, appName) {
+function _getDisconnectButtonSibling(disconnectButton, appName) {
   // button is inside a td which is inside a row
   const row = disconnectButton.parentNode.parentNode;
   const tds = row.querySelectorAll('td');
@@ -427,52 +446,52 @@ function getDisconnectButtonSibling(disconnectButton, appName) {
 }
 
 // --------- HELPER FUNCTIONS -------------
-function setDisplayNone(element) {
-  if (!element) return;
-  element.style.display = 'none';
-}
-
-function setDisplayEmpty(element) {
-  if (!element) return;
-  element.style.display = '';
-}
-
-function setDisplayBlock(element) {
-  if (!element) return;
-  element.style.display = 'block';
-}
-
-function setTextContent(element, text) {
-  if (!element || (!text && text !== "")) return;
-  element.textContent = text;
-}
-
-function chromeExtensionSettingsUrl() {
+function _chromeExtensionSettingsUrl() {
   const extensionId = chrome.runtime.id;
-  return 'chrome-extension://' + String(extensionId) + '/settings.html';
+  return `chrome-extension://${String(extensionId)}/settings.html`;
 }
 
 /**
- * lingerMessage - leave a success/failure message on the screen for 2 seconds by toggling a class
+ * renderContrastUsername - renders the email address of the contrast user
+ *
+ * @param  {Object} items contrast creds
+ * @return {void}
+ */
+function _renderContrastUsername(items) {
+  const userEmail = document.getElementById('user-email');
+  setElementText(userEmail, `User: ${items[CONTRAST_USERNAME]}`);
+  setElementDisplay(userEmail, "block");
+  userEmail.addEventListener('click', () => {
+    const contrastIndex = items.teamserver_url.indexOf("/Contrast/api");
+    const teamserverUrl = items.teamserver_url.substring(0, contrastIndex);
+    chrome.tabs.create({ url: teamserverUrl });
+  }, false);
+}
+
+/**
+ * _hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
  *
  * @param  {Node} element HTML Element to show for 2 seconds
  * @return {void}
  */
-function lingerMessage(element) {
-  setTimeout(() => {
+function _hideElementAfterTimeout(element, callback) {
+  setTimeout(() => { // eslint-disable-line consistent-return
     element.classList.add("hidden");
     element.classList.remove("visible");
+    if (callback) {
+      return callback();
+    }
   }, 2000); // let the element linger
 }
 
 /**
- * isTeamserverAccountPage - checks if we're on the teamserver Your Account page
+ * _isTeamserverAccountPage - checks if we're on the teamserver Your Account page
  *
  * @param  {Object} tab the current tab
  * @param  {URL<Object>} url url object of the current tab
  * @return {Boolean} if it is the teamserver page
  */
-function isTeamserverAccountPage(tab, url) {
+function _isTeamserverAccountPage(tab, url) {
   if (!tab || !url) return false;
 
   const conditions = [
@@ -484,5 +503,7 @@ function isTeamserverAccountPage(tab, url) {
   return conditions.every(c => !!c);
 }
 
-
+/**
+ * Run when popup loads
+ */
 document.addEventListener('DOMContentLoaded', indexFunction, false);
