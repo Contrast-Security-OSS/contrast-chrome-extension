@@ -4,13 +4,13 @@ chrome,
 TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 VALID_TEAMSERVER_HOSTNAMES,
-CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT,
-CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND,
 getOrganizationVulnerabilityIds,
 TEAMSERVER_PROFILE_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 CONTRAST_RED,
 CONTRAST_GREEN,
+CONTRAST_YELLOW,
+CONTRAST_CONFIGURE_TEXT,
 LISTENING_ON_DOMAIN,
 TRACES_REQUEST,
 GATHER_FORMS_ACTION,
@@ -50,7 +50,7 @@ let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
  * @param {Object} filter - allows limiting the requests for which events are triggered in various dimensions including urls
  * @return {void}
  */
-chrome.webRequest.onBeforeRequest.addListener((request) => {
+chrome.webRequest.onBeforeRequest.addListener(request => {
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
 	if (request.type === "xmlhttprequest" && !isBlacklisted(request.url)) {
@@ -100,7 +100,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	});
 
 	return true;
-})
+});
 
 /**
  * handleRuntimeOnMessage - called when the background receives a message
@@ -113,8 +113,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
-			if (!!result && !!result.traces) {
-				sendResponse({ traces: JSON.parse(result.traces) });
+			if (!!result && !!result[STORED_TRACES_KEY]) {
+				sendResponse({ traces: JSON.parse(result[STORED_TRACES_KEY]) });
 			} else {
 				sendResponse({ traces: [] });
 			}
@@ -135,7 +135,7 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 
 chrome.tabs.onActivated.addListener(activeInfo => {
 	handleTabActivated(activeInfo);
-})
+});
 
 /**
  * handleTabActivated - description
@@ -423,6 +423,6 @@ function getCredentials(tab) {
 		!chrome.runtime.lastError
 	];
 	if (!TAB_CLOSED && conditions.some(c => !!c)) {
-		updateTabBadge(tab, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT, CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND);
+		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 	}
 }

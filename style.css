@@ -141,7 +141,7 @@ label {
 }
 
 /* gear button in bottom right corner */
-#configure {
+#configure-gear {
   outline: none;
 }
 
@@ -164,6 +164,10 @@ label {
 
 #applications-arrow {
   font-size: 10px;
+}
+
+#user-email {
+  cursor: pointer;
 }
 
 /* Hide success/error message and show when user clicks configure button after installing extension */
@@ -194,13 +198,10 @@ label {
   color: #E63025;
 }
 
-/* #application-table {
-  display: none;
-} */
-
 .application-table-visible {
   transition-property: visibility, opacity;
   transition-duration: 0s, 1s;
+  margin-bottom: 0px;
 }
 
 .application-table-hidden {
@@ -211,11 +212,3 @@ label {
   transition-delay: 0s, 0s;
   position: absolute;
 }
-
-/* th, td {
-  padding-top: 5px;
-  padding-bottom: 5px;
-  padding-left: 10px;
-  padding-right: 10px;
-  border: 1px solid black;
-} */
