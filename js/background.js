@@ -1,40 +1,4 @@
 /*global
-<<<<<<< HEAD
-	URL,
-	chrome,
-	TEAMSERVER_INDEX_PATH_SUFFIX,
-	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
-  VALID_TEAMSERVER_HOSTNAMES,
-  CONTRAST_ICON_BADGE_BACKGROUND,
-  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_TEXT,
-  CONTRAST_ICON_BADGE_CONFIGURE_EXTENSION_BACKGROUND,
-  getOrganizationVulnerabilityIds,
-  TEAMSERVER_PROFILE_PATH_SUFFIX,
-	TEAMSERVER_API_PATH_SUFFIX,
-	getStoredCredentials,
-	isCredentialed,
-	LISTENING_ON_DOMAIN,
-	TRACES_REQUEST,
-	STORED_TRACES_KEY,
-	GATHER_FORMS_ACTION,
-	getStoredCredentials,
-	isCredentialed,
-	getStoredCredentials,
-	isCredentialed,
-	GATHER_FORMS_ACTION,
-	CONTRAT_GREEN,
-	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
-	STORED_TRACES_KEY,
-	deDupeArray,
-	STORED_TRACES_KEY,
-	deDupeArray,
-	STORED_TRACES_KEY,
-	getVulnerabilityFilter,
-	generateURLString
-=======
 URL,
 chrome,
 TEAMSERVER_INDEX_PATH_SUFFIX,
@@ -60,7 +24,6 @@ getHostFromUrl,
 updateTabBadge,
 removeLoadingBadge,
 retrieveApplicationFromStorage,
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 */
 
 "use strict";
@@ -106,11 +69,7 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
 			.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
 		})
 	}
-<<<<<<< HEAD
-}, { urls: LISTENING_ON_DOMAIN })
-=======
 }, { urls: [LISTENING_ON_DOMAIN] });
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 
 /**
  * @param  {Object} request a request object
@@ -121,25 +80,6 @@ chrome.webRequest.onBeforeRequest.addListener((request) => {
  * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-<<<<<<< HEAD
-	handleRuntimeOnMessage(request, sender, sendResponse)
-	return true
-})
-
-chrome.tabs.onActivated.addListener(activeInfo => {
-	handleTabActivated(activeInfo)
-})
-
-function handleTabActivated(activeInfo) {
-	if (VULNERABLE_TABS.includes(activeInfo.tabId)) {
-		chrome.tabs.query({ active: true, windowId: activeInfo.windowId }, (tabs) => {
-			updateVulnerabilities(tabs[0])
-		})
-	}
-}
-
-function handleRuntimeOnMessage(request, sender, sendResponse) {
-=======
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 		const tab = tabs[0];
 
@@ -171,7 +111,6 @@ function handleRuntimeOnMessage(request, sender, sendResponse) {
  * @return {void}
  */
 function handleRuntimeOnMessage(request, sendResponse, tab) {
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result.traces) {
@@ -193,13 +132,10 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 		})
 	}
 }
-<<<<<<< HEAD
-=======
 
 chrome.tabs.onActivated.addListener(activeInfo => {
 	handleTabActivated(activeInfo);
 })
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 
 /**
  * handleTabActivated - description
@@ -223,7 +159,7 @@ function handleTabActivated() {
 			updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
 			updateVulnerabilities(tab);
 		} else {
-			removeLoadingBadge(tab)
+			removeLoadingBadge(tab);
 		}
 	})
 }
@@ -314,8 +250,6 @@ function updateVulnerabilities(tab) {
 							return
 						}
 
-<<<<<<< HEAD
-=======
 						evaluated = true;
 
 						let conditions = [
@@ -341,7 +275,6 @@ function updateVulnerabilities(tab) {
 	return;
 }
 
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 /**
  * evaluateVulnerabilities - method used by tab url, xhr and form actions to check TS for vulnerabilities
  *
@@ -355,55 +288,11 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 	const host = getHostFromUrl(url);
 
 	if (hasCredentials && !!traceUrls && traceUrls.length > 0) {
-<<<<<<< HEAD
-		// generate an array of only pathnames
-		const urlQueryString = generateURLString(traceUrls)
-		getOrganizationVulnerabilityIds(urlQueryString)
-		.then(json => setToStorage(json.traces, tab))
-		.catch(error => error)
-	} else {
-		getCredentials(tab)
-	}
-}
-=======
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
-
 		if (!application) return;
 
 		// generate an array of only pathnames
 		const urlQueryString = generateURLString(traceUrls);
 
-<<<<<<< HEAD
-/**
- * processTraces - description
- *
- * @param  {Array<String>} traces - array of trace uuids
- * @param  {Object} tab - Gives the state of the current tab
- * @return {Promise<Array>} - A promise that resolves to an array of trace objects
- */
-function processTraces(traces, tab) {
-	if (!traces || traces.length === 0) {
-		return
-	}
-	/**
-	 * asyncRequest - not technically needed, could return getVulnerabilityFilter inside of traces.map below, but it looks cleaner
-	 *
-	 * @param  {String} trace - a trace uuid
-	 * @return {String} - blank or the trace uuid, after it has been checked against the URI of the tab vs. the URI of the trace request
-	 */
-	function asyncRequest(trace) {
-		return getVulnerabilityFilter(trace)
-		.then(json => {
-			if (!json) {
-				return ""
-			}
-			const request = json.trace.request
-			const url 		= new URL(tab.url)
-			const path 		= url.pathname.match(/\/\w+/)[0] // 1st index is string
-			const match 	= request.uri.indexOf(path)
-			if (match === -1) {
-				return ""
-=======
 		getOrganizationVulnerabilityIds(urlQueryString, application[host])
 		.then(json => {
 			if (!json) {
@@ -418,7 +307,6 @@ function processTraces(traces, tab) {
 					traceUrls
 				});
 				setToStorage(json.traces, tab);
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 			}
 		})
 		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
@@ -427,10 +315,6 @@ function processTraces(traces, tab) {
 	} else {
 		getCredentials(tab);
 	}
-<<<<<<< HEAD
-	return Promise.all(traces.map(t => asyncRequest(t))) // eslint-disable-line consistent-return
-=======
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 }
 
 /**
@@ -444,16 +328,8 @@ function processTraces(traces, tab) {
  * @return {Promise}
  */
 function setToStorage(foundTraces, tab) {
-<<<<<<< HEAD
-	processTraces(foundTraces, tab)
-	.then(traces => {
-
-		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI (see processTraces)
-		traces = traces.filter(t => !!t)
-=======
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI
 		const traces = foundTraces.filter(t => !!t);
->>>>>>> 756d2a9244ed0ab9b62956b9c51d4e874aa7d9e3
 
 		buildVulnerabilitiesArray(traces, tab)
 		.then(vulnerabilities => {
