@@ -140,6 +140,82 @@ label {
   margin-top: 10px;
 }
 
+/* gear button in bottom right corner */
 #configure {
   outline: none;
 }
+
+/* click to show/hide applications */
+#applications-heading-container {
+  padding: 15px;
+  display: none;
+}
+
+#applications-heading, #applications-arrow {
+  color: black;
+  display: inline;
+  cursor: pointer;
+}
+
+#application-table-container-div {
+  width: 100%;
+  height: auto;
+}
+
+#applications-arrow {
+  font-size: 10px;
+}
+
+/* Hide success/error message and show when user clicks configure button after installing extension */
+.configure-message {
+  display: none;
+  font-weight: bold;
+}
+
+#connected-domain-message {
+  text-align: center;
+  padding: 10px;
+  margin: 0px;
+}
+
+.visible {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+#config-success {
+  color: #65C0B2;
+}
+
+#config-failure {
+  color: #E63025;
+}
+
+/* #application-table {
+  display: none;
+} */
+
+.application-table-visible {
+  transition-property: visibility, opacity;
+  transition-duration: 0s, 1s;
+}
+
+.application-table-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition-property: opacity, visibility;
+  transition-duration: 1s, 0s;
+  transition-delay: 0s, 0s;
+  position: absolute;
+}
+
+/* th, td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid black;
+} */

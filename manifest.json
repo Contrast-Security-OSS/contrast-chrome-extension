@@ -28,9 +28,13 @@
   ],
   "icons": {
     "16": "img/contrast16.png",
-     "48": "img/contrast48.png",
+    "48": "img/contrast48.png",
     "128": "img/contrast128.png"
   },
+  "web_accessible_resources": [
+    "img/*.png",
+    "test/*"
+  ],
   "permissions": [
     "webRequest",
     "activeTab",
