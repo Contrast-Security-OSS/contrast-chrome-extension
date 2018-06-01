@@ -4,6 +4,10 @@
         "es6": true,
         "webextensions": true
     },
+    "globals": {
+      "module": true,
+      "require": true
+    },
     "extends": "eslint:recommended",
     "rules": {
         "accessor-pairs": "error",
