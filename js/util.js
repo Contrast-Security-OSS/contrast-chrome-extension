@@ -3,24 +3,23 @@
 /*global
 XMLHttpRequest, btoa, chrome
 */
-"use strict";
 
 // keys for credentials
-const CONTRAST_USERNAME    = "contrast_username";
-const CONTRAST_SERVICE_KEY = "contrast_service_key";
-const CONTRAST_API_KEY     = "contrast_api_key";
-const CONTRAST_ORG_UUID    = "contrast_org_uuid";
-const TEAMSERVER_URL       = "teamserver_url";
+export const CONTRAST_USERNAME    = "contrast_username";
+export const CONTRAST_SERVICE_KEY = "contrast_service_key";
+export const CONTRAST_API_KEY     = "contrast_api_key";
+export const CONTRAST_ORG_UUID    = "contrast_org_uuid";
+export const TEAMSERVER_URL       = "teamserver_url";
 
 // Vulnerability Severity Levels
-const SEVERITY_NOTE     = "Note";
-const SEVERITY_LOW      = "Low";
-const SEVERITY_MEDIUM   = "Medium";
-const SEVERITY_HIGH     = "High";
-const SEVERITY_CRITICAL = "Critical";
+export const SEVERITY_NOTE     = "Note";
+export const SEVERITY_LOW      = "Low";
+export const SEVERITY_MEDIUM   = "Medium";
+export const SEVERITY_HIGH     = "High";
+export const SEVERITY_CRITICAL = "Critical";
 
 // Useful for ordering vulnerabilities by severity
-const SEVERITY = {
+export const SEVERITY = {
   [SEVERITY_NOTE]: 0,
   [SEVERITY_LOW]: 1,
   [SEVERITY_MEDIUM]: 2,
@@ -29,17 +28,17 @@ const SEVERITY = {
 };
 
 // Vulnerability Severity Icons
-const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
-const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
-const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
-const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
-const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
+export const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
+export const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
+export const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
+export const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
+export const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
 
-const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
-const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
-const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
-const TEAMSERVER_API_PATH_SUFFIX     = "/Contrast/api";
-const VALID_TEAMSERVER_HOSTNAMES = [
+export const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
+export const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
+export const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
+export const TEAMSERVER_API_PATH_SUFFIX     = "/Contrast/api";
+export const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
@@ -47,17 +46,17 @@ const VALID_TEAMSERVER_HOSTNAMES = [
 ];
 
 // Contrast stylings and configuration text
-const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
-const CONTRAST_RED             = "#E63025";
-const CONTRAST_YELLOW          = "#FFD300";
-const CONTRAST_CONFIGURE_TEXT  = "*";
+export const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
+export const CONTRAST_RED             = "#E63025";
+export const CONTRAST_YELLOW          = "#FFD300";
+export const CONTRAST_CONFIGURE_TEXT  = "*";
 
 // chrome storage and message event keys
-const LISTENING_ON_DOMAIN = "<all_urls>";
-const GATHER_FORMS_ACTION = "contrast__gatherForms";
-const STORED_TRACES_KEY   = "contrast__traces";
-const TRACES_REQUEST      = "contrast__getStoredTraces";
-const STORED_APPS_KEY     = "contrast__APPS";
+export const LISTENING_ON_DOMAIN = "<all_urls>";
+export const GATHER_FORMS_ACTION = "contrast__gatherForms";
+export const STORED_TRACES_KEY   = "contrast__traces";
+export const TRACES_REQUEST      = "contrast__getStoredTraces";
+export const STORED_APPS_KEY     = "contrast__APPS";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -108,7 +107,7 @@ String.prototype.titleize = function() {
 
 // --------- HELPER FUNCTIONS -------------
 
-const fetchTeamserver = (url, params, authHeader, apiKey) => {
+function fetchTeamserver(url, params, authHeader, apiKey) {
   const requestUrl   = url + params;
   const fetchOptions = {
     method: "GET",
@@ -130,11 +129,11 @@ const fetchTeamserver = (url, params, authHeader, apiKey) => {
   );
 }
 
-const getAuthorizationHeader = (username, serviceKey) => {
+function getAuthorizationHeader(username, serviceKey) {
   return btoa(username + ":" + serviceKey);
 }
 
-const getOrganizationVulnerabilitiesIdsUrl = (teamserverUrl, orgUuid, appId) => {
+function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
   if (teamserverUrl && orgUuid && appId) {
     return teamserverUrl + '/ng/' + orgUuid + '/traces/' + appId + '/ids';
   }
@@ -144,7 +143,7 @@ const getOrganizationVulnerabilitiesIdsUrl = (teamserverUrl, orgUuid, appId) => 
   throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined");
 }
 
-const getVulnerabilityShortUrl = (teamserverUrl, orgUuid, traceUuid) => {
+function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
   }
@@ -152,14 +151,14 @@ const getVulnerabilityShortUrl = (teamserverUrl, orgUuid, traceUuid) => {
   throw new Error("an argument to getVulnerabilityShortUrl was undefined");
 }
 
-const getApplicationsUrl = (teamserverUrl, orgUuid) => {
+function getApplicationsUrl(teamserverUrl, orgUuid) {
   if (teamserverUrl && orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
   throw new Error("an argument to getApplicationsUrl was undefined");
 }
 
-const getVulnerabilityTeamserverUrl = (teamserverUrl, orgUuid, traceUuid) => {
+function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     let contrastURL = teamserverUrl;
     if (teamserverUrl.endsWith("/api")) {
@@ -176,7 +175,7 @@ const getVulnerabilityTeamserverUrl = (teamserverUrl, orgUuid, traceUuid) => {
 *
 * @return {Promise} - a promise that resolves to an object of stored teamserver credentials
 */
-const getStoredCredentials = () => {
+function getStoredCredentials() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get([
       CONTRAST_USERNAME,
@@ -202,7 +201,7 @@ const getStoredCredentials = () => {
  * @return {void}
  */
 
-const getOrganizationVulnerabilityIds = (urls, appId) => {
+function getOrganizationVulnerabilityIds(urls, appId) {
   return getStoredCredentials()
   .then(items => {
     if (!items) throw new Error("Error retrieving credentials from storage");
@@ -220,7 +219,7 @@ const getOrganizationVulnerabilityIds = (urls, appId) => {
  * @param  {String} traceUuid the uuid of the trace we're getting details about
  * @return {Promise<Object} A promise containing details about the trace
  */
-const getVulnerabilityShort = (traceUuid) => {
+function getVulnerabilityShort(traceUuid) {
   return getStoredCredentials()
   .then(items => {
     const url = getVulnerabilityShortUrl(
@@ -239,7 +238,7 @@ const getVulnerabilityShort = (traceUuid) => {
  *
  * @return {Promise<Array>} A promise containing a list of applications in an organization
  */
-const getApplications = () => {
+function getApplications() {
   return getStoredCredentials()
   .then(items => {
     const url = getApplicationsUrl(
@@ -261,7 +260,7 @@ const getApplications = () => {
  * @param  {Object} credentials username, serviceKey, apiKey, etc.
  * @return {Boolean}            if all fields are complete
  */
-const isCredentialed = (credentials) => {
+function isCredentialed(credentials) {
   // ES5
   // check if any values are undefined
   // var noUsername = items.contrast_username === undefined || items.contrast_username === '',
@@ -280,7 +279,7 @@ const isCredentialed = (credentials) => {
 * @param  {Array} array array from which to remove duplicates
 * @return {Array}       new, deduped array
 */
-const deDupeArray = (array) => {
+function deDupeArray(array) {
   return array.filter((item, position, self) => {
     return self.indexOf(item) === position;
   });
@@ -292,7 +291,7 @@ const deDupeArray = (array) => {
 * @param  {String} url the url from which to extract the domain/host
 * @return {type}     description
 */
-const getHostFromUrl = (url) => {
+function getHostFromUrl(url) {
   const host      = url.host.split(":").join("_");
   const hostArray = host.split(".");
 
@@ -310,7 +309,7 @@ const getHostFromUrl = (url) => {
 * @param  {String} url - the url to check against
 * @return {Boolean}      if the url is in the blacklist
 */
-const isBlacklisted = (url) => {
+function isBlacklisted(url) {
   if (!url) return true;
   url = url.toLowerCase();
 
@@ -328,7 +327,7 @@ const isBlacklisted = (url) => {
  * @param  {String} url - the url of the current page
  * @return {Boolen} - if we're on a contrast teamserver page or not
  */
-const isContrastTeamserver = (url) => {
+function isContrastTeamserver(url) {
   const contrast = [
     "/Contrast/api/ng/",
     "/Contrast/s/",
@@ -344,7 +343,7 @@ const isContrastTeamserver = (url) => {
 * @param  {String} text   What the badge should display
 * @return {void}
 */
-const updateTabBadge = (tab, text = '', color = CONTRAST_GREEN) => {
+function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
 
   chrome.tabs.get(tab.id, (result) => {
@@ -367,7 +366,7 @@ const updateTabBadge = (tab, text = '', color = CONTRAST_GREEN) => {
  * @param  {Object} tab the current tab
  * @return {void}
  */
-const removeLoadingBadge = (tab) => {
+function removeLoadingBadge(tab) {
   if (!tab) return;
 
 	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
@@ -389,7 +388,7 @@ const removeLoadingBadge = (tab) => {
 * @param  {Object} tab the active tab in the active window
 * @return {Promise<String>}       the name of the application
 */
-const retrieveApplicationFromStorage = (tab) => {
+function retrieveApplicationFromStorage(tab) {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(STORED_APPS_KEY, (result) => {
       if (chrome.runtime.lastError) {
@@ -429,7 +428,7 @@ const retrieveApplicationFromStorage = (tab) => {
 * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
-const generateURLString = (traceUrls) => {
+function generateURLString(traceUrls) {
   if (!traceUrls || traceUrls.length === 0) return "";
 
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
@@ -456,7 +455,7 @@ const generateURLString = (traceUrls) => {
  * @param  {String} teamserverUrlValue domain or domain:host
  * @return {String}                    processed teamserver url
  */
-const processTeamserverUrl = (teamserverUrlValue) => {
+function processTeamserverUrl(teamserverUrlValue) {
   if (teamserverUrlValue.length > 0) {
     while (teamserverUrlValue.endsWith("/")) {
       teamserverUrlValue = teamserverUrlValue.slice(0, -1);
@@ -477,7 +476,7 @@ const processTeamserverUrl = (teamserverUrlValue) => {
 
 
 // -------------- DOM MANIPULATION HELPERS --------------
-const setElementDisplay = (element, display) => {
+function setElementDisplay(element, display) {
   if (!element || !display) {
     throw new Error("Either no element or display received when setting display");
   }
@@ -488,7 +487,7 @@ const setElementDisplay = (element, display) => {
   }
 }
 
-const setElementText = (element, text) => {
+function setElementText(element, text) {
   if (!element || typeof text !== "string") {
     throw new Error("Either no element or text received when setting element text");
   }
@@ -500,38 +499,6 @@ const setElementText = (element, text) => {
 }
 
 export {
-  CONTRAST_USERNAME,
-  CONTRAST_SERVICE_KEY,
-  CONTRAST_API_KEY,
-  CONTRAST_ORG_UUID,
-  TEAMSERVER_URL,
-  SEVERITY_NOTE,
-  SEVERITY_LOW,
-  SEVERITY_MEDIUM,
-  SEVERITY_HIGH,
-  SEVERITY_CRITICAL,
-  SEVERITY,
-  SEVERITY_NOTE_ICON_PATH,
-  SEVERITY_LOW_ICON_PATH,
-  SEVERITY_MEDIUM_ICON_PATH,
-  SEVERITY_HIGH_ICON_PATH,
-  SEVERITY_CRITICAL_ICON_PATH,
-  TEAMSERVER_INDEX_PATH_SUFFIX,
-  TEAMSERVER_ACCOUNT_PATH_SUFFIX,
-  TEAMSERVER_PROFILE_PATH_SUFFIX,
-  TEAMSERVER_API_PATH_SUFFIX,
-  VALID_TEAMSERVER_HOSTNAMES,
-  CONTRAST_GREEN,
-  CONTRAST_RED,
-  CONTRAST_YELLOW,
-  CONTRAST_CONFIGURE_TEXT,
-  LISTENING_ON_DOMAIN,
-  GATHER_FORMS_ACTION,
-  STORED_TRACES_KEY,
-  TRACES_REQUEST,
-  STORED_APPS_KEY,
-  BLACKLISTED_DOMAINS,
-  BLACKLIST_LENGTH,
   fetchTeamserver,
   getAuthorizationHeader,
   getOrganizationVulnerabilitiesIdsUrl,
