@@ -108,7 +108,7 @@ String.prototype.titleize = function() {
 
 // --------- HELPER FUNCTIONS -------------
 
-function fetchTeamserver(url, params, authHeader, apiKey) {
+const fetchTeamserver = (url, params, authHeader, apiKey) => {
   const requestUrl   = url + params;
   const fetchOptions = {
     method: "GET",
@@ -130,11 +130,11 @@ function fetchTeamserver(url, params, authHeader, apiKey) {
   );
 }
 
-function getAuthorizationHeader(username, serviceKey) {
+const getAuthorizationHeader = (username, serviceKey) => {
   return btoa(username + ":" + serviceKey);
 }
 
-function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
+const getOrganizationVulnerabilitiesIdsUrl = (teamserverUrl, orgUuid, appId) => {
   if (teamserverUrl && orgUuid && appId) {
     return teamserverUrl + '/ng/' + orgUuid + '/traces/' + appId + '/ids';
   }
@@ -144,7 +144,7 @@ function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
   throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined");
 }
 
-function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
+const getVulnerabilityShortUrl = (teamserverUrl, orgUuid, traceUuid) => {
   if (teamserverUrl && orgUuid && traceUuid) {
     return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
   }
@@ -152,14 +152,14 @@ function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
   throw new Error("an argument to getVulnerabilityShortUrl was undefined");
 }
 
-function getApplicationsUrl(teamserverUrl, orgUuid) {
+const getApplicationsUrl = (teamserverUrl, orgUuid) => {
   if (teamserverUrl && orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
   throw new Error("an argument to getApplicationsUrl was undefined");
 }
 
-function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
+const getVulnerabilityTeamserverUrl = (teamserverUrl, orgUuid, traceUuid) => {
   if (teamserverUrl && orgUuid && traceUuid) {
     let contrastURL = teamserverUrl;
     if (teamserverUrl.endsWith("/api")) {
@@ -176,7 +176,7 @@ function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
 *
 * @return {Promise} - a promise that resolves to an object of stored teamserver credentials
 */
-function getStoredCredentials() {
+const getStoredCredentials = () => {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get([
       CONTRAST_USERNAME,
@@ -202,7 +202,7 @@ function getStoredCredentials() {
  * @return {void}
  */
 
-function getOrganizationVulnerabilityIds(urls, appId) {
+const getOrganizationVulnerabilityIds = (urls, appId) => {
   return getStoredCredentials()
   .then(items => {
     if (!items) throw new Error("Error retrieving credentials from storage");
@@ -220,7 +220,7 @@ function getOrganizationVulnerabilityIds(urls, appId) {
  * @param  {String} traceUuid the uuid of the trace we're getting details about
  * @return {Promise<Object} A promise containing details about the trace
  */
-function getVulnerabilityShort(traceUuid) {
+const getVulnerabilityShort = (traceUuid) => {
   return getStoredCredentials()
   .then(items => {
     const url = getVulnerabilityShortUrl(
@@ -239,7 +239,7 @@ function getVulnerabilityShort(traceUuid) {
  *
  * @return {Promise<Array>} A promise containing a list of applications in an organization
  */
-function getApplications() {
+const getApplications = () => {
   return getStoredCredentials()
   .then(items => {
     const url = getApplicationsUrl(
@@ -261,7 +261,7 @@ function getApplications() {
  * @param  {Object} credentials username, serviceKey, apiKey, etc.
  * @return {Boolean}            if all fields are complete
  */
-function isCredentialed(credentials) {
+const isCredentialed = (credentials) => {
   // ES5
   // check if any values are undefined
   // var noUsername = items.contrast_username === undefined || items.contrast_username === '',
@@ -280,7 +280,7 @@ function isCredentialed(credentials) {
 * @param  {Array} array array from which to remove duplicates
 * @return {Array}       new, deduped array
 */
-function deDupeArray(array) {
+const deDupeArray = (array) => {
   return array.filter((item, position, self) => {
     return self.indexOf(item) === position;
   });
@@ -292,7 +292,7 @@ function deDupeArray(array) {
 * @param  {String} url the url from which to extract the domain/host
 * @return {type}     description
 */
-function getHostFromUrl(url) {
+const getHostFromUrl = (url) => {
   const host      = url.host.split(":").join("_");
   const hostArray = host.split(".");
 
@@ -310,7 +310,7 @@ function getHostFromUrl(url) {
 * @param  {String} url - the url to check against
 * @return {Boolean}      if the url is in the blacklist
 */
-function isBlacklisted(url) {
+const isBlacklisted = (url) => {
   if (!url) return true;
   url = url.toLowerCase();
 
@@ -328,7 +328,7 @@ function isBlacklisted(url) {
  * @param  {String} url - the url of the current page
  * @return {Boolen} - if we're on a contrast teamserver page or not
  */
-function isContrastTeamserver(url) {
+const isContrastTeamserver = (url) => {
   const contrast = [
     "/Contrast/api/ng/",
     "/Contrast/s/",
@@ -344,7 +344,7 @@ function isContrastTeamserver(url) {
 * @param  {String} text   What the badge should display
 * @return {void}
 */
-function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
+const updateTabBadge = (tab, text = '', color = CONTRAST_GREEN) => {
   if (!tab) return;
 
   chrome.tabs.get(tab.id, (result) => {
@@ -367,7 +367,7 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
  * @param  {Object} tab the current tab
  * @return {void}
  */
-function removeLoadingBadge(tab) {
+const removeLoadingBadge = (tab) => {
   if (!tab) return;
 
 	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
@@ -389,7 +389,7 @@ function removeLoadingBadge(tab) {
 * @param  {Object} tab the active tab in the active window
 * @return {Promise<String>}       the name of the application
 */
-function retrieveApplicationFromStorage(tab) {
+const retrieveApplicationFromStorage = (tab) => {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(STORED_APPS_KEY, (result) => {
       if (chrome.runtime.lastError) {
@@ -429,7 +429,7 @@ function retrieveApplicationFromStorage(tab) {
 * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
-function generateURLString(traceUrls) {
+const generateURLString = (traceUrls) => {
   if (!traceUrls || traceUrls.length === 0) return "";
 
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
@@ -456,7 +456,7 @@ function generateURLString(traceUrls) {
  * @param  {String} teamserverUrlValue domain or domain:host
  * @return {String}                    processed teamserver url
  */
-function processTeamserverUrl(teamserverUrlValue) {
+const processTeamserverUrl = (teamserverUrlValue) => {
   if (teamserverUrlValue.length > 0) {
     while (teamserverUrlValue.endsWith("/")) {
       teamserverUrlValue = teamserverUrlValue.slice(0, -1);
@@ -477,7 +477,7 @@ function processTeamserverUrl(teamserverUrlValue) {
 
 
 // -------------- DOM MANIPULATION HELPERS --------------
-function setElementDisplay(element, display) {
+const setElementDisplay = (element, display) => {
   if (!element || !display) {
     throw new Error("Either no element or display received when setting display");
   }
@@ -488,7 +488,7 @@ function setElementDisplay(element, display) {
   }
 }
 
-function setElementText(element, text) {
+const setElementText = (element, text) => {
   if (!element || typeof text !== "string") {
     throw new Error("Either no element or text received when setting element text");
   }
@@ -499,7 +499,7 @@ function setElementText(element, text) {
   }
 }
 
-module.exports = {
+export {
   CONTRAST_USERNAME,
   CONTRAST_SERVICE_KEY,
   CONTRAST_API_KEY,
@@ -532,7 +532,26 @@ module.exports = {
   STORED_APPS_KEY,
   BLACKLISTED_DOMAINS,
   BLACKLIST_LENGTH,
+  fetchTeamserver,
+  getAuthorizationHeader,
+  getOrganizationVulnerabilitiesIdsUrl,
+  getVulnerabilityShortUrl,
+  getApplicationsUrl,
   getVulnerabilityTeamserverUrl,
+  getStoredCredentials,
+  getOrganizationVulnerabilityIds,
+  getVulnerabilityShort,
+  getApplications,
+  isCredentialed,
+  deDupeArray,
+  getHostFromUrl,
+  isBlacklisted,
+  isContrastTeamserver,
+  updateTabBadge,
+  removeLoadingBadge,
+  retrieveApplicationFromStorage,
+  generateURLString,
+  processTeamserverUrl,
   setElementDisplay,
   setElementText,
 }

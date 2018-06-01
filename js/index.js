@@ -21,7 +21,26 @@
   setElementText,
   setElementDisplay,
 */
-"use strict"
+import {
+  VALID_TEAMSERVER_HOSTNAMES,
+  TEAMSERVER_ACCOUNT_PATH_SUFFIX,
+  TEAMSERVER_INDEX_PATH_SUFFIX,
+  TEAMSERVER_PROFILE_PATH_SUFFIX,
+  URL,
+  CONTRAST_USERNAME,
+  getStoredCredentials,
+  isCredentialed,
+  isBlacklisted,
+  CONTRAST_RED,
+  CONTRAST_GREEN,
+  STORED_APPS_KEY,
+  STORED_TRACES_KEY,
+  getApplications,
+  getHostFromUrl,
+  isContrastTeamserver,
+  setElementText,
+  setElementDisplay,
+} from './util'
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";
