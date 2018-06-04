@@ -61,6 +61,7 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 	if (request.type === "xmlhttprequest" && !isBlacklisted(request.url)) {
 		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 			const tab = tabs[0];
+			if (!tab.active) return;
 			if (!tab || tab.url.includes(TEAMSERVER_API_PATH_SUFFIX)) return;
 
 			if (!CURRENT_APPLICATION) return;
@@ -90,6 +91,8 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 		const tab = tabs[0];
+
+		if (!tab.active) return;
 
 		// NOTE: UPDATEBADGE
 		// Don't update badge when popup is opened
@@ -158,6 +161,7 @@ function handleTabActivated() {
 
 		const tab = tabs[0];
 
+		if (!tab.active) return;
 		if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 			return;
 		}
@@ -190,6 +194,7 @@ function handleTabActivated() {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	if (!tab.active) return;
 	if (chrome.runtime.lastError) return;
 
 	// Don't run logic when user opens a new tab, or when url isn't http (ex. chrome://)
@@ -359,7 +364,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
  */
 function setToStorage(foundTraces, tab) {
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI
-		const traces = foundTraces.filter(t => !!t);
+		const traces = foundTraces.filter(Boolean);
 
 		buildVulnerabilitiesArray(traces, tab)
 		.then(vulnerabilities => {
@@ -418,8 +423,8 @@ function buildVulnerabilitiesArray(foundTraces, tab) {
 				}
 			}
 			reject(new Error("Rejected buildVulnerabilitiesArray"));
-		})
-	})
+		});
+	});
 }
 
 /**

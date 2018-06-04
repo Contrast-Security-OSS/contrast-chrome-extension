@@ -333,6 +333,8 @@ function isContrastTeamserver(url) {
     "/Contrast/s/",
     "/Contrast/static/ng/index"
   ];
+
+  // .some acts as an OR
   return contrast.some(c => url.includes(c));
 }
 
@@ -346,18 +348,26 @@ function isContrastTeamserver(url) {
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
 
-  chrome.tabs.get(tab.id, (result) => {
-    if (!result) return;
+  try {
+    chrome.tabs.get(tab.id, (result) => {
+      if (!result) return;
 
-    chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
-      if (badge !== "" && !badge) return;
+      try {
+        chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
+          if (badge !== "" && !badge) return;
 
-      if (tab.index >= 0) {
-        chrome.browserAction.setBadgeBackgroundColor({ color });
-        chrome.browserAction.setBadgeText({ tabId: tab.id, text });
+          if (tab.index >= 0 && !chrome.runtime.lastError) {
+            chrome.browserAction.setBadgeBackgroundColor({ color });
+            chrome.browserAction.setBadgeText({ tabId: tab.id, text });
+          }
+        })
+      } catch (e) {
+        throw new Error("Error updating badge")
       }
-    });
-  });
+    })
+  } catch (e) {
+    throw new Error("Error updating badge")
+  }
 }
 
 /**
@@ -408,10 +418,18 @@ function retrieveApplicationFromStorage(tab) {
       }
 
       if (!application) {
-        if (!isBlacklisted(tab.url)) {
-          updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-        } else if (isBlacklisted(tab.url)) {
-          updateTabBadge(tab, '', CONTRAST_GREEN);
+        if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+          } catch (e) {
+            reject(new Error("Error updating tab badge"))
+          }
+        } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(tab, '', CONTRAST_GREEN);
+          } catch (e) {
+            reject(new Error("Error updating tab badge"))
+          }
         }
         resolve(null);
       }

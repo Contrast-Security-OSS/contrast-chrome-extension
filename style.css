@@ -120,6 +120,7 @@ label {
 
 .vulnerability-rule-name, .vulnerability-rule-name:hover {
   color: black;
+  cursor: pointer;
 }
 
 .discovered-vulnerabilities-h {
