@@ -1,9 +1,12 @@
 {
   "scripts": {
     "test": "mocha test/spec",
+    "bab": "babel js --out-dir lib && mocha test/spec",
     "lint": "eslint js/"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "chai": "^4.1.2",
     "jsdom": "^11.11.0",
     "sinon": "^5.0.10",
