@@ -402,12 +402,12 @@ function retrieveApplicationFromStorage(tab) {
       const url  = new URL(tab.url);
       const host = getHostFromUrl(url);
 
-      let application
+      let application;
       if (!!result[STORED_APPS_KEY]) {
         application = result[STORED_APPS_KEY].filter(app => app[host])[0];
       }
 
-      if (!application && tab.index >= 0) {
+      if (!application) {
         if (!isBlacklisted(tab.url)) {
           updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
         } else if (isBlacklisted(tab.url)) {

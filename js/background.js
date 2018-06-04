@@ -36,7 +36,11 @@ let TAB_CLOSED 			= false;
 let VULNERABLE_TABS = []; // tab ids of tabs where vulnerabilities count != 0
 let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
 
-
+// set on activated or on initial web request
+// use in place of retrieveApplicationFromStorage due to async
+// NOTE: Need to do this for checking requests before sending to teamserver
+// Only requests from applications that are connected should be sent for checking to teamserver, asynchronously retrieving the application from chrome storage on every request in chrome.webRequest.onBeforeRequest resulted in inconsistent vulnerability returns.
+let CURRENT_APPLICATION = null;
 
 
 
@@ -59,15 +63,18 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 			const tab = tabs[0];
 			if (!tab || tab.url.includes(TEAMSERVER_API_PATH_SUFFIX)) return;
 
+			if (!CURRENT_APPLICATION) return;
+
 			getStoredCredentials()
 			.then(items => {
 				const credentialed = isCredentialed(items);
 				if (credentialed && !XHR_REQUESTS.includes(request.url)) {
 					XHR_REQUESTS.push(request.url);
-					evaluateVulnerabilities(credentialed, tab, [request.url]);
 				}
 			})
-			.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+			.catch(() => {
+				updateTabBadge(tab, "X", CONTRAST_RED)
+			});
 		})
 	}
 }, { urls: [LISTENING_ON_DOMAIN] });
@@ -151,18 +158,27 @@ function handleTabActivated() {
 
 		const tab = tabs[0];
 
-
 		if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 			return;
 		}
 
-		if (!isBlacklisted(tab.url)) {
-			updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
-			updateVulnerabilities(tab);
-		} else {
-			removeLoadingBadge(tab);
-		}
-	})
+		retrieveApplicationFromStorage(tab)
+		.then(application => {
+			CURRENT_APPLICATION = application;
+			if (!CURRENT_APPLICATION) {
+				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+			}
+			else if (!isBlacklisted(tab.url)) {
+				updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
+				updateVulnerabilities(tab);
+			} else {
+				removeLoadingBadge(tab);
+			}
+		})
+		.catch(() => {
+			updateTabBadge(tab, "X", CONTRAST_RED);
+		});
+	});
 }
 
 /**
@@ -181,6 +197,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		return;
 	}
 
+	retrieveApplicationFromStorage(tab)
+	.then(application => {
+		CURRENT_APPLICATION = application;
+	})
+	.catch(() => {
+		updateTabBadge(tab, "X", CONTRAST_RED);
+	});
+
+	if (!CURRENT_APPLICATION) {
+		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+		return;
+	}
 
 	// GET STUCK ON LOADING if done for both "loading" and "complete"
 	if (changeInfo.status === "loading") {
@@ -235,44 +263,43 @@ function updateVulnerabilities(tab) {
 		getStoredCredentials().then(items => {
 			let evaluated = false;
 			const credentialed = isCredentialed(items);
+			if (!CURRENT_APPLICATION) return;
+			if (credentialed && !evaluated) {
+				chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
 
-			retrieveApplicationFromStorage(tab).then(application => {
-				if (!application) return;
-				if (credentialed && !evaluated) {
-					chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (response) => {
+					// NOTE: An undefined reponse usually occurrs only in dev, when a user navigates to a tab after reloading the extension and doesn't refresh the page.
+					if (!response) {
+						updateTabBadge(tab, "X", CONTRAST_RED);
+						// NOTE: Possibly dangerous if !response even after reload
+						// chrome.tabs.reload(tab.id)
+						return;
+					}
 
+					evaluated = true;
 
-						// NOTE: An undefined reponse usually occurrs only in dev, when a user navigates to a tab after reloading the extension and doesn't refresh the page.
-						if (!response) {
-							// removeLoadingBadge(tab);
-							updateTabBadge(tab, "X", CONTRAST_RED)
-							// maybe don't use an X
-							// chrome.tabs.reload(tab.id) // NOTE: Possibly dangerous if !response even after reload
-							return
-						}
+					let conditions = [
+						response,
+						response.formActions,
+						response.formActions.length > 0,
+					];
 
-						evaluated = true;
-
-						let conditions = [
-							response,
-							response.formActions,
-							response.formActions.length > 0,
-						];
-
-						if (conditions.every(c => !!c)) {
-							const { formActions } = response;
-							const traceUrls 			= [tab.url].concat(formActions);
-							evaluateVulnerabilities(credentialed, tab, traceUrls, application)
-						} else {
-							evaluateVulnerabilities(credentialed, tab, [tab.url], application);
-						}
-					})
-				} else {
-					getCredentials(tab);
-				}
-			}).catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
-		}).catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
-	}).catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+					if (conditions.every(c => !!c)) {
+						const { formActions } = response;
+						const traceUrls 			= [tab.url].concat(formActions);
+						evaluateVulnerabilities(credentialed, tab, traceUrls, CURRENT_APPLICATION);
+					} else {
+						evaluateVulnerabilities(credentialed, tab, [tab.url], CURRENT_APPLICATION);
+					}
+				})
+			} else {
+				getCredentials(tab);
+			}
+		}).catch(() => {
+			updateTabBadge(tab, "X", CONTRAST_RED)
+		});
+	}).catch(() => {
+		updateTabBadge(tab, "X", CONTRAST_RED)
+	});
 	return;
 }
 
@@ -310,7 +337,9 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 				setToStorage(json.traces, tab);
 			}
 		})
-		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+		.catch(() => {
+			updateTabBadge(tab, "X", CONTRAST_RED)
+		});
 	} else if (hasCredentials && !!traceUrls && traceUrls.length === 0) {
 		updateTabBadge(tab, traceUrls.length.toString(), CONTRAST_RED);
 	} else {
@@ -354,7 +383,9 @@ function setToStorage(foundTraces, tab) {
 				});
 			});
 		})
-		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+		.catch(() => {
+			updateTabBadge(tab, "X", CONTRAST_RED)
+		});
 }
 
 /**
@@ -386,7 +417,7 @@ function buildVulnerabilitiesArray(foundTraces, tab) {
 					})
 				}
 			}
-			reject(Error("Rejected buildVulnerabilitiesArray"));
+			reject(new Error("Rejected buildVulnerabilitiesArray"));
 		})
 	})
 }
