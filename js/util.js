@@ -452,14 +452,19 @@ function generateURLString(traceUrls) {
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
   // example.com/login vs another-example.com/login
   const prefix = new URL(document.URL).origin;
-  const prefixedUrls = traceUrls.map(u => prefix + "/" + u);
+  let prefixedUrls = traceUrls.map(u => {
+    if (prefix && prefix !== "null") {
+      return prefix + "/" + u;
+    }
+    return u;
+  });
 
   let urls = traceUrls.concat(prefixedUrls).map(u => {
     // return the full url
     // and the path / endpoint of the url
     return [
       btoa(u),
-      btoa(new URL(u).pathname)
+      btoa(new URL(u).pathname),
     ];
   }).flatten();
 
