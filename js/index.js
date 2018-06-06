@@ -205,7 +205,7 @@ function renderActivityFeed(items, url) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
     const host = getHostFromUrl(url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
-    if (!!result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
+    if (result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
       // find sections
       const notConfiguredSection = document.getElementById('not-configured');
       const configureExtension   = document.getElementById('configure-extension');
@@ -317,9 +317,8 @@ function createAppTableRow(application, url) {
 
       // result has not been defined yet
       if (!result || !result[STORED_APPS_KEY]) {
-        result = { APPS: [] }
+        result = { [STORED_APPS_KEY]: [] }
       }
-
       const storedApp = result[STORED_APPS_KEY].filter(app => {
         return Object.values(app)[0] === application.app_id;
       })[0];
