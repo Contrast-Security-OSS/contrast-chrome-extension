@@ -15,6 +15,7 @@ TEAMSERVER_URL,
 MutationObserver,
 deDupeArray,
 getHostFromUrl,
+TEAMSERVER_API_PATH_SUFFIX,
 */
 "use strict";
 

@@ -12,6 +12,7 @@ const CONTRAST_ORG_UUID    = "contrast_org_uuid";
 const TEAMSERVER_URL       = "teamserver_url";
 
 const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
+const TEAMSERVER_API_PATH_SUFFIX     = "/Contrast/api";
 const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
 const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
 

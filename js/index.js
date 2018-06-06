@@ -45,10 +45,11 @@ function indexFunction() {
 
     getStoredCredentials()
     .then(items => {
-      if (!isCredentialed(items)) {
-        getUserConfiguration(tab, url);
-      } else if (isCredentialed(items) && _isTeamserverAccountPage(tab, url)) {
-        getUserConfiguration(tab, url);
+      const credentialed = isCredentialed(items);
+      if (!credentialed) {
+        getUserConfiguration(tab, url, credentialed);
+      } else if (credentialed && _isTeamserverAccountPage(tab, url)) {
+        getUserConfiguration(tab, url, credentialed);
         renderApplicationsMenu(url);
         _renderContrastUsername(items);
       } else {
@@ -122,10 +123,10 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
  * @param  {URL<Object>} url a url object of the current tab
  * @return {void}
  */
-function getUserConfiguration(tab, url) {
+function getUserConfiguration(tab, url, credentialed) {
   if (_isTeamserverAccountPage(tab, url)) {
     const configButton = document.getElementById('configure-extension-button');
-    setElementText(configButton, "Reconfigure");
+    setElementText(configButton, credentialed ? "Reconfigure" : "Configure");
 
     const configExtension = document.getElementById('configure-extension');
     setElementDisplay(configExtension, "block");
@@ -166,7 +167,6 @@ function renderConfigButton(tab, configButton) {
 
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(tab.id, { url: tab.url, action: "INITIALIZE" }, (response) => {
-
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
 
       if (response === "INITIALIZED") {
