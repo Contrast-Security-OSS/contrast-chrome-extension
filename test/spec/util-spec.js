@@ -4,7 +4,6 @@ const testData  = require("../testData");
 const sinon     = require("sinon");
 const chai      = require("chai");
 const fetch     = require('node-fetch');
-const fetchMock = require('fetch-mock');
 const btoa      = require('btoa');
 const url       = require('url');
 const { assert, expect } = chai;
