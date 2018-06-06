@@ -1,6 +1,7 @@
 /*global
 	URL,
 	chrome,
+	module,
 */
 
 import {
@@ -60,29 +61,14 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 }, { urls: [LISTENING_ON_DOMAIN] });
 
 function handleWebRequest(request) {
-	if (request.type === "xmlhttprequest" && !isBlacklisted(request.url)) {
-
-		if (XHR_REQUESTS.includes(request.url)) return;
+	const conditions = [
+		request.type === "xmlhttprequest",
+		!isBlacklisted(request.url),
+		!XHR_REQUESTS.includes(request.url),
+		!request.url.includes(TEAMSERVER_API_PATH_SUFFIX),
+	]
+	if (conditions.every(Boolean)) {
 		XHR_REQUESTS.push(request.url);
-
-		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-			const tab = tabs[0];
-
-			if (!tab.active) return;
-			if (!tab || tab.url.includes(TEAMSERVER_API_PATH_SUFFIX)) return;
-			if (!CURRENT_APPLICATION) return;
-
-			getStoredCredentials()
-			.then(items => {
-				const credentialed = isCredentialed(items);
-				if (credentialed) {
-					evaluateVulnerabilities(credentialed, tab, [request.url], CURRENT_APPLICATION)
-				}
-			})
-			.catch(() => {
-				updateTabBadge(tab, "X", CONTRAST_RED)
-			});
-		})
 	}
 	return;
 }
@@ -140,12 +126,32 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 		})
 	}
 
+	else if (request === "EVALUATE_XHR" && CURRENT_APPLICATION) {
+		return getStoredCredentials()
+		.then(creds => {
+			evaluateVulnerabilities(
+				isCredentialed(creds),
+				tab,
+				XHR_REQUESTS,
+				CURRENT_APPLICATION,
+				true
+			);
+		})
+		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+	}
+
 	else if (request.sender === GATHER_FORMS_ACTION) {
 		return getStoredCredentials()
 		.then(creds => {
 			const { formActions } = request;
-			if (!!formActions) {
-				evaluateVulnerabilities(isCredentialed(creds), tab, formActions);
+			if (!!formActions && CURRENT_APPLICATION) {
+				evaluateVulnerabilities(
+					isCredentialed(creds),
+					tab,
+					formActions,
+					CURRENT_APPLICATION,
+					false
+				);
 			}
 		})
 		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
@@ -266,8 +272,6 @@ chrome.tabs.onRemoved.addListener(() => {
  * @return {void}
  */
 function updateVulnerabilities(tab) {
-	// reset XHR global request array to empty, now accepting new requests
-	XHR_REQUESTS = [];
 	// first remove old vulnerabilities since tab has updated
 	removeVulnerabilitiesFromStorage(tab).then(() => {
 		getStoredCredentials().then(items => {
@@ -321,7 +325,7 @@ function updateVulnerabilities(tab) {
  * @param  {Array} traceUrls     the urls that will be queried to TS
  * @return {void}
  */
-function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
+function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, isXHR = false) {
 	const url  = new URL(tab.url);
 	const host = getHostFromUrl(url);
 
@@ -336,14 +340,18 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application) {
 			if (!json) {
 				throw new Error("Error getting json from application trace ids");
 			} else if (json.traces.length === 0) {
-				if (!chrome.runtime.lastError) {
+				if (!chrome.runtime.lastError && !isXHR) {
 					updateTabBadge(tab, json.traces.length.toString(), CONTRAST_RED);
 				}
-			} else {
+			} else if (!isXHR) {
 				chrome.tabs.sendMessage(tab.id, {
 					action: "HIGHLIGHT_VULNERABLE_FORMS",
 					traceUrls
 				});
+				setToStorage(json.traces, tab);
+			} else {
+				// reset XHR global request array to empty, now accepting new requests
+				XHR_REQUESTS = [];
 				setToStorage(json.traces, tab);
 			}
 		})
@@ -373,23 +381,33 @@ function setToStorage(foundTraces, tab) {
 
 		buildVulnerabilitiesArray(traces, tab)
 		.then(vulnerabilities => {
-			let storedTraces = {};
-			storedTraces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities);
+			// storedTraces[STORED_TRACES_KEY] = JSON.stringify(vulnerabilities);
 
 			// add tab id to VULNERABLE_TABS so that vulnerabilities can be assessed if tab is reactivated
 			if (JSON.stringify(vulnerabilities).length > 0) {
 				VULNERABLE_TABS.push(tab.id);
 			}
+			chrome.storage.local.get(STORED_TRACES_KEY, (currentTraces) => {
+				let parsed = [];
+				if (currentTraces[STORED_TRACES_KEY]) {
+					parsed = JSON.parse(currentTraces[STORED_TRACES_KEY]);
+				}
 
-			// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
-			chrome.storage.local.set(storedTraces, () => {
-				chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
-					// set tab badget to the length of traces in storage (can change)
-					updateTabBadge(
-						tab,
-						JSON.parse(result[STORED_TRACES_KEY]).length.toString(),
-						CONTRAST_RED
-					);
+				let storedTraces = {};
+				let newVulns = parsed.concat(vulnerabilities);
+
+				storedTraces[STORED_TRACES_KEY] = JSON.stringify(deDupeArray(newVulns));
+
+				// takes a callback with a result param but there's nothing to do with it and eslint doesn't like unused params or empty blocks
+				chrome.storage.local.set(storedTraces, () => {
+					chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
+						// set tab badget to the length of traces in storage (can change)
+						updateTabBadge(
+							tab,
+							JSON.parse(result[STORED_TRACES_KEY]).length.toString(),
+							CONTRAST_RED
+						);
+					});
 				});
 			});
 		})

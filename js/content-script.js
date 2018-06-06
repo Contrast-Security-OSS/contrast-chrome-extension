@@ -27,6 +27,7 @@ if (window.performance.navigation.type === 1) {
 }
 
 window.addEventListener("load", function() {
+  chrome.runtime.sendMessage("EVALUATE_XHR")
   setTimeout(function() {
     window.CONTRAST__REFRESHED = false;
   }, 1000);
