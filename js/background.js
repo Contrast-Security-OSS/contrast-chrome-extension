@@ -1,6 +1,6 @@
 /*global
-URL,
-chrome,
+	URL,
+	chrome,
 */
 
 import {
@@ -42,8 +42,6 @@ let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
 // Only requests from applications that are connected should be sent for checking to teamserver, asynchronously retrieving the application from chrome storage on every request in chrome.webRequest.onBeforeRequest resulted in inconsistent vulnerability returns.
 let CURRENT_APPLICATION = null;
 
-
-
 /******************************************************************************
  *************************** CHROME EVENT LISTENERS ***************************
  ******************************************************************************/
@@ -58,19 +56,27 @@ let CURRENT_APPLICATION = null;
 chrome.webRequest.onBeforeRequest.addListener(request => {
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
+	handleWebRequest(request);
+}, { urls: [LISTENING_ON_DOMAIN] });
+
+function handleWebRequest(request) {
 	if (request.type === "xmlhttprequest" && !isBlacklisted(request.url)) {
+
+		if (XHR_REQUESTS.includes(request.url)) return;
+		XHR_REQUESTS.push(request.url);
+
 		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 			const tab = tabs[0];
+
 			if (!tab.active) return;
 			if (!tab || tab.url.includes(TEAMSERVER_API_PATH_SUFFIX)) return;
-
 			if (!CURRENT_APPLICATION) return;
 
 			getStoredCredentials()
 			.then(items => {
 				const credentialed = isCredentialed(items);
-				if (credentialed && !XHR_REQUESTS.includes(request.url)) {
-					XHR_REQUESTS.push(request.url);
+				if (credentialed) {
+					evaluateVulnerabilities(credentialed, tab, [request.url], CURRENT_APPLICATION)
 				}
 			})
 			.catch(() => {
@@ -78,7 +84,8 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 			});
 		})
 	}
-}, { urls: [LISTENING_ON_DOMAIN] });
+	return;
+}
 
 /**
  * @param  {Object} request a request object
@@ -134,54 +141,56 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 	}
 
 	else if (request.sender === GATHER_FORMS_ACTION) {
-		getStoredCredentials()
+		return getStoredCredentials()
 		.then(creds => {
 			const { formActions } = request;
 			if (!!formActions) {
 				evaluateVulnerabilities(isCredentialed(creds), tab, formActions);
 			}
 		})
+		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
 	}
+	return request;
 }
 
+// ------------------------- TAB ACTIVATION -------------------------
+
 chrome.tabs.onActivated.addListener(activeInfo => {
-	handleTabActivated(activeInfo);
+	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+		if (!tabs || tabs.length === 0) return;
+		const tab = tabs[0];
+
+		handleTabActivated(tab);
+	});
+	return activeInfo;
 });
 
 /**
- * handleTabActivated - description
- *
- * @param  {Object} activeInfo - ids of window and tab that have become active
+ * handleTabActivated - retrieves the current application from storage and updates the tab badge before checking tab for vulnerabilities
+ * @param {Object} tab - the current tab
  * @return {void}
  */
-function handleTabActivated() {
-	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+function handleTabActivated(tab) {
+	if (!tab.active) return;
+	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
+		return;
+	}
 
-		if (!tabs || tabs.length === 0) return;
-
-		const tab = tabs[0];
-
-		if (!tab.active) return;
-		if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
-			return;
+	retrieveApplicationFromStorage(tab)
+	.then(application => {
+		_setCurrentApplication(application);
+		if (!CURRENT_APPLICATION) {
+			updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 		}
-
-		retrieveApplicationFromStorage(tab)
-		.then(application => {
-			CURRENT_APPLICATION = application;
-			if (!CURRENT_APPLICATION) {
-				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-			}
-			else if (!isBlacklisted(tab.url)) {
-				updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
-				updateVulnerabilities(tab);
-			} else {
-				removeLoadingBadge(tab);
-			}
-		})
-		.catch(() => {
-			updateTabBadge(tab, "X", CONTRAST_RED);
-		});
+		else if (!isBlacklisted(tab.url)) {
+			updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
+			updateVulnerabilities(tab);
+		} else {
+			removeLoadingBadge(tab);
+		}
+	})
+	.catch(() => {
+		updateTabBadge(tab, "X", CONTRAST_RED);
 	});
 }
 
@@ -203,12 +212,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	}
 
 	retrieveApplicationFromStorage(tab)
-	.then(application => {
-		CURRENT_APPLICATION = application;
-	})
-	.catch(() => {
-		updateTabBadge(tab, "X", CONTRAST_RED);
-	});
+	.then(application => _setCurrentApplication(application))
+	.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
 
 	if (!CURRENT_APPLICATION) {
 		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
@@ -462,4 +467,33 @@ function getCredentials(tab) {
 	if (!TAB_CLOSED && conditions.some(c => !!c)) {
 		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 	}
+}
+
+/**
+ * _setCurrentApplication - description
+ *
+ * @param  {Object} application application to set as the CURRENT_APPLICATION
+ * @return {Object}           	the new CURRENT_APPLICATION
+ */
+function _setCurrentApplication(application) {
+	CURRENT_APPLICATION = application;
+	return CURRENT_APPLICATION;
+}
+
+module.exports = {
+	handleWebRequest,
+	handleRuntimeOnMessage,
+	handleTabActivated,
+	tabUpdateComplete,
+	updateVulnerabilities,
+	evaluateVulnerabilities,
+	setToStorage,
+	buildVulnerabilitiesArray,
+	removeVulnerabilitiesFromStorage,
+	getCredentials,
+	_setCurrentApplication,
+	TAB_CLOSED,
+	VULNERABLE_TABS,
+	XHR_REQUESTS,
+	CURRENT_APPLICATION,
 }

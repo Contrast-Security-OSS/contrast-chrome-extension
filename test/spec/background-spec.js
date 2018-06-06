@@ -1,121 +1,127 @@
-// describe('tests for background methods', () => {
-//
-//   beforeEach(() => {
-//     let webRequest = {
-//       url: "http://localhost:8080/WebGoat/SqlInjection/attack5a",
-//       type: "xmlhttprequest"
-//     }
-//
-//     let runtimeRequest = {
-//       action: "action"
-//     }
-//
-//     let runtimeSender = {
-//       tab: "tab"
-//     }
-//
-//     let runtimeSendResponse = function(responseToBeSent) {}
-//
-//     chrome.runtime.onMessage.addListener = function(callback) {
-//       const request      = runtimeRequest
-//       const sender       = runtimeSender
-//       const sendResponse = runtimeSendResponse
-//       return callback(request, sender, sendResponse)
-//     }
-//     chrome.runtime.sendMessage = function(request, response) {
-//       return chrome.runtime.onMessage.addListener(response)
-//     }
-//   })
-//
-//
-//
-//   it('captures a request and evaluates it for vulnerabilities', (done) => {
-//     spyOn(chrome.tabs, 'query').and.callThrough()
-//     spyOn(window, 'evaluateVulnerabilities')
-//
-//     const url = "http://www.example.com/"
-//
-//     expect(XHR_REQUESTS.length).toEqual(0)
-//
-//     function checkVulnerabilities() {
-//       expect(chrome.tabs.query).toHaveBeenCalled()
-//       expect(evaluateVulnerabilities).toHaveBeenCalled()
-//       expect(XHR_REQUESTS.length).toEqual(1)
-//       done()
-//     }
-//
-//     fetch(url).then(response => {
-//       chrome.tabs.getCurrent((tab) => {
-//         setTimeout(checkVulnerabilities, 1500)
-//       })
-//     })
-//   })
-//
-//   it('responds to messages', () => {
-//     spyOn(window, 'handleRuntimeOnMessage')
-//     chrome.runtime.sendMessage("hello", handleRuntimeOnMessage)
-//     expect(handleRuntimeOnMessage).toHaveBeenCalled()
-//   })
-//
-//   it('directs the runtime message to the correct method', (done) => {
-//     spyOn(window, 'handleRuntimeOnMessage').and.callThrough()
-//     spyOn(window, 'getStoredCredentials').and.returnValue(Promise.resolve())
-//     spyOn(chrome.storage.local, 'get')
-//
-//     chrome.tabs.query({ active: true, currentWindow: true }, (tab) => {
-//       handleRuntimeOnMessage({ sender: GATHER_FORMS_ACTION }, { tab }, function() {})
-//       expect(getStoredCredentials.calls.count()).toEqual(1)
-//
-//       handleRuntimeOnMessage(TRACES_REQUEST, { tab }, function() {})
-//       expect(getStoredCredentials.calls.count()).toEqual(1)
-//       expect(chrome.storage.local.get.calls.count()).toEqual(1)
-//
-//       handleRuntimeOnMessage("not a thing", { tab }, function() {})
-//       expect(getStoredCredentials.calls.count()).toEqual(1)
-//       expect(chrome.storage.local.get.calls.count()).toEqual(1)
-//       done()
-//     })
-//   })
-//
-//   it('stores vulnerabilities after receiving a message', (done) => {
-//     spyOn(window, 'handleRuntimeOnMessage').and.callThrough()
-//     spyOn(window, 'getOrganizationVulnerabilityIds').and.returnValue(
-//       Promise.resolve({
-//         traces: returnVulnerabilityIdData['traces']
-//       })
-//     )
-//     spyOn(window, 'processTraces').and.returnValue(
-//       Promise.resolve(returnVulnerabilityIdData['traces'])
-//     )
-//     spyOn(window, 'getVulnerabilityFilter').and.returnValue(
-//       Promise.resolve({
-//         trace: returnFilterTraceData
-//       })
-//     )
-//     spyOn(window, 'buildVulnerabilitiesArray').and.returnValue(
-//       Promise.resolve(returnVulnerabilityIdData['traces'])
-//     )
-//     spyOn(chrome.storage.local, 'set').and.callThrough()
-//
-//     chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
-//       expect(Object.keys(result).length).toEqual(0)
-//
-//       chrome.tabs.query({ active: true, currentWindow: true }, tab => {
-//         handleRuntimeOnMessage({
-//           sender: GATHER_FORMS_ACTION,
-//           formActions: ["http://example.com", "http://contrastsecurity.com"]
-//         }, { tab }, () => {})
-//       })
-//
-//       function checkStorage() {
-//         chrome.storage.local.get(STORED_TRACES_KEY, (newResult) => {
-//           expect(chrome.storage.local.set).toHaveBeenCalled()
-//           expect(Object.keys(newResult).length).toEqual(1)
-//           chrome.storage.local.remove(STORED_TRACES_KEY)
-//           done()
-//         })
-//       }
-//       setTimeout(checkStorage, 2000) // wait for chrome storage to update
-//     })
-//   })
-// })
+const chrome     = require('sinon-chrome/extensions');
+global.chrome = chrome;
+
+const testData   = require("../testData")
+const sinon      = require("sinon");
+const chai       = require("chai");
+const fetch      = require('node-fetch');
+const { assert, expect } = chai;
+const util       = require('../../lib/util.js');
+const background = require('../../lib/background.js');
+
+let {
+  handleWebRequest,
+  handleRuntimeOnMessage,
+  handleTabActivated,
+  tabUpdateComplete,
+  updateVulnerabilities,
+  evaluateVulnerabilities,
+  setToStorage,
+  buildVulnerabilitiesArray,
+  removeVulnerabilitiesFromStorage,
+  getCredentials,
+  _setCurrentApplication,
+  TAB_CLOSED,
+  VULNERABLE_TABS,
+  XHR_REQUESTS,
+  CURRENT_APPLICATION,
+} = background;
+
+let {
+  getStoredCredentials,
+  retrieveApplicationFromStorage,
+  GATHER_FORMS_ACTION,
+  TRACES_REQUEST,
+} = util;
+
+describe('tests for background methods', function() {
+  beforeEach(function() {
+    global.fetch = fetch;
+    global.CURRENT_APPLICATION = CURRENT_APPLICATION;
+    chrome.flush();
+    chrome.reset();
+    chrome.runtime.sendMessage.flush();
+    chrome.runtime.sendMessage.reset();
+    chrome.storage.local.get.flush();
+    chrome.storage.local.get.reset();
+    chrome.tabs.query.flush();
+    chrome.tabs.query.reset();
+  });
+
+  after(function() {
+    chrome.flush();
+    chrome.reset();
+    chrome.storage.local.get.flush();
+    chrome.storage.local.get.reset();
+    chrome.tabs.query.flush();
+    chrome.tabs.query.reset();
+  })
+
+
+  it('captures a request and evaluates it for vulnerabilities', function() {
+    const url = "http://www.example.com/"
+    expect(XHR_REQUESTS.length).equal(0)
+
+    // added in global space, so has been called
+    const handlerSpy = sinon.spy(handleWebRequest);
+    chrome.webRequest.onBeforeRequest.addListener(handlerSpy)
+    expect(handlerSpy.called).equal(false);
+
+    chrome.webRequest.onBeforeRequest.trigger({
+      url,
+      type: "xmlhttprequest"
+    });
+    expect(handlerSpy.called).equal(true);
+    expect(XHR_REQUESTS.length).equal(1);
+  });
+
+  it('responds to messages', function() {
+    const params = {
+      request: "request",
+      sender: "sender",
+      sendResponse: sinon.spy(),
+    }
+
+    const handlerSpy = sinon.spy(handleRuntimeOnMessage);
+    chrome.runtime.onMessage.addListener(handlerSpy);
+
+    expect(handlerSpy.called).equal(false);
+
+    chrome.runtime.onMessage.trigger(params);
+    expect(handlerSpy.called).equal(true);
+    expect(handlerSpy.calledWith(params)).equal(true);
+
+  });
+
+  it('directs the runtime message to the correct method', function() {
+    const spy = sinon.spy();
+    const tab = {
+      id: 1,
+      url: "http://example.com"
+    };
+
+    let hand;
+    hand = handleRuntimeOnMessage({ sender: GATHER_FORMS_ACTION }, spy, tab);
+    expect(hand.constructor.name === "Promise");
+
+    expect(chrome.storage.local.get.calledOnce).equal(true);
+    hand = handleRuntimeOnMessage(TRACES_REQUEST, spy, tab);
+    expect(chrome.storage.local.get.calledTwice).equal(true);
+
+    hand = handleRuntimeOnMessage("not a thing", spy, tab);
+    expect(hand).equal("not a thing");
+  });
+
+  it('sets an application', function() {
+    const application = { localhost_8080: "webgoat" };
+    const setAppSpy = sinon.spy(_setCurrentApplication);
+
+    expect(CURRENT_APPLICATION).equal(null);
+    expect(setAppSpy.called).equal(false);
+
+    const newApp = setAppSpy(application);
+
+    expect(setAppSpy.called).equal(true);
+    expect(newApp).equal(application);
+  });
+});

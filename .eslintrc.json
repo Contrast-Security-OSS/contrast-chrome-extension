@@ -6,7 +6,8 @@
   },
   "globals": {
     "module": true,
-    "require": true
+    "require": true,
+    "chrome": true
   },
   "parserOptions": {
     "sourceType": "module"
