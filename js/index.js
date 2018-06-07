@@ -1,11 +1,13 @@
 /*global
   chrome,
   document,
+  URL,
+*/
+import {
   VALID_TEAMSERVER_HOSTNAMES,
   TEAMSERVER_ACCOUNT_PATH_SUFFIX,
   TEAMSERVER_INDEX_PATH_SUFFIX,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
-  URL,
   CONTRAST_USERNAME,
   getStoredCredentials,
   isCredentialed,
@@ -16,12 +18,10 @@
   STORED_TRACES_KEY,
   getApplications,
   getHostFromUrl,
-  _chromeExtensionSettingsUrl
   isContrastTeamserver,
   setElementText,
   setElementDisplay,
-*/
-"use strict"
+} from './util.js'
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";
@@ -45,10 +45,11 @@ function indexFunction() {
 
     getStoredCredentials()
     .then(items => {
-      if (!isCredentialed(items)) {
-        getUserConfiguration(tab, url);
-      } else if (isCredentialed(items) && _isTeamserverAccountPage(tab, url)) {
-        getUserConfiguration(tab, url);
+      const credentialed = isCredentialed(items);
+      if (!credentialed) {
+        getUserConfiguration(tab, url, credentialed);
+      } else if (credentialed && _isTeamserverAccountPage(tab, url)) {
+        getUserConfiguration(tab, url, credentialed);
         renderApplicationsMenu(url);
         _renderContrastUsername(items);
       } else {
@@ -122,10 +123,10 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
  * @param  {URL<Object>} url a url object of the current tab
  * @return {void}
  */
-function getUserConfiguration(tab, url) {
+function getUserConfiguration(tab, url, credentialed) {
   if (_isTeamserverAccountPage(tab, url)) {
     const configButton = document.getElementById('configure-extension-button');
-    setElementText(configButton, "Reconfigure");
+    setElementText(configButton, credentialed ? "Reconfigure" : "Configure");
 
     const configExtension = document.getElementById('configure-extension');
     setElementDisplay(configExtension, "block");
@@ -166,7 +167,6 @@ function renderConfigButton(tab, configButton) {
 
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(tab.id, { url: tab.url, action: "INITIALIZE" }, (response) => {
-
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
 
       if (response === "INITIALIZED") {
@@ -205,7 +205,7 @@ function renderActivityFeed(items, url) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
     const host = getHostFromUrl(url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
-    if (!!result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
+    if (result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
       // find sections
       const notConfiguredSection = document.getElementById('not-configured');
       const configureExtension   = document.getElementById('configure-extension');
@@ -317,9 +317,8 @@ function createAppTableRow(application, url) {
 
       // result has not been defined yet
       if (!result || !result[STORED_APPS_KEY]) {
-        result = { APPS: [] }
+        result = { [STORED_APPS_KEY]: [] }
       }
-
       const storedApp = result[STORED_APPS_KEY].filter(app => {
         return Object.values(app)[0] === application.app_id;
       })[0];
