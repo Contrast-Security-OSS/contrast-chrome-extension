@@ -17,20 +17,19 @@ Hi! Thanks for checking out the extension. Please note that this is pre-alpha so
 7. View chrome extension in top right corner of chrome
 8. Navigate to `Your Account` in Teamserver and load configuration.
 
-## Testing
-
-We're using QUnit: https://qunitjs.com/
-
 ### Setup
 
-Install QUnit for testing and eslint for linting.
-`npm install -g qunit eslint`
+Install Mocha and Babel CLI for testing and eslint for linting.
+`npm install -g mocha eslint babel-cli`
 
 Run `./setup.sh`, it installs a Git Hook that removes all `console.log`, `debugger` and `localhost` strings from files in the `js` directory.
 
 ### Run Tests
 
-`qunit`
+```
+npm run bab  # transpile js files and run tests
+npm run test # run tests without transpiling
+```
 
 ### Travis
 
