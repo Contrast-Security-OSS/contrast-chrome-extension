@@ -3,7 +3,7 @@
   document,
   URL,
 */
-import {
+const {
   VALID_TEAMSERVER_HOSTNAMES,
   TEAMSERVER_ACCOUNT_PATH_SUFFIX,
   TEAMSERVER_INDEX_PATH_SUFFIX,
@@ -21,7 +21,7 @@ import {
   isContrastTeamserver,
   setElementText,
   setElementDisplay,
-} from './util.js'
+} = Helpers;
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";

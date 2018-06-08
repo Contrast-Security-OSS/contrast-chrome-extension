@@ -4,7 +4,7 @@
 	module,
 */
 
-import {
+const {
 	TEAMSERVER_INDEX_PATH_SUFFIX,
 	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 	VALID_TEAMSERVER_HOSTNAMES,
@@ -19,6 +19,7 @@ import {
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	STORED_TRACES_KEY,
+	STORED_TAB_PREFIX,
 	getStoredCredentials,
 	isCredentialed,
 	isBlacklisted,
@@ -28,20 +29,30 @@ import {
 	updateTabBadge,
 	removeLoadingBadge,
 	retrieveApplicationFromStorage,
-} from './util.js'
+} = Helpers;
+
+import {
+	setupCurrentTab,
+} from './tabStorage.js';
+
 
 /******************************************************************************
  ********************************* GLOBALS ************************************
  ******************************************************************************/
-let TAB_CLOSED 			= false;
-let VULNERABLE_TABS = []; // tab ids of tabs where vulnerabilities count != 0
-let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
+// try to avoid tab doesn't exist errors
+export let TAB_CLOSED 			= false;
+
+// tab ids of tabs where vulnerabilities count != 0
+export let VULNERABLE_TABS 	= [];
+
+// don't re-evaluate xhr requests
+export let XHR_REQUESTS 		= [];
 
 // set on activated or on initial web request
 // use in place of retrieveApplicationFromStorage due to async
 // NOTE: Need to do this for checking requests before sending to teamserver
 // Only requests from applications that are connected should be sent for checking to teamserver, asynchronously retrieving the application from chrome storage on every request in chrome.webRequest.onBeforeRequest resulted in inconsistent vulnerability returns.
-let CURRENT_APPLICATION = null;
+export let CURRENT_APPLICATION = null;
 
 /******************************************************************************
  *************************** CHROME EVENT LISTENERS ***************************
@@ -55,14 +66,17 @@ let CURRENT_APPLICATION = null;
  * @return {void}
  */
 chrome.webRequest.onBeforeRequest.addListener(request => {
+	if (request.url.includes("jquery") || request.url.includes("bootstrap")) {
+	}
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
-	handleWebRequest(request);
+	if (request.type === "xmlhttprequest") {
+		handleWebRequest(request);
+	}
 }, { urls: [LISTENING_ON_DOMAIN] });
 
 function handleWebRequest(request) {
 	const conditions = [
-		request.type === "xmlhttprequest",
 		!isBlacklisted(request.url),
 		!XHR_REQUESTS.includes(request.url),
 		!request.url.includes(TEAMSERVER_API_PATH_SUFFIX),
@@ -83,6 +97,7 @@ function handleWebRequest(request) {
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+		if (!tabs || tabs.length === 0) return;
 		const tab = tabs[0];
 
 		if (!tab.active) return;
@@ -217,26 +232,30 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		return;
 	}
 
-	retrieveApplicationFromStorage(tab)
-	.then(application => _setCurrentApplication(application))
-	.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+	setupCurrentTab(tab)
+	.then(result => {
+	})
 
-	if (!CURRENT_APPLICATION) {
-		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-		return;
-	}
-
-	// GET STUCK ON LOADING if done for both "loading" and "complete"
-	if (changeInfo.status === "loading") {
-		// NOTE: UPDATEBADGE
-		updateTabBadge(tab, "↻", CONTRAST_GREEN);
-	}
-
-	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
-		updateVulnerabilities(tab);
-	} else if (isBlacklisted(tab.url)) {
-		removeLoadingBadge(tab);
-	}
+	// retrieveApplicationFromStorage(tab)
+	// .then(application => _setCurrentApplication(application))
+	// .catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+	//
+	// if (!CURRENT_APPLICATION) {
+	// 	updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+	// 	return;
+	// }
+	//
+	// // GET STUCK ON LOADING if done for both "loading" and "complete"
+	// if (changeInfo.status === "loading") {
+	// 	// NOTE: UPDATEBADGE
+	// 	updateTabBadge(tab, "↻", CONTRAST_GREEN);
+	// }
+	//
+	// if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
+	// 	updateVulnerabilities(tab);
+	// } else if (isBlacklisted(tab.url)) {
+	// 	removeLoadingBadge(tab);
+	// }
 });
 
 /**
@@ -473,7 +492,7 @@ function removeVulnerabilitiesFromStorage() {
  * @param  {Object} tab Gives the state of the current tab
  * @return {void}
  */
-function getCredentials(tab) {
+export function getCredentials(tab) {
 	if (chrome.runtime.lastError) return;
 
 	const url = new URL(tab.url);
@@ -487,6 +506,8 @@ function getCredentials(tab) {
 	}
 }
 
+
+
 /**
  * _setCurrentApplication - description
  *
@@ -496,22 +517,4 @@ function getCredentials(tab) {
 function _setCurrentApplication(application) {
 	CURRENT_APPLICATION = application;
 	return CURRENT_APPLICATION;
-}
-
-module.exports = {
-	handleWebRequest,
-	handleRuntimeOnMessage,
-	handleTabActivated,
-	tabUpdateComplete,
-	updateVulnerabilities,
-	evaluateVulnerabilities,
-	setToStorage,
-	buildVulnerabilitiesArray,
-	removeVulnerabilitiesFromStorage,
-	getCredentials,
-	_setCurrentApplication,
-	TAB_CLOSED,
-	VULNERABLE_TABS,
-	XHR_REQUESTS,
-	CURRENT_APPLICATION,
 }

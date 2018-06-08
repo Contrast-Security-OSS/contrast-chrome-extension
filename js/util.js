@@ -5,6 +5,8 @@ btoa,
 chrome
 */
 
+
+
 // keys for credentials
 export const CONTRAST_USERNAME    = "contrast_username";
 export const CONTRAST_SERVICE_KEY = "contrast_service_key";
@@ -55,6 +57,7 @@ export const CONTRAST_CONFIGURE_TEXT  = "*";
 // chrome storage and message event keys
 export const LISTENING_ON_DOMAIN = "<all_urls>";
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
+export const GATHER_SCRIPTS      = "contrast__gatherScripts";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
@@ -312,6 +315,7 @@ function getHostFromUrl(url) {
 */
 function isBlacklisted(url) {
   if (!url) return true;
+
   url = url.toLowerCase();
 
   for (let i = 0; i < BLACKLIST_LENGTH; i++) {
@@ -522,6 +526,22 @@ function setElementText(element, text) {
   }
 }
 
+// ----------------------- LIBRARY ANALYSIS -----------------------
+function _readLibraryVulnerabilities() {
+  return fetch("../data/jsrepository.json")
+  .then(response => response.json())
+  .catch(new Error("Error getting js lib vulnerabilities"))
+}
+
+function analyzeLibraries(tab) {
+  return _readLibraryVulnerabilities()
+  .then(json => {
+    const libraries = Object.keys(json);
+
+  })
+  .catch(new Error("Error analyzing libraries"));
+}
+
 export {
   fetchTeamserver,
   getAuthorizationHeader,
@@ -545,4 +565,5 @@ export {
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
+  analyzeLibraries,
 }

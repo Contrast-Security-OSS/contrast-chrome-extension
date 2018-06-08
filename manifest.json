@@ -18,7 +18,7 @@
         "https://*/*"
       ],
       "js": [
-        "js/content-utils.js",
+        "js/helpers/helpers.js",
         "js/content-script.js"
       ]
     }
@@ -30,7 +30,8 @@
   },
   "web_accessible_resources": [
     "img/*.png",
-    "test/*"
+    "test/*",
+    "data/*"
   ],
   "permissions": [
     "webRequest",

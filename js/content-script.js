@@ -1,7 +1,6 @@
 /*global
 chrome,
 document,
-TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 GATHER_FORMS_ACTION,
@@ -15,9 +14,25 @@ TEAMSERVER_URL,
 MutationObserver,
 deDupeArray,
 getHostFromUrl,
-TEAMSERVER_API_PATH_SUFFIX,
 */
 "use strict";
+
+const {
+  TEAMSERVER_API_PATH_SUFFIX,
+  TEAMSERVER_INDEX_PATH_SUFFIX,
+  TEAMSERVER_ACCOUNT_PATH_SUFFIX,
+  GATHER_FORMS_ACTION,
+  CONTRAST_USERNAME,
+  CONTRAST_SERVICE_KEY,
+  CONTRAST_API_KEY,
+  CONTRAST_ORG_UUID,
+  CONTRAST_GREEN,
+  STORED_APPS_KEY,
+  TEAMSERVER_URL,
+  GATHER_SCRIPTS,
+  deDupeArray,
+  getHostFromUrl,
+} = Helpers;
 
 // Apply different gloabls depending on how user navigates to a page
 // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigation
@@ -33,6 +48,78 @@ window.addEventListener("load", function() {
     window.CONTRAST__REFRESHED = false;
   }, 1000);
 });
+
+function _collectScripts(sendResponse) {
+  _getLibraryVulnerabilities()
+  .then(json => {
+    // const vulnerableLibraries = Object.keys(json);
+    const docScripts = document.scripts;
+    let scripts = [];
+    for (let i = 0, len = docScripts.length; i < len; i++) {
+      let fileNameArray = docScripts[i].src.split("/");
+      let jsFileName;
+      jsFileName = fileNameArray[fileNameArray.length - 1];
+      jsFileName = _parseJSFile(jsFileName);
+      if (!scripts.includes(jsFileName)) {
+        scripts.push(jsFileName);
+      }
+    }
+
+    // NOTE: This filters scripts so that we're not comparing all of them
+    // vulnerableLibraries = vulnerableLibraries.map(jsFileName => {
+    //   return _parseJSFile(jsFileName);
+    // })
+    // scripts = scripts.filter(script => {
+    //   return vulnerableLibraries.includes(script)
+    // })
+
+    let vulnerableScriptObjs = [];
+    for (let key in json) {
+      if (scripts.includes(key)) {
+        vulnerableScriptObjs.push({ [key]: json[key] });
+      } else if (scripts.includes(key + ".js")) {
+        vulnerableScriptObjs.push({ [key]: json[key] });
+      } else if (json[key]['bowername'] && _isScriptInBowername(json[key]['bowername'], scripts)) {
+        vulnerableScriptObjs.push({ [key]: json[key] });
+      }
+    }
+    sendResponse(vulnerableScriptObjs)
+  })
+}
+
+function _getLibraryVulnerabilities() {
+  const retireJSURL = "https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json"
+  const fetchOptions = {
+    method: "GET",
+  }
+	return fetch(retireJSURL, fetchOptions)
+	.then(response => {
+    if (response.ok && response.status === 200) {
+      return response.json()
+    }
+  })
+	.catch(new Error("Error getting js lib vulnerabilities"))
+}
+
+function _isScriptInBowername(bowernames, scripts) {
+  for (let i = 0, len = bowernames.length; i < len; i++) {
+    if (scripts.includes(bowernames[i])) {
+      return true
+    }
+  }
+  return false
+}
+
+function _parseJSFile(jsFileName) {
+  jsFileName = jsFileName.split(".js")[0];
+  jsFileName = jsFileName.split(".min")[0];
+  jsFileName = jsFileName.split("-min")[0];
+  jsFileName = jsFileName.split("_min")[0];
+  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/) ? jsFileName.match(/([a-zA-Z]+\W)+/)[0] : jsFileName;
+  jsFileName = /\W/.test(jsFileName[jsFileName.length - 1]) ? jsFileName.substr(0, jsFileName.length - 1) : jsFileName;
+  return jsFileName;
+}
+
 
 /**
 * highlightForm - description
@@ -243,6 +330,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   else if (request.action === "HIGHLIGHT_VULNERABLE_FORMS") {
     sendResponse(highlightForm(request.traceUrls));
+  }
+
+  else if (request.action === GATHER_SCRIPTS) {
+    _collectScripts(sendResponse);
   }
 
   else if (request.url !== undefined && request.action === "INITIALIZE") {
