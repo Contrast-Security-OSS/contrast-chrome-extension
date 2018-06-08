@@ -1,4 +1,11 @@
-const Helpers = (function() {
+// allow ununed vars in this file since they are used throughout other files
+/*eslint no-unused-vars: "off"*/
+/*global
+btoa,
+chrome
+*/
+
+const Helpers = (function() { // eslint-disable-line wrap-iife
   // keys for credentials
   const CONTRAST_USERNAME    = "contrast_username";
   const CONTRAST_SERVICE_KEY = "contrast_service_key";
@@ -193,12 +200,12 @@ const Helpers = (function() {
   }
 
   /**
-   * getOrganizationVulnerabilityIds - sets up the teamserver request
-   *
-   * @param  {String} urls - string of base64 encoded urls to send to TS as params
-   * @param  {Function} onReadyStateChangeCallback description
-   * @return {void}
-   */
+  * getOrganizationVulnerabilityIds - sets up the teamserver request
+  *
+  * @param  {String} urls - string of base64 encoded urls to send to TS as params
+  * @param  {Function} onReadyStateChangeCallback description
+  * @return {void}
+  */
 
   function getOrganizationVulnerabilityIds(urls, appId) {
     return getStoredCredentials()
@@ -213,11 +220,11 @@ const Helpers = (function() {
   }
 
   /**
-   * getVulnerabilityShort - Gets more details about a trace
-   *
-   * @param  {String} traceUuid the uuid of the trace we're getting details about
-   * @return {Promise<Object} A promise containing details about the trace
-   */
+  * getVulnerabilityShort - Gets more details about a trace
+  *
+  * @param  {String} traceUuid the uuid of the trace we're getting details about
+  * @return {Promise<Object} A promise containing details about the trace
+  */
   function getVulnerabilityShort(traceUuid) {
     return getStoredCredentials()
     .then(items => {
@@ -233,10 +240,10 @@ const Helpers = (function() {
   }
 
   /**
-   * getApplications - Get the applications that belong to an organization
-   *
-   * @return {Promise<Array>} A promise containing a list of applications in an organization
-   */
+  * getApplications - Get the applications that belong to an organization
+  *
+  * @return {Promise<Array>} A promise containing a list of applications in an organization
+  */
   function getApplications() {
     return getStoredCredentials()
     .then(items => {
@@ -254,11 +261,11 @@ const Helpers = (function() {
   // ---------  OTHER HELPER FUNCTIONS -------------
 
   /**
-   * isCredentialed - verifies that user has all fields filled in
-   *
-   * @param  {Object} credentials username, serviceKey, apiKey, etc.
-   * @return {Boolean}            if all fields are complete
-   */
+  * isCredentialed - verifies that user has all fields filled in
+  *
+  * @param  {Object} credentials username, serviceKey, apiKey, etc.
+  * @return {Boolean}            if all fields are complete
+  */
   function isCredentialed(credentials) {
     // ES5
     // check if any values are undefined
@@ -322,11 +329,11 @@ const Helpers = (function() {
   }
 
   /**
-   * isContrastTeamserver - check if we're on a Contrast teamserver page or not
-   *
-   * @param  {String} url - the url of the current page
-   * @return {Boolen} - if we're on a contrast teamserver page or not
-   */
+  * isContrastTeamserver - check if we're on a Contrast teamserver page or not
+  *
+  * @param  {String} url - the url of the current page
+  * @return {Boolen} - if we're on a contrast teamserver page or not
+  */
   function isContrastTeamserver(url) {
     const contrast = [
       "/Contrast/api/ng/",
@@ -371,16 +378,18 @@ const Helpers = (function() {
   }
 
   /**
-   * removeLoadingBadge - checks if the current tab is the loading icon and removes it if it is
-   *
-   * @param  {Object} tab the current tab
-   * @return {void}
-   */
+  * removeLoadingBadge - checks if the current tab is the loading icon and removes it if it is
+  *
+  * @param  {Object} tab the current tab
+  * @return {void}
+  */
   function removeLoadingBadge(tab) {
     if (!tab) return;
 
-  	chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
-  		if (result === "↻") {
+    chrome.browserAction.getBadgeText({
+      tabId: tab.id
+    }, (result) => {
+      if (result === "↻") {
         chrome.browserAction.getBadgeBackgroundColor({ tabId: tab.id }, (color) => {
           if (!color) {
             updateTabBadge(tab, '', CONTRAST_GREEN);
@@ -388,8 +397,8 @@ const Helpers = (function() {
             updateTabBadge(tab, '', color);
           }
         });
-  		}
-  	});
+      }
+    });
   }
 
   /**
@@ -473,11 +482,11 @@ const Helpers = (function() {
   }
 
   /**
-   * processTeamserverUrl - transforms a given url into a valid teamserver url
-   *
-   * @param  {String} teamserverUrlValue domain or domain:host
-   * @return {String}                    processed teamserver url
-   */
+  * processTeamserverUrl - transforms a given url into a valid teamserver url
+  *
+  * @param  {String} teamserverUrlValue domain or domain:host
+  * @return {String}                    processed teamserver url
+  */
   function processTeamserverUrl(teamserverUrlValue) {
     if (teamserverUrlValue.length > 0) {
       while (teamserverUrlValue.endsWith("/")) {
@@ -595,4 +604,4 @@ const Helpers = (function() {
     STORED_TAB_PREFIX,
     CONTRAST__STORED_APP_LIBS,
   }
-})()
+})();

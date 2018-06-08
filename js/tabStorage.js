@@ -1,3 +1,8 @@
+/*global
+	chrome,
+	Helpers,
+*/
+
 const {
   retrieveApplicationFromStorage,
   CONTRAST__STORED_APP_LIBS,
@@ -21,19 +26,15 @@ export function setupCurrentTab(tab) {
       .then(application => {
         const storedAppLibsId = "APP_LIBS__ID_" + Object.keys(application)[0]
 
-
         if (!result[CONTRAST__STORED_APP_LIBS][storedAppLibsId]) {
           return _addAppLibsToStorage(tab, result, resolve, reject, storedAppLibsId, application)
         }
 
         else if (result[CONTRAST__STORED_APP_LIBS][storedAppLibsId].application && result[CONTRAST__STORED_APP_LIBS][storedAppLibsId].libraries.length === 0) {
 
-          return _updateAppLibsInStorage(tab, result, resolve, reject, storedAppLibsId, application)
+          return _updateAppLibsInStorage(tab, result, resolve, reject, storedAppLibsId)
         }
-
-        else {
-          resolve(result[CONTRAST__STORED_APP_LIBS][storedAppLibsId])
-        }
+        return resolve(result[CONTRAST__STORED_APP_LIBS][storedAppLibsId])
       })
     });
   });
@@ -57,7 +58,7 @@ function _addAppLibsToStorage(tab, result, resolve, reject, storedAppLibsId, app
   .catch(error => new Error(error));
 }
 
-function _updateAppLibsInStorage(tab, result, resolve, reject, storedAppLibsId, application) {
+function _updateAppLibsInStorage(tab, result, resolve, reject, storedAppLibsId) {
   Promise.resolve(getApplicationLibraries(tab))
   .then(libraries => {
     if (libraries.length === 0) return [];
@@ -66,7 +67,7 @@ function _updateAppLibsInStorage(tab, result, resolve, reject, storedAppLibsId, 
     tabObject.libraries = tabObject.libraries.concat(libraries);
 
     chrome.storage.local.set(tabObject);
-    resolve(result[CONTRAST__STORED_APP_LIBS][storedAppLibsId])
+    return resolve(result[CONTRAST__STORED_APP_LIBS][storedAppLibsId])
   })
   .catch(() => new Error("Error updating stored tab"));
 }

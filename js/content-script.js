@@ -1,19 +1,7 @@
 /*global
 chrome,
 document,
-TEAMSERVER_API_PATH_SUFFIX,
-TEAMSERVER_ACCOUNT_PATH_SUFFIX,
-GATHER_FORMS_ACTION,
-CONTRAST_USERNAME,
-CONTRAST_SERVICE_KEY,
-CONTRAST_API_KEY,
-CONTRAST_ORG_UUID,
-CONTRAST_GREEN,
-STORED_APPS_KEY,
-TEAMSERVER_URL,
-MutationObserver,
-deDupeArray,
-getHostFromUrl,
+Helpers,
 */
 "use strict";
 
@@ -79,7 +67,7 @@ function _collectScripts(sendResponse) {
         vulnerableScriptObjs.push({ [key]: json[key] });
       } else if (scripts.includes(key + ".js")) {
         vulnerableScriptObjs.push({ [key]: json[key] });
-      } else if (json[key]['bowername'] && _isScriptInBowername(json[key]['bowername'], scripts)) {
+      } else if (json[key].bowername && _isScriptInBowername(json[key].bowername, scripts)) {
         vulnerableScriptObjs.push({ [key]: json[key] });
       }
     }
@@ -95,8 +83,9 @@ function _getLibraryVulnerabilities() {
 	return fetch(retireJSURL, fetchOptions)
 	.then(response => {
     if (response.ok && response.status === 200) {
-      return response.json()
+      return response.json();
     }
+    return null;
   })
 	.catch(new Error("Error getting js lib vulnerabilities"))
 }
@@ -116,7 +105,7 @@ function _parseJSFile(jsFileName) {
   jsFileName = jsFileName.split("-min")[0];
   jsFileName = jsFileName.split("_min")[0];
   jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/) ? jsFileName.match(/([a-zA-Z]+\W)+/)[0] : jsFileName;
-  jsFileName = /\W/.test(jsFileName[jsFileName.length - 1]) ? jsFileName.substr(0, jsFileName.length - 1) : jsFileName;
+  jsFileName = (/\W/).test(jsFileName[jsFileName.length - 1]) ? jsFileName.substr(0, jsFileName.length - 1) : jsFileName;
   return jsFileName;
 }
 

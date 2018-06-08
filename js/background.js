@@ -1,7 +1,7 @@
 /*global
 	URL,
 	chrome,
-	module,
+	Helpers,
 */
 
 const {
@@ -19,7 +19,6 @@ const {
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	STORED_TRACES_KEY,
-	STORED_TAB_PREFIX,
 	getStoredCredentials,
 	isCredentialed,
 	isBlacklisted,
@@ -66,8 +65,6 @@ export let CURRENT_APPLICATION = null;
  * @return {void}
  */
 chrome.webRequest.onBeforeRequest.addListener(request => {
-	if (request.url.includes("jquery") || request.url.includes("bootstrap")) {
-	}
 	// only permit xhr requests
 	// don't monitor xhr requests made by extension
 	if (request.type === "xmlhttprequest") {
@@ -233,29 +230,27 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	}
 
 	setupCurrentTab(tab)
-	.then(result => {
-	})
 
-	// retrieveApplicationFromStorage(tab)
-	// .then(application => _setCurrentApplication(application))
-	// .catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
-	//
-	// if (!CURRENT_APPLICATION) {
-	// 	updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-	// 	return;
-	// }
-	//
-	// // GET STUCK ON LOADING if done for both "loading" and "complete"
-	// if (changeInfo.status === "loading") {
-	// 	// NOTE: UPDATEBADGE
-	// 	updateTabBadge(tab, "↻", CONTRAST_GREEN);
-	// }
-	//
-	// if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
-	// 	updateVulnerabilities(tab);
-	// } else if (isBlacklisted(tab.url)) {
-	// 	removeLoadingBadge(tab);
-	// }
+	retrieveApplicationFromStorage(tab)
+	.then(application => _setCurrentApplication(application))
+	.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+
+	if (!CURRENT_APPLICATION) {
+		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+		return;
+	}
+
+	// GET STUCK ON LOADING if done for both "loading" and "complete"
+	if (changeInfo.status === "loading") {
+		// NOTE: UPDATEBADGE
+		updateTabBadge(tab, "↻", CONTRAST_GREEN);
+	}
+
+	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
+		updateVulnerabilities(tab);
+	} else if (isBlacklisted(tab.url)) {
+		removeLoadingBadge(tab);
+	}
 });
 
 /**

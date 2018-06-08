@@ -2,6 +2,7 @@
   chrome,
   document,
   URL,
+  Helpers,
 */
 const {
   VALID_TEAMSERVER_HOSTNAMES,
