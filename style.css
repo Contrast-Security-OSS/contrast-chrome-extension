@@ -1,3 +1,9 @@
+html {
+  margin: 0;
+  top: 0;
+  margin-bottom: 10px;
+}
+
 body {
   font-family: Lato, Helvetica, Neue, Arial, 'sans-serif';
   font-size: 14px;
@@ -26,9 +32,35 @@ button.btn-contrast-plugin {
   color: #fff;
 }
 
-button.btn-contrast-plugin:hover {
+button.btn-contrast-plugin:hover, button.buttonTab:hover {
   background-color: #0da1a9 !important;
   border-color: #0da1a9;
+}
+
+.tab-selector {
+  display: flex;
+  flex-direction: row;
+  top: 0px;
+}
+
+button.buttonTab {
+  width: 50%;
+  margin: 0;
+  border-radius: 0;
+  outline: none;
+  border: none;
+  border: 2px solid #3cc3b2;
+}
+
+button.buttonTab:focus, button.buttonTab:active {
+  background-color: #3cc3b2 !important;
+  border-color: #3cc3b2;
+  color: #fff;
+  outline: none;
+}
+
+button.buttonTab:hover {
+  color: #fff;
 }
 
 #no-results {
@@ -37,7 +69,7 @@ button.btn-contrast-plugin:hover {
   justify-content: space-between;
 }
 
-#vulnerabilities {
+#vulnerabilities-section, #libraries-section {
   width: 400px;
   padding: 0px;
   align-items: center;
@@ -106,7 +138,7 @@ label {
   color: gray;
 }
 
-#logo-icon {
+.logo-icon {
   max-width: 130%;
 }
 
@@ -133,16 +165,16 @@ label {
   margin-bottom: 0px;
 }
 
-#vulnerabilities-found-on-page {
+#vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
   padding: 0px;
 }
 
-#vulnerabilities-found-on-page-list {
+#vulnerabilities-found-on-page-list, #libs-vulnerabilities-found-on-page-list {
   margin-top: 10px;
 }
 
 /* gear button in bottom right corner */
-#configure-gear {
+.configure-gear {
   outline: none;
 }
 

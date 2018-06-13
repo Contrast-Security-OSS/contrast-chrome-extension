@@ -31,8 +31,8 @@ const {
 } = Helpers;
 
 import {
-	setupCurrentTab,
-} from './tabStorage.js';
+	getStoredApplicationLibraries,
+} from './libraries.js';
 
 
 /******************************************************************************
@@ -135,7 +135,7 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 				sendResponse({ traces: [] });
 			}
 			removeLoadingBadge(tab);
-		})
+		});
 	}
 
 	else if (request === "EVALUATE_XHR" && CURRENT_APPLICATION) {
@@ -149,7 +149,10 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 				true
 			);
 		})
-		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+		.catch(() => {
+			new Error("Error in runtime on message eval xhr")
+			updateTabBadge(tab, "X", CONTRAST_RED)
+		});
 	}
 
 	else if (request.sender === GATHER_FORMS_ACTION) {
@@ -166,10 +169,14 @@ function handleRuntimeOnMessage(request, sendResponse, tab) {
 				);
 			}
 		})
-		.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+		.catch(() => {
+			new Error("Error in runtime on message gathering forms")
+			updateTabBadge(tab, "X", CONTRAST_RED);
+		});
 	}
 	return request;
 }
+
 
 // ------------------------- TAB ACTIVATION -------------------------
 
@@ -208,6 +215,7 @@ function handleTabActivated(tab) {
 		}
 	})
 	.catch(() => {
+		new Error("Error retrieving apps in handle activate");
 		updateTabBadge(tab, "X", CONTRAST_RED);
 	});
 }
@@ -228,29 +236,34 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 		return;
 	}
-
-	setupCurrentTab(tab)
-
 	retrieveApplicationFromStorage(tab)
-	.then(application => _setCurrentApplication(application))
-	.catch(() => updateTabBadge(tab, "X", CONTRAST_RED));
+	.then(application => {
+		if (application) {
+			_setCurrentApplication(application)
+			getStoredApplicationLibraries(application, tab)
+		}
+	})
+	.catch((error) => {
+		new Error("Error retrieving apps in onUpdated");
+		updateTabBadge(tab, "X", CONTRAST_RED)
+	});
 
-	if (!CURRENT_APPLICATION) {
-		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-		return;
-	}
-
-	// GET STUCK ON LOADING if done for both "loading" and "complete"
-	if (changeInfo.status === "loading") {
-		// NOTE: UPDATEBADGE
-		updateTabBadge(tab, "↻", CONTRAST_GREEN);
-	}
-
-	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
-		updateVulnerabilities(tab);
-	} else if (isBlacklisted(tab.url)) {
-		removeLoadingBadge(tab);
-	}
+	// if (!CURRENT_APPLICATION) {
+	// 	updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+	// 	return;
+	// }
+	//
+	// // GET STUCK ON LOADING if done for both "loading" and "complete"
+	// if (changeInfo.status === "loading") {
+	// 	// NOTE: UPDATEBADGE
+	// 	updateTabBadge(tab, "↻", CONTRAST_GREEN);
+	// }
+	//
+	// if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
+	// 	updateVulnerabilities(tab);
+	// } else if (isBlacklisted(tab.url)) {
+	// 	removeLoadingBadge(tab);
+	// }
 });
 
 /**
@@ -297,6 +310,7 @@ function updateVulnerabilities(tab) {
 
 					// NOTE: An undefined reponse usually occurrs only in dev, when a user navigates to a tab after reloading the extension and doesn't refresh the page.
 					if (!response) {
+						console.log("updating x after gather form actions");
 						updateTabBadge(tab, "X", CONTRAST_RED);
 						// NOTE: Possibly dangerous if !response even after reload
 						// chrome.tabs.reload(tab.id)
@@ -323,9 +337,11 @@ function updateVulnerabilities(tab) {
 				getCredentials(tab);
 			}
 		}).catch(() => {
+			new Error("Error with stored creds in updateVulnerabilities");
 			updateTabBadge(tab, "X", CONTRAST_RED)
 		});
 	}).catch(() => {
+		new Error("Error with remove vulns in updateVulnerabilities")
 		updateTabBadge(tab, "X", CONTRAST_RED)
 	});
 	return;
@@ -370,6 +386,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, is
 			}
 		})
 		.catch(() => {
+			new Error("Error getting org vuln ids in eval vulns")
 			updateTabBadge(tab, "X", CONTRAST_RED)
 		});
 	} else if (hasCredentials && !!traceUrls && traceUrls.length === 0) {
@@ -426,6 +443,7 @@ function setToStorage(foundTraces, tab) {
 			});
 		})
 		.catch(() => {
+			new Error("error building vulns in set to store")
 			updateTabBadge(tab, "X", CONTRAST_RED)
 		});
 }
@@ -512,4 +530,37 @@ export function getCredentials(tab) {
 function _setCurrentApplication(application) {
 	CURRENT_APPLICATION = application;
 	return CURRENT_APPLICATION;
+}
+
+
+
+
+
+
+
+
+function _addVersionedScriptsAsVulnerabilities(scripts, json, sendResponse) {
+  const scriptFiles  = scripts.map(s => s.jsFileName);
+  const scriptParsed = scripts.map(s => s.parsedFile);
+
+  let vulnerableScriptObjs = [];
+  for (let key in json) {
+    // check if vulnerability object of library is correct version as the one the webpage is using
+    if (_isCorrectVersion(json[key].vulnerabilities, scripts, key)) {
+
+      console.log(_isCorrectVersion(json[key].vulnerabilities, scripts, key), key);
+
+      if (scriptParsed.includes(key)) {
+        vulnerableScriptObjs.push({ [key]: json[key] });
+      } else if (scriptFiles.includes(key + ".js")) {
+        vulnerableScriptObjs.push({ [key]: json[key] });
+      } else if (json[key].bowername && _isScriptInBowername(json[key].bowername, scriptParsed)) {
+        vulnerableScriptObjs.push({ [key]: json[key] });
+      }
+    } else {
+      console.log(key, scripts);
+    }
+  }
+  console.log("sending response", vulnerableScriptObjs);
+  sendResponse(vulnerableScriptObjs);
 }

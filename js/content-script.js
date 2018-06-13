@@ -37,44 +37,6 @@ window.addEventListener("load", function() {
   }, 1000);
 });
 
-function _collectScripts(sendResponse) {
-  _getLibraryVulnerabilities()
-  .then(json => {
-    // const vulnerableLibraries = Object.keys(json);
-    const docScripts = document.scripts;
-    let scripts = [];
-    for (let i = 0, len = docScripts.length; i < len; i++) {
-      let fileNameArray = docScripts[i].src.split("/");
-      let jsFileName;
-      jsFileName = fileNameArray[fileNameArray.length - 1];
-      jsFileName = _parseJSFile(jsFileName);
-      if (!scripts.includes(jsFileName)) {
-        scripts.push(jsFileName);
-      }
-    }
-
-    // NOTE: This filters scripts so that we're not comparing all of them
-    // vulnerableLibraries = vulnerableLibraries.map(jsFileName => {
-    //   return _parseJSFile(jsFileName);
-    // })
-    // scripts = scripts.filter(script => {
-    //   return vulnerableLibraries.includes(script)
-    // })
-
-    let vulnerableScriptObjs = [];
-    for (let key in json) {
-      if (scripts.includes(key)) {
-        vulnerableScriptObjs.push({ [key]: json[key] });
-      } else if (scripts.includes(key + ".js")) {
-        vulnerableScriptObjs.push({ [key]: json[key] });
-      } else if (json[key].bowername && _isScriptInBowername(json[key].bowername, scripts)) {
-        vulnerableScriptObjs.push({ [key]: json[key] });
-      }
-    }
-    sendResponse(vulnerableScriptObjs)
-  })
-}
-
 function _getLibraryVulnerabilities() {
   const retireJSURL = "https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json"
   const fetchOptions = {
@@ -90,13 +52,71 @@ function _getLibraryVulnerabilities() {
 	.catch(new Error("Error getting js lib vulnerabilities"))
 }
 
-function _isScriptInBowername(bowernames, scripts) {
-  for (let i = 0, len = bowernames.length; i < len; i++) {
-    if (scripts.includes(bowernames[i])) {
-      return true
+function _collectScripts(sendResponse) {
+  _getLibraryVulnerabilities()
+  .then(json => {
+    const docScripts = [].slice.call(document.scripts).map(s => {
+      let srcArray = s.src.split("/");
+      return srcArray[srcArray.length - 1];
+    });
+
+    const sharedLibraries = _compareAppAndVulnerableLibraries(docScripts, json);
+    console.log("sharedLibraries", sharedLibraries);
+
+    if (!sharedLibraries || sharedLibraries.length === 0) {
+      return sendResponse(null);
+    } else {
+      return sendResponse({ sharedLibraries });
     }
+  })
+  .catch(Error);
+}
+
+function _compareAppAndVulnerableLibraries(docScripts, vulnerableLibraries) {
+  let documentScripts = docScripts.map(s => {
+    if (s && s[0] && (/[a-z]/.test(s[0]))) {
+      let jsFileName    = s;
+      let parsedLibName = _parseJSFile(s);
+      let parsedLibNameJS = parsedLibName + ".js";
+      return { jsFileName, parsedLibName, parsedLibNameJS }
+    }
+  }).filter(Boolean)
+
+  let sharedLibraries = []
+
+  for (let key in vulnerableLibraries) {
+    let vulnLib      = vulnerableLibraries[key];
+    let vulnLibNames = [];
+    vulnLibNames.push(key);
+
+    if (vulnLib.bowername) {
+      let bowernames = vulnLib.bowername.map(name => name.toLowerCase());
+      vulnLibNames = vulnLibNames.concat(bowernames);
+    }
+
+    let shared = documentScripts.filter((script, index, self)  => {
+      let conditions = [
+        vulnLibNames.includes(script.jsFileName),
+        vulnLibNames.includes(script.parsedLibName),
+        vulnLibNames.includes(script.parsedLibNameJS),
+      ];
+      return conditions.some(Boolean);
+    })
+    if (shared[0]) {
+      let found = sharedLibraries.find(script => {
+        return shared[0].parsedLibName === script.parsedLibName;
+      });
+      if (!found) {
+        let library = shared[0];
+        let extractors = vulnLib.extractors
+        library.name = key;
+        library.extractors = extractors;
+        library.vulnerabilities = vulnLib.vulnerabilities;
+        sharedLibraries.push(library)
+      }
+    };
   }
-  return false
+  return sharedLibraries;
 }
 
 function _parseJSFile(jsFileName) {
@@ -108,6 +128,17 @@ function _parseJSFile(jsFileName) {
   jsFileName = (/\W/).test(jsFileName[jsFileName.length - 1]) ? jsFileName.substr(0, jsFileName.length - 1) : jsFileName;
   return jsFileName;
 }
+
+//
+//
+// function _isScriptInBowername(bowernames, scripts) {
+//   for (let i = 0, len = bowernames.length; i < len; i++) {
+//     if (scripts.includes(bowernames[i])) {
+//       return true
+//     }
+//   }
+//   return false
+// }
 
 
 /**
@@ -314,6 +345,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       setTimeout(() => collectFormActions(sendResponse), 1000);
     } else {
       collectFormActions(sendResponse);
+    }
+  }
+
+  else if (request.action === "GET_LIB_VERSION" && request.library) {
+    const library    = request.library.parsedLibName.replace('-', '_');
+    console.log(library);
+    const libElement = document.getElementById(`__script_res_${library}`);
+    let extractedLibraryVersion;
+    try {
+      console.log("libElement", libElement);
+      extractedLibraryVersion = libElement.innerText;
+    } catch (e) {
+      sendResponse(null);
+    }
+    if (extractedLibraryVersion) {
+      let versionArray = extractedLibraryVersion.split('_');
+      sendResponse(versionArray[versionArray.length - 1]);
+    } else {
+      sendResponse(null)
     }
   }
 

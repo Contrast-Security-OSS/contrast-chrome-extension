@@ -10,6 +10,9 @@ const {
   TEAMSERVER_INDEX_PATH_SUFFIX,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
   CONTRAST_USERNAME,
+  CONTRAST__STORED_APP_LIBS,
+  CONTRAST_CONFIGURE_TEXT,
+  CONTRAST_YELLOW,
   getStoredCredentials,
   isCredentialed,
   isBlacklisted,
@@ -22,6 +25,7 @@ const {
   isContrastTeamserver,
   setElementText,
   setElementDisplay,
+  updateTabBadge,
 } = Helpers;
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
@@ -32,6 +36,8 @@ const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting Domain";
 const DISCONNECT_BUTTON_TEXT     = "Disconnect Domain";
 
 const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin";
+
+// import { Application } from './models/application';
 
 /**
  * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
@@ -125,6 +131,7 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
  * @return {void}
  */
 function getUserConfiguration(tab, url, credentialed) {
+  // updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW)
   if (_isTeamserverAccountPage(tab, url)) {
     const configButton = document.getElementById('configure-extension-button');
     setElementText(configButton, credentialed ? "Reconfigure" : "Configure");
@@ -138,7 +145,9 @@ function getUserConfiguration(tab, url, credentialed) {
     renderConfigButton(tab, configButton);
   } else {
     const notConfigured = document.getElementById('not-configured');
+    const notConfiguredLibs = document.getElementById('not-configured');
     setElementDisplay(notConfigured, "");
+    setElementDisplay(notConfiguredLibs, "");
   }
 }
 
@@ -209,11 +218,13 @@ function renderActivityFeed(items, url) {
     if (result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
       // find sections
       const notConfiguredSection = document.getElementById('not-configured');
+      const notConfiguredSectionLibs = document.getElementById('libs-not-configured');
       const configureExtension   = document.getElementById('configure-extension');
 
       // if you don't need credentials, hide the signin functionality
       setElementDisplay(configureExtension, "none");
       setElementDisplay(notConfiguredSection, "none");
+      setElementDisplay(notConfiguredSectionLibs, "none");
     } else {
       const applicationTable = document.getElementById("application-table");
 
@@ -313,7 +324,10 @@ function createAppTableRow(application, url) {
   } else {
 
     // on a contrast page - render the full collection of apps in a user org with respective domains
-    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+    chrome.storage.local.get([STORED_APPS_KEY, CONTRAST__STORED_APP_LIBS], (result) => {
+
+      console.log("index.js chrome storage get result", result);
+
       if (chrome.runtime.lastError) return;
 
       // result has not been defined yet
@@ -381,9 +395,8 @@ function _addDomainToStorage(host, application) {
       // no applications stored so result[STORED_APPS_KEY] is undefined
       if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
 
-      const updatedStoredApps = result[STORED_APPS_KEY].concat({
-        [host]: application.app_id
-      });
+      const app = { [host]: application.app_id };
+      const updatedStoredApps = result[STORED_APPS_KEY].concat(app);
 
       const applicationTable = document.getElementById("application-table");
       chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
@@ -404,6 +417,7 @@ function _addDomainToStorage(host, application) {
  * @return {Promise}                   if the removal succeeded
  */
 function _disconnectDomain(storedApps, application, disconnectButton) {
+  console.log("disconnect domain stored apps and application", storedApps, application);
   return new Promise((resolve, reject) => {
     const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
       return Object.values(app)[0] !== application.app_id;
@@ -412,7 +426,13 @@ function _disconnectDomain(storedApps, application, disconnectButton) {
     const domainElement = _getDisconnectButtonSibling(disconnectButton, application.name);
     if (!domainElement) return;
 
-    chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
+    const domain = Object.keys(application)[0];
+    console.log("DOMAIN", domain);
+
+    chrome.storage.local.set({
+      [STORED_APPS_KEY]: updatedStoredApps,
+      [CONTRAST__STORED_APP_LIBS]: "APP_LIBS__ID_" + domain,
+    }, () => {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError));
       }
@@ -459,7 +479,9 @@ function _chromeExtensionSettingsUrl() {
  */
 function _renderContrastUsername(items) {
   const userEmail = document.getElementById('user-email');
+  const libsUserEmail = document.getElementById('libs-user-email');
   setElementText(userEmail, `User: ${items[CONTRAST_USERNAME]}`);
+  setElementText(libsUserEmail, `User: ${items[CONTRAST_USERNAME]}`);
   setElementDisplay(userEmail, "block");
   userEmail.addEventListener('click', () => {
     const contrastIndex = items.teamserver_url.indexOf("/Contrast/api");
@@ -507,3 +529,29 @@ function _isTeamserverAccountPage(tab, url) {
  * Run when popup loads
  */
 document.addEventListener('DOMContentLoaded', indexFunction, false);
+document.addEventListener('DOMContentLoaded', addButtonTabListeners, false);
+
+
+function addButtonTabListeners() {
+  const vulnsTab = document.getElementById('vulns-tab');
+  const libsTab  = document.getElementById('libs-tab');
+  vulnsTab.addEventListener('click', function() {
+    const libsSection  = document.getElementById('libraries-section');
+    const vulnsSection = document.getElementById('vulnerabilities-section');
+    vulnsSection.classList.add('visible');
+    vulnsSection.classList.remove('hidden');
+
+    libsSection.classList.remove('visible');
+    libsSection.classList.add('hidden');
+  });
+
+  libsTab.addEventListener('click', function() {
+    const libsSection  = document.getElementById('libraries-section');
+    const vulnsSection = document.getElementById('vulnerabilities-section');
+    vulnsSection.classList.remove('visible');
+    vulnsSection.classList.add('hidden');
+
+    libsSection.classList.add('visible');
+    libsSection.classList.remove('hidden');
+  });
+}

@@ -15,11 +15,15 @@
 </head>
 
 <body>
-  <section id="vulnerabilities" class="panel panel-default">
+  <div class="tab-selector">
+    <button id="vulns-tab" class="btn buttonTab" autofocus type="button" name="button">Vulnerabilities</button>
+    <button id="libs-tab" class="btn buttonTab" type="button" name="button">Libraries</button>
+  </div>
+  <section id="vulnerabilities-section" class="panel panel-default visible">
     <div class="panel-heading container-fluid">
       <div class="row">
         <div class="col-xs-2">
-          <img src="icon.png" alt="" id="logo-icon">
+          <img src="icon.png" alt="" class="logo-icon">
         </div>
         <div class="col-xs-10">
           <h4 class="discovered-vulnerabilities-h">
@@ -74,13 +78,55 @@
         <div class="col-xs-10 color-gray" id="user-email">
         </div>
         <div class="col-xs-2">
-          <a href="#" id="configure-gear">
+          <a href="#" class="configure-gear">
             <span class="glyphicon glyphicon-cog color-gray"></span>
           </a>
         </div>
       </div>
     </div>
+  </section>
+  <!-- end vulnerabilities section -->
 
+  <!-- begin Libraries section -->
+  <section id="libraries-section" class="panel panel-default hidden">
+    <div class="panel-heading container-fluid">
+      <div class="row">
+        <div class="col-xs-2">
+          <img src="icon.png" alt="" class="logo-icon">
+        </div>
+        <div class="col-xs-10">
+          <h4 class="discovered-vulnerabilities-h">
+            <strong>Contrast</strong>
+          </h4>
+          <h4 class="no-margin">Discovered Library Vulnerabilities</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="color-gray panel-body" id="libs-no-vulnerabilities-found">
+      <h5>No vulnerabilities found in front-end application libraries.</h5>
+    </div>
+
+    <div style="display: none;" class="color-gray panel-body" id="libs-not-configured">
+      <h5>To start using the extension, please log into Contrast and navigate to "Your Account"</h5>
+    </div>
+
+    <div style="display: none;" id="libs-vulnerabilities-found-on-page" class="panel-body">
+      <ul class="list-group" id="libs-vulnerabilities-found-on-page-list">
+      </ul>
+    </div>
+
+    <div class="panel-footer container-fluid">
+      <div class="row">
+        <div class="col-xs-10 color-gray" id="libs-user-email">
+        </div>
+        <div class="col-xs-2">
+          <a href="#" class="configure-gear">
+            <span class="glyphicon glyphicon-cog color-gray"></span>
+          </a>
+        </div>
+      </div>
+    </div>
   </section>
 </body>
 
