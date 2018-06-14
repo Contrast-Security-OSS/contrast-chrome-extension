@@ -37,12 +37,12 @@ import {
   renderVulnerableLibraries
 } from './libraries/showLibraries.js'
 
-const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
-const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";
-const CONNECT_FAILURE_MESSAGE = "Error Connecting Domain. Try refreshing the page.";
-const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected Domain";
-const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting Domain";
-const DISCONNECT_BUTTON_TEXT     = "Disconnect Domain";
+const CONNECT_BUTTON_TEXT     = "Click to Connect";
+const CONNECT_SUCCESS_MESSAGE = "Successfully connected. You may need to reload the page.";
+const CONNECT_FAILURE_MESSAGE = "Error Connecting. Try refreshing the page.";
+const DISCONNECT_SUCCESS_MESSAGE = "Successfully disconnected. You may need to reload the page.";
+const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting";
+const DISCONNECT_BUTTON_TEXT     = "Disconnect";
 
 const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin";
 
@@ -301,36 +301,20 @@ function createAppTableRow(application, url, tab) {
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(url.href)) {
-    setElementText(domainTD, CONNECT_BUTTON_TEXT);
+    const connectBtn = document.createElement('button');
+    connectBtn.setAttribute('class', `${CONTRAST_BUTTON_CLASS} domainBtn`);
 
-    const domainBtn = document.createElement('button');
-    domainBtn.setAttribute('class', `${CONTRAST_BUTTON_CLASS} domainBtn`);
+    setElementText(connectBtn, CONNECT_BUTTON_TEXT);
+    setElementText(nameTD, application.name.titleize());
 
-    setElementText(domainBtn, application.name.titleize());
-    nameTD.appendChild(domainBtn);
+    domainTD.appendChild(connectBtn);
 
-    domainBtn.addEventListener('click', () => {
-      const message = document.getElementById("connected-domain-message");
-      message.classList.add("visible");
-      message.classList.remove("hidden");
-
-      _addDomainToStorage(host, application)
-      .then(result => {
-        if (result) {
-          getStoredApplicationLibraries(application, tab)
-          setElementText(message, CONNECT_SUCCESS_MESSAGE);
-          message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-        } else {
-          setElementText(message, CONNECT_FAILURE_MESSAGE);
-          message.setAttribute('style', `color: ${CONTRAST_RED}`);
-        }
-        _hideElementAfterTimeout(message, indexFunction);
-      })
-      .catch(() => {
-        setElementText(message, CONNECT_FAILURE_MESSAGE);
-        message.setAttribute('style', `color: ${CONTRAST_RED}`);
-        _hideElementAfterTimeout(message);
-      });
+    connectBtn.addEventListener('click', () => {
+      _connectDomain(host, application, tab);
+    });
+    nameTD.style.cursor = "pointer";
+    nameTD.addEventListener('click', () => {
+      _connectDomain(host, application, tab);
     });
   } else {
     // on a contrast page - render the full collection of apps in a user org with respective domains
@@ -389,6 +373,32 @@ function createAppTableRow(application, url, tab) {
       setElementText(nameTD, application.name);
     });
   }
+}
+
+function _connectDomain(host, application, tab) {
+  const message = document.getElementById("connected-domain-message");
+  message.classList.add("visible");
+  message.classList.remove("hidden");
+
+  _addDomainToStorage(host, application)
+  .then(result => {
+    if (result) {
+      console.log("result of adding domain to storage", result);
+      setElementText(message, CONNECT_SUCCESS_MESSAGE);
+      message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+      getStoredApplicationLibraries(application, tab);
+    } else {
+      setElementText(message, CONNECT_FAILURE_MESSAGE);
+      message.setAttribute('style', `color: ${CONTRAST_RED}`);
+    }
+    _hideElementAfterTimeout(message, indexFunction);
+  })
+  .catch((error) => {
+    console.log("error in _addDomainToStorage", error);
+    setElementText(message, CONNECT_FAILURE_MESSAGE);
+    message.setAttribute('style', `color: ${CONTRAST_RED}`);
+    _hideElementAfterTimeout(message);
+  });
 }
 
 /**
@@ -590,3 +600,26 @@ function addButtonTabListeners() {
     })
   });
 }
+
+const refreshLibsButton = document.getElementById('refresh-libs-btn');
+refreshLibsButton.addEventListener('click', function() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs || tabs.length === 0) return;
+    const tab = tabs[0];
+    retrieveApplicationFromStorage(tab)
+    .then(application => {
+      console.log("application", application);
+      if (application) {
+        getStoredApplicationLibraries(application, tab)
+        .then(libraries => {
+          console.log("libraries", libraries);
+          renderVulnerableLibraries(libraries);
+        })
+        .catch(Error);
+      } else {
+        throw new Error("No Application");
+      }
+    })
+    .catch(Error);
+  });
+});

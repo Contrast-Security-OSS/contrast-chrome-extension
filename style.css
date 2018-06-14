@@ -253,3 +253,8 @@ label {
   transition-delay: 0s, 0s;
   position: absolute;
 }
+
+#refresh-libs-btn {
+  display: block;
+  margin: 10px auto;
+}

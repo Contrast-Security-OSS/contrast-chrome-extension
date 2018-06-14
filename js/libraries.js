@@ -194,30 +194,25 @@ function _parseVersionNumber(string) {
 }
 
 export function getStoredApplicationLibraries(application, tab) {
-  chrome.storage.local.remove(CONTRAST__STORED_APP_LIBS);
-  if (!application) return;
-  const appHost = Object.keys(application)[0];
-  if (!appHost) return;
-  const appKey  = "APP_LIBS__ID_" + appHost;
-  if (!appKey) return;
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.remove(CONTRAST__STORED_APP_LIBS);
+    if (!application) return;
+    const appHost = Object.keys(application)[0];
+    if (!appHost) return;
+    const appKey  = "APP_LIBS__ID_" + appHost;
+    if (!appKey) return;
 
-  chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
-    console.log("result", result);
-    if (!result
-         || Object.keys(result).length === 0
-         || !result[CONTRAST__STORED_APP_LIBS][appKey]
-         || !result[CONTRAST__STORED_APP_LIBS][appKey].application
-         || !result[CONTRAST__STORED_APP_LIBS][appKey].libraries
-         || result[CONTRAST__STORED_APP_LIBS][appKey].libraries.length === 0)
-    {
-      console.log("setting up application from getStoredApplicationLibraries");
-      _setupApplicationLibraries(application, tab)
-    }
-    console.log("#####");
-    console.log("result of get stored application libs", result);
-    console.log("#####");
-    return true;
-  })
+    _setupApplicationLibraries(application, tab)
+    .then(libraries => {
+      console.log("libraries from setup", libraries.libraries);
+      if (libraries && libraries.libraries && libraries.libraries.length > 0) {
+        resolve(libraries.libraries);
+      } else {
+        resolve([]);
+      }
+    })
+    .catch(error => reject(error));
+  });
 }
 
 function _createVersionedLib(tab, library) {
