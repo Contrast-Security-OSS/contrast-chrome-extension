@@ -131,8 +131,8 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
  * @return {void}
  */
 function getUserConfiguration(tab, url, credentialed) {
-  // updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW)
   if (_isTeamserverAccountPage(tab, url)) {
+    updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
     const configButton = document.getElementById('configure-extension-button');
     setElementText(configButton, credentialed ? "Reconfigure" : "Configure");
 
@@ -144,6 +144,7 @@ function getUserConfiguration(tab, url, credentialed) {
 
     renderConfigButton(tab, configButton);
   } else {
+    updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
     const notConfigured = document.getElementById('not-configured');
     const notConfiguredLibs = document.getElementById('not-configured');
     setElementDisplay(notConfigured, "");
@@ -322,10 +323,12 @@ function createAppTableRow(application, url) {
       });
     });
   } else {
-
     // on a contrast page - render the full collection of apps in a user org with respective domains
-    chrome.storage.local.get([STORED_APPS_KEY, CONTRAST__STORED_APP_LIBS], (result) => {
 
+    chrome.storage.local.get([
+      STORED_APPS_KEY,
+      CONTRAST__STORED_APP_LIBS
+    ], (result) => {
       console.log("index.js chrome storage get result", result);
 
       if (chrome.runtime.lastError) return;

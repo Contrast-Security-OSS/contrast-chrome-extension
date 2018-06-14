@@ -64,10 +64,11 @@ function _collectScripts(sendResponse) {
     console.log("sharedLibraries", sharedLibraries);
 
     if (!sharedLibraries || sharedLibraries.length === 0) {
-      return sendResponse(null);
+      sendResponse(null);
     } else {
-      return sendResponse({ sharedLibraries });
+      sendResponse({ sharedLibraries });
     }
+    return sendResponse(null)
   })
   .catch(Error);
 }
@@ -75,51 +76,57 @@ function _collectScripts(sendResponse) {
 function _compareAppAndVulnerableLibraries(docScripts, vulnerableLibraries) {
   let documentScripts = docScripts.map(s => {
     if (s && s[0] && (/[a-z]/.test(s[0]))) {
-      let jsFileName    = s;
-      let parsedLibName = _parseJSFile(s);
+      let jsFileName      = s;
+      let parsedLibName   = _getLibNameFromJSFile(s);
       let parsedLibNameJS = parsedLibName + ".js";
-      return { jsFileName, parsedLibName, parsedLibNameJS }
+      return { jsFileName, parsedLibName, parsedLibNameJS };
     }
+    return false;
   }).filter(Boolean)
 
-  let sharedLibraries = []
+  return _findCommonLibraries(vulnerableLibraries, documentScripts);
+}
 
+function _findCommonLibraries(vulnerableLibraries, documentScripts) {
+  let sharedLibraries = [];
   for (let key in vulnerableLibraries) {
-    let vulnLib      = vulnerableLibraries[key];
-    let vulnLibNames = [];
-    vulnLibNames.push(key);
+    if (Object.prototype.hasOwnProperty.call(vulnerableLibraries, key)) {
+      let vulnLib      = vulnerableLibraries[key];
+      let vulnLibNames = [];
+      vulnLibNames.push(key);
 
-    if (vulnLib.bowername) {
-      let bowernames = vulnLib.bowername.map(name => name.toLowerCase());
-      vulnLibNames = vulnLibNames.concat(bowernames);
-    }
-
-    let shared = documentScripts.filter((script, index, self)  => {
-      let conditions = [
-        vulnLibNames.includes(script.jsFileName),
-        vulnLibNames.includes(script.parsedLibName),
-        vulnLibNames.includes(script.parsedLibNameJS),
-      ];
-      return conditions.some(Boolean);
-    })
-    if (shared[0]) {
-      let found = sharedLibraries.find(script => {
-        return shared[0].parsedLibName === script.parsedLibName;
-      });
-      if (!found) {
-        let library = shared[0];
-        let extractors = vulnLib.extractors
-        library.name = key;
-        library.extractors = extractors;
-        library.vulnerabilities = vulnLib.vulnerabilities;
-        sharedLibraries.push(library)
+      if (vulnLib.bowername) {
+        let bowernames = vulnLib.bowername.map(name => name.toLowerCase());
+        vulnLibNames = vulnLibNames.concat(bowernames);
       }
-    };
+
+      let shared = documentScripts.filter(script  => {
+        let conditions = [
+          vulnLibNames.includes(script.jsFileName),
+          vulnLibNames.includes(script.parsedLibName),
+          vulnLibNames.includes(script.parsedLibNameJS),
+        ];
+        return conditions.some(Boolean);
+      })
+      if (shared[0]) {
+        let found = sharedLibraries.find(script => {
+          return shared[0].parsedLibName === script.parsedLibName;
+        });
+        if (!found) {
+          const library           = shared[0];
+          const extractors        = vulnLib.extractors;
+          library.name            = key;
+          library.extractors      = extractors;
+          library.vulnerabilities = vulnLib.vulnerabilities;
+          sharedLibraries.push(library);
+        }
+      }
+    }
   }
   return sharedLibraries;
 }
 
-function _parseJSFile(jsFileName) {
+function _getLibNameFromJSFile(jsFileName) {
   jsFileName = jsFileName.split(".js")[0];
   jsFileName = jsFileName.split(".min")[0];
   jsFileName = jsFileName.split("-min")[0];

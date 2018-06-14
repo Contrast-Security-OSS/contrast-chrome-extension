@@ -8,9 +8,39 @@ const {
   CONTRAST__STORED_APP_LIBS,
 } = Helpers;
 
-import {
-  setupApplicationLibraries,
-} from './tabStorage.js'
+/**
+ * _updateAppLibsInStorage - append app libraries to current app libraries
+ *
+ * @param  {Object} tab             the current tab
+ * @param  {Object} result          the current app storage object
+ * @param  {Function} resolve       promise resolve
+ * @param  {Function} reject        promise reject
+ * @param  {String} storedAppLibsId the id of the stored app
+ * @return {Promise}                promise of returned app libraries
+ */
+function _updateAppLibsInStorage(tab, result, resolve, reject, storedAppLibsId) {
+  getApplicationLibraries(tab)
+  .then(libraries => {
+    console.log("application libraries", libraries);
+    if (!libraries || libraries.length === 0) return result;
+
+    let libsObject = result[CONTRAST__STORED_APP_LIBS];
+
+    console.log("CONTRAST__STORED_APP_LIBS before", libsObject);
+    libsObject[storedAppLibsId].libraries = libsObject[storedAppLibsId].libraries.concat(libraries);
+    console.log("CONTRAST__STORED_APP_LIBS after", libsObject);
+
+    chrome.storage.local.set(libsObject, () => {
+      chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (getted) => {
+        console.log("application libraries were updated", getted);
+      })
+    });
+    console.log("updated result obj", result[CONTRAST__STORED_APP_LIBS][storedAppLibsId]);
+    return resolve(result[CONTRAST__STORED_APP_LIBS][storedAppLibsId]);
+  })
+  .catch(() => new Error("Error updating stored tab"));
+}
+
 
 export function getApplicationLibraries(tab) {
   return new Promise((resolve, reject) => {
@@ -20,19 +50,87 @@ export function getApplicationLibraries(tab) {
 
       const libraries = sharedLibraries.map(lib => _createVersionedLib(tab, lib));
 
-      return Promise.all(libraries)
+      return Promise.all(libraries) // eslint-disable-line consistent-return
       .then(libResult => {
         console.log("libResult", libResult);
         const vulnerableApplicationLibs = libResult.map(l => {
           if (l && l.vulnerabilities && l.version && _isCorrectVersion(l.vulnerabilities, l.version)) {
             return l;
           }
+          return false;
         }).filter(Boolean);
-        resolve(vulnerableApplicationLibs);
+        return resolve(vulnerableApplicationLibs);
       })
-      .catch(error => console.log("error processing libResult", error));
+      .catch(error => { // eslint-disable-line consistent-return
+        reject(error);
+        console.log("error processing libResult", error)
+      });
     });
   });
+}
+
+function _setupApplicationLibraries(application, tab) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
+      console.log("chrome storage get CONTRAST__STORED_APP_LIBS first", result);
+      // no applications have been setup, first time method has been called
+      if (!result || Object.keys(result).length === 0) {
+        result = { [CONTRAST__STORED_APP_LIBS]: {} };
+      }
+
+      console.log("_setupApplicationLibraries() result from get", result);
+
+      const storedAppLibsId = "APP_LIBS__ID_" + Object.keys(application)[0];
+
+      if (!result[CONTRAST__STORED_APP_LIBS][storedAppLibsId]) {
+        console.log("adding app libs");
+        _addAppLibsToStorage(tab, result, resolve, reject, storedAppLibsId, application);
+      }
+
+      else if (result[CONTRAST__STORED_APP_LIBS][storedAppLibsId].application && result[CONTRAST__STORED_APP_LIBS][storedAppLibsId].libraries.length === 0) {
+        console.log("updating app libs");
+        _updateAppLibsInStorage(tab, result, resolve, reject, storedAppLibsId);
+      } else {
+        resolve(result[CONTRAST__STORED_APP_LIBS][storedAppLibsId])
+      }
+    });
+  });
+}
+
+/**
+ * _addAppLibsToStorage - add application libraries to storage
+ * @param  {Object} tab             the current tab
+ * @param  {Object} result          the current app storage object
+ * @param  {Function} resolve       promise resolve
+ * @param  {Function} reject        promise reject
+ * @param  {String} storedAppLibsId the id of the stored app
+ * @param  {Object} application     the application object
+ * @return {Promise}                promise of returned app libraries
+ */
+function _addAppLibsToStorage(tab, result, resolve, reject, storedAppLibsId, application) {
+  getApplicationLibraries(tab)
+  .then(libraries => {
+    if (!libraries || libraries.length === 0) return;
+
+    console.log("ADDING LIBS TO STORAGE RESULT BEFORE", result);
+
+    result[CONTRAST__STORED_APP_LIBS][storedAppLibsId] = {
+      application,
+      libraries,
+    }
+
+    console.log("ADDING LIBS TO STORAGE RESULT AFTER", result);
+
+    chrome.storage.local.set(result, () => {
+      chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (stored) => {
+        console.log("application libraries stored", stored);
+        if (stored) {
+          resolve(result[CONTRAST__STORED_APP_LIBS][storedAppLibsId]);
+        }
+      })
+    });
+  })
+  .catch(error => new Error(error));
 }
 
 function _isCorrectVersion(vulnerabilityObjects, libVersion) {
@@ -45,38 +143,47 @@ function _isCorrectVersion(vulnerabilityObjects, libVersion) {
     let vuln = vulnerabilityObjects[i];
     let { below, atOrAbove, above } = vuln;
     if (below) {
-      below = below.split("-")[0];
-      below = below.split(/[a-zA-Z]/)[0];
+      below = _parseVersionNumber(below);
     }
     if (atOrAbove) {
-      atOrAbove = atOrAbove.split("-")[0];
-      atOrAbove = atOrAbove.split(/[a-zA-Z]/)[0];
+      atOrAbove = _parseVersionNumber(atOrAbove);
     }
     if (above) {
-      above = above.split("-")[0];
-      above = above.split(/[a-zA-Z]/)[0];
+      above = _parseVersionNumber(above);
     }
 
-    if (below && atOrAbove) {
-      if (libVersion < below && libVersion >= atOrAbove) {
-        return true
-      }
-    } else if (below && above) {
-      if (libVersion < below && libVersion > above) {
-        return true
-      }
-    } else if (below && libVersion < below) {
-      return true
-    } else if (atOrAbove && libVersion >= atOrAbove) {
-      return true
-    } else if (above && libVersion > above) {
+    if (_hasVulnerableVersion(below, atOrAbove, above, libVersion)) {
       return true
     }
+
     // get script obj that has matching bowername
     // compare script vuln version to vulnObj versions
     // true if is correct version
   }
   return false
+}
+
+function _hasVulnerableVersion(below, atOrAbove, above, libVersion) {
+  if (below && atOrAbove) {
+    if (libVersion < below && libVersion >= atOrAbove) {
+      return true
+    }
+  } else if (below && above) {
+    if (libVersion < below && libVersion > above) {
+      return true
+    }
+  } else if (below && libVersion < below) {
+    return true
+  } else if (atOrAbove && libVersion >= atOrAbove) {
+    return true
+  } else if (above && libVersion > above) {
+    return true
+  }
+  return false
+}
+
+function _parseVersionNumber(string) {
+  return string.split("-")[0].split(/[a-zA-Z]/)[0];
 }
 
 export function getStoredApplicationLibraries(application, tab) {
@@ -89,15 +196,15 @@ export function getStoredApplicationLibraries(application, tab) {
 
   chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
     console.log("result", result);
-    if (!result ||
-        Object.keys(result).length === 0 ||
-        !result[CONTRAST__STORED_APP_LIBS][appKey] ||
-        !result[CONTRAST__STORED_APP_LIBS][appKey].application ||
-        !result[CONTRAST__STORED_APP_LIBS][appKey].libraries ||
-        result[CONTRAST__STORED_APP_LIBS][appKey].libraries.length === 0)
+    if (!result
+         || Object.keys(result).length === 0
+         || !result[CONTRAST__STORED_APP_LIBS][appKey]
+         || !result[CONTRAST__STORED_APP_LIBS][appKey].application
+         || !result[CONTRAST__STORED_APP_LIBS][appKey].libraries
+         || result[CONTRAST__STORED_APP_LIBS][appKey].libraries.length === 0)
     {
       console.log("setting up application from getStoredApplicationLibraries");
-      setupApplicationLibraries(application, tab)
+      _setupApplicationLibraries(application, tab)
     }
     console.log("#####");
     console.log("result of get stored application libs", result);
@@ -110,9 +217,8 @@ function _createVersionedLib(tab, library) {
   if (library.extractors && library.extractors.func) {
     const extractor = library.extractors.func[0];
     return _extractLibraryVersion(tab, extractor, library);
-  } else {
-    return new Promise((resolve) => resolve(library));
   }
+  return new Promise((resolve) => resolve(library));
 }
 
 function _getVersionFromFileName(jsFileName) {
@@ -126,7 +232,7 @@ function _getVersionFromFileName(jsFileName) {
 function _extractLibraryVersion(tab, extractor, library) {
   return new Promise((resolve, reject) => {
     _executeExtractionScript(tab, extractor, library)
-    .then(executed => {
+    .then(executed => { // eslint-disable-line no-unused-vars
       chrome.tabs.sendMessage(tab.id, {
         action: "GET_LIB_VERSION",
         library,
@@ -140,16 +246,18 @@ function _extractLibraryVersion(tab, extractor, library) {
           library.version = version;
           resolve(library)
         }
+        return resolve(library);
       })
     })
     .catch(error => {
       console.log("Error in _extractLibraryVersion", error);
+      reject(error);
     });
   })
 }
 
 function _executeExtractionScript(tab, extractor, library) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const details = { code: _generateScriptTags({ extractor, library }) }
     chrome.tabs.executeScript(tab.id, details, (result) => {
       resolve(!!result);
@@ -181,7 +289,7 @@ function _generateScriptTags(options) {
     console.log(e)
   }`
 
-	return(
+	return (
 		`try {
 			var script${library} = document.createElement('script');
 			var scriptRes${library} = document.createElement('span');

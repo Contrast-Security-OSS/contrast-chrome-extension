@@ -243,27 +243,27 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			getStoredApplicationLibraries(application, tab)
 		}
 	})
-	.catch((error) => {
-		new Error("Error retrieving apps in onUpdated");
+	.catch(error => {
+		new Error("Error retrieving apps in onUpdated" + error);
 		updateTabBadge(tab, "X", CONTRAST_RED)
 	});
 
-	// if (!CURRENT_APPLICATION) {
-	// 	updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-	// 	return;
-	// }
-	//
-	// // GET STUCK ON LOADING if done for both "loading" and "complete"
-	// if (changeInfo.status === "loading") {
-	// 	// NOTE: UPDATEBADGE
-	// 	updateTabBadge(tab, "↻", CONTRAST_GREEN);
-	// }
-	//
-	// if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
-	// 	updateVulnerabilities(tab);
-	// } else if (isBlacklisted(tab.url)) {
-	// 	removeLoadingBadge(tab);
-	// }
+	if (!CURRENT_APPLICATION) {
+		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+		return;
+	}
+
+	// GET STUCK ON LOADING if done for both "loading" and "complete"
+	if (changeInfo.status === "loading") {
+		// NOTE: UPDATEBADGE
+		updateTabBadge(tab, "↻", CONTRAST_GREEN);
+	}
+
+	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
+		updateVulnerabilities(tab);
+	} else if (isBlacklisted(tab.url)) {
+		removeLoadingBadge(tab);
+	}
 });
 
 /**
@@ -530,37 +530,4 @@ export function getCredentials(tab) {
 function _setCurrentApplication(application) {
 	CURRENT_APPLICATION = application;
 	return CURRENT_APPLICATION;
-}
-
-
-
-
-
-
-
-
-function _addVersionedScriptsAsVulnerabilities(scripts, json, sendResponse) {
-  const scriptFiles  = scripts.map(s => s.jsFileName);
-  const scriptParsed = scripts.map(s => s.parsedFile);
-
-  let vulnerableScriptObjs = [];
-  for (let key in json) {
-    // check if vulnerability object of library is correct version as the one the webpage is using
-    if (_isCorrectVersion(json[key].vulnerabilities, scripts, key)) {
-
-      console.log(_isCorrectVersion(json[key].vulnerabilities, scripts, key), key);
-
-      if (scriptParsed.includes(key)) {
-        vulnerableScriptObjs.push({ [key]: json[key] });
-      } else if (scriptFiles.includes(key + ".js")) {
-        vulnerableScriptObjs.push({ [key]: json[key] });
-      } else if (json[key].bowername && _isScriptInBowername(json[key].bowername, scriptParsed)) {
-        vulnerableScriptObjs.push({ [key]: json[key] });
-      }
-    } else {
-      console.log(key, scripts);
-    }
-  }
-  console.log("sending response", vulnerableScriptObjs);
-  sendResponse(vulnerableScriptObjs);
 }
