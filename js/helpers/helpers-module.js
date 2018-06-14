@@ -8,7 +8,7 @@ btoa,
 chrome
 */
 
-const Helpers = (function() { // eslint-disable-line wrap-iife
+export const Helpers = (function() { // eslint-disable-line wrap-iife
   // keys for credentials
   const CONTRAST_USERNAME    = "contrast_username";
   const CONTRAST_SERVICE_KEY = "contrast_service_key";

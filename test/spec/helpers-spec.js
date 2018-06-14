@@ -15,7 +15,7 @@ const {
   returnFilterTraceData,
 } = testData;
 
-const util = require("../../lib/util.js");
+const Helpers = require('../../lib/helpers/helpers-module.js');
 let {
   CONTRAST_USERNAME,
   CONTRAST_SERVICE_KEY,
@@ -69,7 +69,7 @@ let {
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
-} = util;
+} = Helpers.Helpers;
 
 describe("testing utility functions and constants", function() {
   const authHeader = "Y29udHJhc3RfYWRtaW46ZGVtbw=="

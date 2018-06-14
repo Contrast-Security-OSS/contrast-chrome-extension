@@ -1,8 +1,9 @@
 /*global
 	URL,
 	chrome,
-	Helpers,
 */
+
+import { Helpers } from './helpers/helpers-module.js';
 
 const {
 	TEAMSERVER_INDEX_PATH_SUFFIX,
@@ -39,13 +40,13 @@ import {
  ********************************* GLOBALS ************************************
  ******************************************************************************/
 // try to avoid tab doesn't exist errors
-export let TAB_CLOSED 			= false;
+export let TAB_CLOSED 		 = false;
 
 // tab ids of tabs where vulnerabilities count != 0
-export let VULNERABLE_TABS 	= [];
+export let VULNERABLE_TABS = [];
 
 // don't re-evaluate xhr requests
-export let XHR_REQUESTS 		= [];
+export let XHR_REQUESTS 	 = [];
 
 // set on activated or on initial web request
 // use in place of retrieveApplicationFromStorage due to async
@@ -72,7 +73,7 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 	}
 }, { urls: [LISTENING_ON_DOMAIN] });
 
-function handleWebRequest(request) {
+export function handleWebRequest(request) {
 	const conditions = [
 		!isBlacklisted(request.url),
 		!XHR_REQUESTS.includes(request.url),
@@ -83,6 +84,7 @@ function handleWebRequest(request) {
 	}
 	return;
 }
+
 
 /**
  * @param  {Object} request a request object
@@ -126,7 +128,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @param  {Object} tab
  * @return {void}
  */
-function handleRuntimeOnMessage(request, sendResponse, tab) {
+export function handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result[STORED_TRACES_KEY]) {
@@ -195,7 +197,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  * @param {Object} tab - the current tab
  * @return {void}
  */
-function handleTabActivated(tab) {
+export function handleTabActivated(tab) {
 	if (!tab.active) return;
 	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 		return;
@@ -273,7 +275,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  * @param  {Object} tab        the chrome tab
  * @return {Boolean}           if the tab has completed updating
  */
-function tabUpdateComplete(changeInfo, tab) {
+export function tabUpdateComplete(changeInfo, tab) {
 	return changeInfo.status === "complete" && tab.url.startsWith("http");
 }
 
@@ -298,7 +300,7 @@ chrome.tabs.onRemoved.addListener(() => {
  * @param  {Object} tab Gives the state of the tab that was updated.
  * @return {void}
  */
-function updateVulnerabilities(tab) {
+export function updateVulnerabilities(tab) {
 	// first remove old vulnerabilities since tab has updated
 	removeVulnerabilitiesFromStorage(tab).then(() => {
 		getStoredCredentials().then(items => {
@@ -355,7 +357,7 @@ function updateVulnerabilities(tab) {
  * @param  {Array} traceUrls     the urls that will be queried to TS
  * @return {void}
  */
-function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, isXHR = false) {
+export function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, isXHR = false) {
 	const url  = new URL(tab.url);
 	const host = getHostFromUrl(url);
 
@@ -406,7 +408,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, is
  * @param  {Object} tab - Gives the state of the current tab
  * @return {Promise}
  */
-function setToStorage(foundTraces, tab) {
+export function setToStorage(foundTraces, tab) {
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI
 		const traces = foundTraces.filter(Boolean);
 
@@ -454,7 +456,7 @@ function setToStorage(foundTraces, tab) {
  * @param  {Array} foundTraces - trace ids of vulnerabilities found
  * @return {Promise} - a promise that resolves to an array of deduplicated trace ids
  */
-function buildVulnerabilitiesArray(foundTraces, tab) {
+export function buildVulnerabilitiesArray(foundTraces, tab) {
 	return new Promise((resolve, reject) => {
 
 		// first check if there are already vulnerabilities in storage
@@ -487,7 +489,7 @@ function buildVulnerabilitiesArray(foundTraces, tab) {
  *
  * @return {Promise} - returns a promise for localhronous execution
  */
-function removeVulnerabilitiesFromStorage() {
+export function removeVulnerabilitiesFromStorage() {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.remove(STORED_TRACES_KEY, () => {
 			if (chrome.runtime.lastError) {
@@ -527,7 +529,7 @@ export function getCredentials(tab) {
  * @param  {Object} application application to set as the CURRENT_APPLICATION
  * @return {Object}           	the new CURRENT_APPLICATION
  */
-function _setCurrentApplication(application) {
+export function _setCurrentApplication(application) {
 	CURRENT_APPLICATION = application;
 	return CURRENT_APPLICATION;
 }
