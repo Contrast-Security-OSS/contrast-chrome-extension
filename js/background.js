@@ -32,9 +32,8 @@ const {
 } = Helpers;
 
 import {
-	getStoredApplicationLibraries,
-} from './libraries.js';
-
+	getStoredApplicationLibraries
+} from './libraries.js'
 
 /******************************************************************************
  ********************************* GLOBALS ************************************
@@ -241,8 +240,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	retrieveApplicationFromStorage(tab)
 	.then(application => {
 		if (application) {
+			getStoredApplicationLibraries(application, tab);
 			_setCurrentApplication(application)
-			getStoredApplicationLibraries(application, tab)
 		}
 	})
 	.catch(error => {

@@ -26,7 +26,16 @@ const {
   setElementText,
   setElementDisplay,
   updateTabBadge,
+  retrieveApplicationFromStorage,
 } = Helpers;
+
+import {
+	getStoredApplicationLibraries,
+} from './libraries.js';
+
+import {
+  renderVulnerableLibraries
+} from './libraries/showLibraries.js'
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";
@@ -57,10 +66,10 @@ function indexFunction() {
         getUserConfiguration(tab, url, credentialed);
       } else if (credentialed && _isTeamserverAccountPage(tab, url)) {
         getUserConfiguration(tab, url, credentialed);
-        renderApplicationsMenu(url);
+        renderApplicationsMenu(url, tab);
         _renderContrastUsername(items);
       } else {
-        renderActivityFeed(items, url);
+        renderActivityFeed(items, url, tab);
         _renderContrastUsername(items);
       }
 
@@ -74,14 +83,13 @@ function indexFunction() {
   });
 }
 
-
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
  *
  * @param  {URL<Object>} url a url object of the current tab
  * @return {void}
  */
-function renderApplicationsMenu(url) {
+function renderApplicationsMenu(url, tab) {
   const applicationsHeading = document.getElementById('applications-heading');
   const applicationsArrow   = document.getElementById('applications-arrow');
   const applicationTable    = document.getElementById('application-table');
@@ -90,14 +98,14 @@ function renderApplicationsMenu(url) {
   setElementDisplay(applicationsHeadingContainer, "block");
 
   applicationsHeading.addEventListener('click', () => {
-    unrollApplications(applicationsArrow, applicationTable, url);
+    unrollApplications(applicationsArrow, applicationTable, url, tab);
   });
   applicationsArrow.addEventListener('click', () => {
-    unrollApplications(applicationsArrow, applicationTable, url);
+    unrollApplications(applicationsArrow, applicationTable, url, tab);
   });
 }
 
-function unrollApplications(applicationsArrow, applicationTable, url) {
+function unrollApplications(applicationsArrow, applicationTable, url, tab) {
   if (applicationsArrow.innerText === ' ▶') {
     setElementText(applicationsArrow, ' ▼');
 
@@ -111,7 +119,7 @@ function unrollApplications(applicationsArrow, applicationTable, url) {
         if (!json) {
           throw new Error("Error getting applications");
         }
-        json.applications.forEach(app => createAppTableRow(app, url));
+        json.applications.forEach(app => createAppTableRow(app, url, tab));
       })
       .catch(error => new Error(error));
     }
@@ -210,7 +218,7 @@ function renderConfigButton(tab, configButton) {
  * @param  {URL<Object>} url - URL object of current tab
  * @return {type}
  */
-function renderActivityFeed(items, url) {
+function renderActivityFeed(items, url, tab) {
   if (isBlacklisted(url.host)) return;
 
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
@@ -264,6 +272,7 @@ function renderActivityFeed(items, url) {
 }
 
 
+
 /**
  * createAppTableRow - renders a table row, either with a button if it's not a contrast url, or with a domain (or blank) if it's a contrast url showing in tab
  *
@@ -271,7 +280,7 @@ function renderActivityFeed(items, url) {
  * @param  {Object} url         the URL() of the current tab
  * @return {void} - adds rows to a table
  */
-function createAppTableRow(application, url) {
+function createAppTableRow(application, url, tab) {
   const tableBody    = document.getElementById('application-table-body');
   const row          = document.createElement('tr');
   const nameTD       = document.createElement('td');
@@ -308,6 +317,7 @@ function createAppTableRow(application, url) {
       _addDomainToStorage(host, application)
       .then(result => {
         if (result) {
+          getStoredApplicationLibraries(application, tab)
           setElementText(message, CONNECT_SUCCESS_MESSAGE);
           message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
         } else {
@@ -546,6 +556,11 @@ function addButtonTabListeners() {
 
     libsSection.classList.remove('visible');
     libsSection.classList.add('hidden');
+
+    const libsList = document.getElementById('libs-vulnerabilities-found-on-page-list');
+    while (libsList.firstChild) {
+      libsList.firstChild.remove();
+    }
   });
 
   libsTab.addEventListener('click', function() {
@@ -556,5 +571,22 @@ function addButtonTabListeners() {
 
     libsSection.classList.add('visible');
     libsSection.classList.remove('hidden');
+
+    // setLoadingElement(true);
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      retrieveApplicationFromStorage(tab)
+      .then(application => {
+        if (!application) throw new Error("No Application");
+
+        const appKey = "APP_LIBS__ID_" + Object.keys(application)[0];
+        chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
+          const libraries = result[CONTRAST__STORED_APP_LIBS][appKey].libraries;
+          renderVulnerableLibraries(libraries);
+        })
+      })
+      .catch(Error)
+    })
   });
 }

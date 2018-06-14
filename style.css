@@ -59,6 +59,14 @@ button.buttonTab:focus, button.buttonTab:active {
   outline: none;
 }
 
+#vulns-tab {
+  border-top-left-radius: 2px;
+}
+
+#libs-tab {
+  border-top-right-radius: 2px;
+}
+
 button.buttonTab:hover {
   color: #fff;
 }

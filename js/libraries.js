@@ -53,9 +53,15 @@ export function getApplicationLibraries(tab) {
 
       return Promise.all(libraries) // eslint-disable-line consistent-return
       .then(libResult => {
-        console.log("libResult", libResult);
         const vulnerableApplicationLibs = libResult.map(l => {
-          if (l && l.vulnerabilities && l.version && _isCorrectVersion(l.vulnerabilities, l.version)) {
+          let vulnObj = _isCorrectVersion(l.vulnerabilities, l.version);
+          console.log("vulnObj", vulnObj);
+          if (l && l.vulnerabilities && l.version && vulnObj) {
+            l.severity = vulnObj.severity;
+            l.title = vulnObj.identifiers.summary;
+            l.link = vulnObj.info[0];
+            delete l.vulnerabilities;
+            delete l.extractors;
             return l;
           }
           return false;
@@ -154,14 +160,14 @@ function _isCorrectVersion(vulnerabilityObjects, libVersion) {
     }
 
     if (_hasVulnerableVersion(below, atOrAbove, above, libVersion)) {
-      return true
+      return vuln;
     }
 
     // get script obj that has matching bowername
     // compare script vuln version to vulnObj versions
     // true if is correct version
   }
-  return false
+  return null;
 }
 
 function _hasVulnerableVersion(below, atOrAbove, above, libVersion) {
@@ -188,7 +194,7 @@ function _parseVersionNumber(string) {
 }
 
 export function getStoredApplicationLibraries(application, tab) {
-  chrome.storage.local.remove(CONTRAST__STORED_APP_LIBS)
+  chrome.storage.local.remove(CONTRAST__STORED_APP_LIBS);
   if (!application) return;
   const appHost = Object.keys(application)[0];
   if (!appHost) return;
