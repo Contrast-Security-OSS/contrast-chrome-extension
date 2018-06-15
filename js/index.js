@@ -24,12 +24,13 @@ import {
   getStoredApp,
 } from './util.js'
 
+import ApplicationTable from './models/ApplicationTable.js'
 import TableRow from './models/PopupTableRow.js'
 import ConnectedDomain from './models/ConnectedDomain.js'
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected. You may need to reload the page.";
-const CONNECT_FAILURE_MESSAGE = "Error connecting. Try refreshing the page.";
+const CONNECT_FAILURE_MESSAGE = "Error connecting. Try reloading the page.";
 const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected";
 const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting";
 const DISCONNECT_BUTTON_TEXT     = "Disconnect";
@@ -54,10 +55,13 @@ function indexFunction() {
         getUserConfiguration(tab, url, credentialed);
       } else if (credentialed && _isTeamserverAccountPage(tab, url)) {
         getUserConfiguration(tab, url, credentialed);
-        renderApplicationsMenu(url);
+        // renderApplicationsMenu(url);
+        const table = new ApplicationTable(url);
+        table.renderApplicationsMenu();
         _renderContrastUsername(items);
       } else {
-        renderActivityFeed(items, url);
+        const table = new ApplicationTable(url);
+        table.renderActivityFeed();
         _renderContrastUsername(items);
       }
 
