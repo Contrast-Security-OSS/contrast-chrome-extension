@@ -44,6 +44,7 @@ export const VALID_TEAMSERVER_HOSTNAMES = [
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
   'alpha.contrastsecurity.com',
+  'localhost',
 ];
 
 // Contrast stylings and configuration text
@@ -522,6 +523,43 @@ function setElementText(element, text) {
   }
 }
 
+function changeElementVisibility(element) {
+  const classes = Array.prototype.slice.call(element.classList);
+  if (classes.includes("visible")) {
+    element.classList.remove("visible");
+    element.classList.add("hidden");
+  } else {
+    element.classList.add("visible");
+    element.classList.remove("hidden");
+  }
+}
+
+function getStoredApp(storedApps, application) {
+  if (!application) throw new Error("application must be defined");
+  return storedApps[STORED_APPS_KEY].filter(app => {
+    return Object.values(app)[0] === application.app_id;
+  })[0];
+}
+
+function subDomainColonForUnderscore(storedApp) {
+  let domain;
+  if (typeof storedApp === "object") {
+    domain = Object.keys(storedApp)[0];
+  } else { // storedApp is a string
+    domain = storedApp;
+  }
+  return _subColonOrUnderscore(domain);
+}
+
+function _subColonOrUnderscore(string) {
+  if (string.includes("_")) {
+    return string.split("_").join(":"); // local dev stuff
+  } else if (string.includes(":")) {
+    return string.split(":").join("_"); // local dev stuff
+  }
+  return string;
+}
+
 export {
   fetchTeamserver,
   getAuthorizationHeader,
@@ -545,4 +583,7 @@ export {
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
+  subDomainColonForUnderscore,
+  changeElementVisibility,
+  getStoredApp,
 }

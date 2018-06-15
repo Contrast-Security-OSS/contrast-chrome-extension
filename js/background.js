@@ -33,15 +33,15 @@ import {
 /******************************************************************************
  ********************************* GLOBALS ************************************
  ******************************************************************************/
-let TAB_CLOSED 			= false;
-let VULNERABLE_TABS = []; // tab ids of tabs where vulnerabilities count != 0
-let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
+export let TAB_CLOSED 			= false;
+export let VULNERABLE_TABS = []; // tab ids of tabs where vulnerabilities count != 0
+export let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
 
 // set on activated or on initial web request
 // use in place of retrieveApplicationFromStorage due to async
 // NOTE: Need to do this for checking requests before sending to teamserver
 // Only requests from applications that are connected should be sent for checking to teamserver, asynchronously retrieving the application from chrome storage on every request in chrome.webRequest.onBeforeRequest resulted in inconsistent vulnerability returns.
-let CURRENT_APPLICATION = null;
+export let CURRENT_APPLICATION = null;
 
 /******************************************************************************
  *************************** CHROME EVENT LISTENERS ***************************
@@ -50,7 +50,7 @@ let CURRENT_APPLICATION = null;
  * called before any local or alocal request is sent
  * captures xhr and resource requests
  *
- * @param  {Function} function - callback
+ * @param  {Function} export function - callback
  * @param {Object} filter - allows limiting the requests for which events are triggered in various dimensions including urls
  * @return {void}
  */
@@ -60,7 +60,7 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 	handleWebRequest(request);
 }, { urls: [LISTENING_ON_DOMAIN] });
 
-function handleWebRequest(request) {
+export function handleWebRequest(request) {
 	const conditions = [
 		request.type === "xmlhttprequest",
 		!isBlacklisted(request.url),
@@ -79,7 +79,7 @@ function handleWebRequest(request) {
  * @param  {Function} sendResponse return information to sender, must be JSON serializable
  * @return {Boolean} - From the documentation:
  * https://developer.chrome.com/extensions/runtime#event-onMessage
- * This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
+ * This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -114,7 +114,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @param  {Object} tab
  * @return {void}
  */
-function handleRuntimeOnMessage(request, sendResponse, tab) {
+export function handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result[STORED_TRACES_KEY]) {
@@ -176,7 +176,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  * @param {Object} tab - the current tab
  * @return {void}
  */
-function handleTabActivated(tab) {
+export function handleTabActivated(tab) {
 	if (!tab.active) return;
 	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 		return;
@@ -201,7 +201,7 @@ function handleTabActivated(tab) {
 }
 
 /**
- * anonymous function - called when tab is updated including any changes to url
+ * anonymous export function - called when tab is updated including any changes to url
  *
  * @param  {Integer} tabId     the chrome defined id of the tab
  * @param  {Object} changeInfo Lists the changes to the state of the tab that was updated.
@@ -246,14 +246,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  * @param  {Object} tab        the chrome tab
  * @return {Boolean}           if the tab has completed updating
  */
-function tabUpdateComplete(changeInfo, tab) {
+export function tabUpdateComplete(changeInfo, tab) {
 	return changeInfo.status === "complete" && tab.url.startsWith("http");
 }
 
 
 /**
  * set the TAB_CLOSED global to true if a tab is closed
- * other function listen to this and will cancel execution if it is true
+ * other export function listen to this and will cancel execution if it is true
  */
 chrome.tabs.onRemoved.addListener(() => {
 	TAB_CLOSED = true;
@@ -271,7 +271,7 @@ chrome.tabs.onRemoved.addListener(() => {
  * @param  {Object} tab Gives the state of the tab that was updated.
  * @return {void}
  */
-function updateVulnerabilities(tab) {
+export function updateVulnerabilities(tab) {
 	// first remove old vulnerabilities since tab has updated
 	removeVulnerabilitiesFromStorage(tab).then(() => {
 		getStoredCredentials().then(items => {
@@ -325,7 +325,7 @@ function updateVulnerabilities(tab) {
  * @param  {Array} traceUrls     the urls that will be queried to TS
  * @return {void}
  */
-function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, isXHR = false) {
+export function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, isXHR = false) {
 	const url  = new URL(tab.url);
 	const host = getHostFromUrl(url);
 
@@ -375,7 +375,7 @@ function evaluateVulnerabilities(hasCredentials, tab, traceUrls, application, is
  * @param  {Object} tab - Gives the state of the current tab
  * @return {Promise}
  */
-function setToStorage(foundTraces, tab) {
+export function setToStorage(foundTraces, tab) {
 		// clean the traces array of empty strings which are falsey in JS and which will be there if a trace doesn't match a given URI
 		const traces = foundTraces.filter(Boolean);
 
@@ -422,7 +422,7 @@ function setToStorage(foundTraces, tab) {
  * @param  {Array} foundTraces - trace ids of vulnerabilities found
  * @return {Promise} - a promise that resolves to an array of deduplicated trace ids
  */
-function buildVulnerabilitiesArray(foundTraces, tab) {
+export function buildVulnerabilitiesArray(foundTraces, tab) {
 	return new Promise((resolve, reject) => {
 
 		// first check if there are already vulnerabilities in storage
@@ -455,7 +455,7 @@ function buildVulnerabilitiesArray(foundTraces, tab) {
  *
  * @return {Promise} - returns a promise for localhronous execution
  */
-function removeVulnerabilitiesFromStorage() {
+export function removeVulnerabilitiesFromStorage() {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.remove(STORED_TRACES_KEY, () => {
 			if (chrome.runtime.lastError) {
@@ -473,7 +473,7 @@ function removeVulnerabilitiesFromStorage() {
  * @param  {Object} tab Gives the state of the current tab
  * @return {void}
  */
-function getCredentials(tab) {
+export function getCredentials(tab) {
 	if (chrome.runtime.lastError) return;
 
 	const url = new URL(tab.url);
@@ -493,25 +493,7 @@ function getCredentials(tab) {
  * @param  {Object} application application to set as the CURRENT_APPLICATION
  * @return {Object}           	the new CURRENT_APPLICATION
  */
-function _setCurrentApplication(application) {
+export function _setCurrentApplication(application) {
 	CURRENT_APPLICATION = application;
 	return CURRENT_APPLICATION;
-}
-
-module.exports = {
-	handleWebRequest,
-	handleRuntimeOnMessage,
-	handleTabActivated,
-	tabUpdateComplete,
-	updateVulnerabilities,
-	evaluateVulnerabilities,
-	setToStorage,
-	buildVulnerabilitiesArray,
-	removeVulnerabilitiesFromStorage,
-	getCredentials,
-	_setCurrentApplication,
-	TAB_CLOSED,
-	VULNERABLE_TABS,
-	XHR_REQUESTS,
-	CURRENT_APPLICATION,
 }

@@ -21,14 +21,18 @@ import {
   isContrastTeamserver,
   setElementText,
   setElementDisplay,
+  getStoredApp,
 } from './util.js'
 
-const CONNECT_BUTTON_TEXT     = "Click to Connect Domain";
-const CONNECT_SUCCESS_MESSAGE = "Successfully connected domain. You may need to reload the page.";
-const CONNECT_FAILURE_MESSAGE = "Error Connecting Domain. Try refreshing the page.";
-const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected Domain";
-const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting Domain";
-const DISCONNECT_BUTTON_TEXT     = "Disconnect Domain";
+import TableRow from './models/PopupTableRow.js'
+import ConnectedDomain from './models/ConnectedDomain.js'
+
+const CONNECT_BUTTON_TEXT     = "Click to Connect";
+const CONNECT_SUCCESS_MESSAGE = "Successfully connected. You may need to reload the page.";
+const CONNECT_FAILURE_MESSAGE = "Error connecting. Try refreshing the page.";
+const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected";
+const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting";
+const DISCONNECT_BUTTON_TEXT     = "Disconnect";
 
 const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin";
 
@@ -245,6 +249,9 @@ function renderActivityFeed(items, url) {
 
         // create a row for each application
         applications.forEach(app => createAppTableRow(app, url));
+      })
+      .catch(error => {
+        throw new Error("Error getting applications");
       });
     }
   });
@@ -259,190 +266,36 @@ function renderActivityFeed(items, url) {
  * @return {void} - adds rows to a table
  */
 function createAppTableRow(application, url) {
-  const tableBody    = document.getElementById('application-table-body');
-  const row          = document.createElement('tr');
-  const nameTD       = document.createElement('td');
-  const appIdTD      = document.createElement('td');
-  const domainTD     = document.createElement('td');
-  const disconnectTD = document.createElement('td');
-
-  setElementText(appIdTD, application.app_id);
-  setElementDisplay(appIdTD, "none");
-
-  tableBody.appendChild(row);
-  row.appendChild(nameTD);
-  row.appendChild(domainTD);
-  row.appendChild(appIdTD);
-  row.appendChild(disconnectTD);
-
-  const host = getHostFromUrl(url);
+  const tableBody = document.getElementById('application-table-body');
+  const tr = new TableRow(application, url, tableBody);
+  tr.appendChildren();
+  tr.setAppId(application);
 
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(url.href)) {
-    setElementText(domainTD, CONNECT_BUTTON_TEXT);
-
-    const domainBtn = document.createElement('button');
-    domainBtn.setAttribute('class', `${CONTRAST_BUTTON_CLASS} domainBtn`);
-
-    setElementText(domainBtn, application.name.titleize());
-    nameTD.appendChild(domainBtn);
-
-    domainBtn.addEventListener('click', () => {
-      const message = document.getElementById("connected-domain-message");
-      message.classList.add("visible");
-      message.classList.remove("hidden");
-
-      _addDomainToStorage(host, application)
-      .then(result => {
-        if (result) {
-          setElementText(message, CONNECT_SUCCESS_MESSAGE);
-          message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-        } else {
-          setElementText(message, CONNECT_FAILURE_MESSAGE);
-          message.setAttribute('style', `color: ${CONTRAST_RED}`);
-        }
-        _hideElementAfterTimeout(message, indexFunction);
-      })
-      .catch(() => {
-        setElementText(message, CONNECT_FAILURE_MESSAGE);
-        message.setAttribute('style', `color: ${CONTRAST_RED}`);
-        _hideElementAfterTimeout(message);
-      });
-    });
+    tr.setHost(getHostFromUrl(url));
+    tr.createConnectButton();
   } else {
-
     // on a contrast page - render the full collection of apps in a user org with respective domains
-    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+    chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
       if (chrome.runtime.lastError) return;
 
-      // result has not been defined yet
-      if (!result || !result[STORED_APPS_KEY]) {
-        result = { [STORED_APPS_KEY]: [] }
+      // storedApps has not been defined yet
+      if (!storedApps || !storedApps[STORED_APPS_KEY]) {
+        storedApps = { [STORED_APPS_KEY]: [] }
       }
-      const storedApp = result[STORED_APPS_KEY].filter(app => {
-        return Object.values(app)[0] === application.app_id;
-      })[0];
+      const storedApp = getStoredApp(storedApps, application);
+
+      setElementText(tr.nameTD, application.name);
 
       if (!!storedApp) {
-        let domain = Object.keys(storedApp)[0];
-        if (domain.includes("_")) {
-          domain = domain.split("_").join(":"); // local dev stuff
-        }
-        setElementText(domainTD, domain);
-
-        const message = document.getElementById("connected-domain-message");
-        const disconnectButton = document.createElement('button');
-        disconnectButton.setAttribute('class', CONTRAST_BUTTON_CLASS);
-        disconnectButton.addEventListener('click', () => {
-          message.classList.add("visible");
-          message.classList.remove("hidden");
-
-          _disconnectDomain(result, application, disconnectButton)
-          .then(disconnected => {
-            if (disconnected) {
-              setElementText(message, DISCONNECT_SUCCESS_MESSAGE);
-              message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-            } else {
-              setElementText(message, DISCONNECT_FAILURE_MESSAGE);
-              message.setAttribute('style', `color: ${CONTRAST_RED}`);
-            }
-            _hideElementAfterTimeout(message);
-          })
-          .catch(() => {
-            setElementText(message, DISCONNECT_FAILURE_MESSAGE);
-            message.setAttribute('style', `color: ${CONTRAST_RED}`);
-            _hideElementAfterTimeout(message);
-          });
-        });
-        setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
-
-        disconnectTD.appendChild(disconnectButton);
+        tr.setHost(Object.keys(storedApp)[0]);
+        tr.renderDisconnect(storedApps, storedApp);
       }
-      setElementText(nameTD, application.name);
     });
   }
 }
 
-/**
- * _addDomainToStorage - add a domain + app name connection to chrome storage
- *
- * @param  {String} host        the host/domain of the application
- * @param  {String} application the name of the application
- * @return {Promise}            if storing the data succeeded
- */
-function _addDomainToStorage(host, application) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
-      if (chrome.storage.lastError) {
-        reject(new Error("Error retrieving stored apps"));
-      }
-
-      // no applications stored so result[STORED_APPS_KEY] is undefined
-      if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
-
-      const updatedStoredApps = result[STORED_APPS_KEY].concat({
-        [host]: application.app_id
-      });
-
-      const applicationTable = document.getElementById("application-table");
-      chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-        setElementDisplay(applicationTable, "none");
-        resolve(!chrome.storage.lastError);
-      });
-    });
-  });
-}
-
-/**
- * _disconnectDomain - removes an application + domain connection from storage
- *
- * @param  {String} host               the host/domain of the application
- * @param  {Array<String>} storedApps  the array of stored apps
- * @param  {String} application        the name of the application to remove
- * @param  {Node} disconnectButton     button user clicks remove an application
- * @return {Promise}                   if the removal succeeded
- */
-function _disconnectDomain(storedApps, application, disconnectButton) {
-  return new Promise((resolve, reject) => {
-    const updatedStoredApps = storedApps[STORED_APPS_KEY].filter(app => {
-      return Object.values(app)[0] !== application.app_id;
-    });
-
-    const domainElement = _getDisconnectButtonSibling(disconnectButton, application.name);
-    if (!domainElement) return;
-
-    chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError));
-      }
-      setElementText(domainElement, '');
-      disconnectButton.remove();
-      resolve(!chrome.runtime.lastError);
-    });
-  });
-}
-
-/**
- * _getDisconnectButtonSibling - finds the simpling TD in the application table to the TD of the disconnect button, should have the name of the application in it
- *
- * @param  {Node} disconnectButton an HTML Element
- * @param  {String} appName        name of the stored app we're removing
- * @return {Node}                  an HTML element in the same row
- */
-function _getDisconnectButtonSibling(disconnectButton, appName) {
-  // button is inside a td which is inside a row
-  const row = disconnectButton.parentNode.parentNode;
-  const tds = row.querySelectorAll('td');
-
-  for (let i = 0; i < tds.length; i++) {
-    // get the td in the row that doesn't have an appName and isn't blank (which is where the disconnect button was)
-
-    if (tds[i].innerText !== appName && tds[i].innerText !== "") {
-      return tds[i];
-    }
-  }
-  return null;
-}
 
 // --------- HELPER FUNCTIONS -------------
 function _chromeExtensionSettingsUrl() {
@@ -491,7 +344,7 @@ function _hideElementAfterTimeout(element, callback) {
  * @return {Boolean} if it is the teamserver page
  */
 function _isTeamserverAccountPage(tab, url) {
-  if (!tab || !url) return false;
+  if (!tab || !url) throw new Error("_isTeamserverAccountPage expects tab or url");
 
   const conditions = [
     tab.url.startsWith("http"),
