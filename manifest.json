@@ -18,8 +18,9 @@
         "https://*/*"
       ],
       "js": [
-        "js/content-utils.js",
-        "js/content-script.js"
+        "js/content-scripts/content-utils.js",
+        "js/content-scripts/ContrastForms.js",
+        "js/content-scripts/content-script.js"
       ]
     }
   ],

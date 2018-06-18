@@ -19,7 +19,7 @@ let {
   setToStorage,
   buildVulnerabilitiesArray,
   removeVulnerabilitiesFromStorage,
-  getCredentials,
+  notifyUserToConfigure,
   _setCurrentApplication,
   TAB_CLOSED,
   VULNERABLE_TABS,

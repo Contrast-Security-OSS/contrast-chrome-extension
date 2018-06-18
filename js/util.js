@@ -195,6 +195,7 @@ function getStoredCredentials() {
   });
 }
 
+
 /**
  * getOrganizationVulnerabilityIds - sets up the teamserver request
  *
@@ -443,12 +444,12 @@ function retrieveApplicationFromStorage(tab) {
 
 
 /**
-* generateURLString - creates a string of base64 encoded urls to send to TS as params
+* generateTraceURLString - creates a string of base64 encoded urls to send to TS as params
 *
 * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
-function generateURLString(traceUrls) {
+function generateTraceURLString(traceUrls) {
   if (!traceUrls || traceUrls.length === 0) return "";
 
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
@@ -568,7 +569,7 @@ export {
   updateTabBadge,
   removeLoadingBadge,
   retrieveApplicationFromStorage,
-  generateURLString,
+  generateTraceURLString,
   processTeamserverUrl,
   setElementDisplay,
   setElementText,

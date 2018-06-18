@@ -65,7 +65,7 @@ let {
   updateTabBadge,
   removeLoadingBadge,
   retrieveApplicationFromStorage,
-  generateURLString,
+  generateTraceURLString,
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
@@ -227,18 +227,18 @@ describe("testing utility functions and constants", function() {
   });
 
   it('returns a base64 string of urls', function() {
-    const base64URLs = generateURLString(urls);
+    const base64URLs = generateTraceURLString(urls);
     expect(typeof base64URLs).equal("string");
   });
 
   it('returns an array of trace uuids', function(done) {
     getOrganizationVulnerabilityIds = sinon.stub().returns(Promise.resolve(returnVulnerabilityIdData));
 
-    getOrganizationVulnerabilityIds(generateURLString(urls))
+    getOrganizationVulnerabilityIds(generateTraceURLString(urls))
     .then(result => {
       expect(result.success).equal(true);
       expect(result.traces.length).equal(4);
-      expect(getOrganizationVulnerabilityIds.calledWith(generateURLString(urls))).equal(true);
+      expect(getOrganizationVulnerabilityIds.calledWith(generateTraceURLString(urls))).equal(true);
       getOrganizationVulnerabilityIds.reset();
       done();
     });

@@ -8,7 +8,6 @@ import {
 	TEAMSERVER_INDEX_PATH_SUFFIX,
 	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 	VALID_TEAMSERVER_HOSTNAMES,
-	getOrganizationVulnerabilityIds,
 	TEAMSERVER_PROFILE_PATH_SUFFIX,
 	TEAMSERVER_API_PATH_SUFFIX,
 	CONTRAST_RED,
@@ -22,9 +21,6 @@ import {
 	getStoredCredentials,
 	isCredentialed,
 	isBlacklisted,
-	deDupeArray,
-	generateURLString,
-	getHostFromUrl,
 	updateTabBadge,
 	removeLoadingBadge,
 } from './util.js';
@@ -53,6 +49,11 @@ export function resetXHRRequests() {
 /******************************************************************************
  *************************** CHROME EVENT LISTENERS ***************************
  ******************************************************************************/
+
+// -------------------------------------------------------------------
+// ------------------------- WEB REQUESTS ----------------------------
+// -------------------------------------------------------------------
+
 /**
  * called before any local or alocal request is sent
  * captures xhr and resource requests
@@ -80,6 +81,13 @@ export function handleWebRequest(request) {
 	return;
 }
 
+
+
+
+// -------------------------------------------------------------------
+// ------------------------- RUNTIME MESSAGE -------------------------
+// -------------------------------------------------------------------
+
 /**
  * @param  {Object} request a request object
  * @param  {Object} sender  which script sent the request
@@ -105,7 +113,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		}
 
 		if (!!tab && !isBlacklisted(tab.url)) {
-			handleRuntimeOnMessage(request, sendResponse, tab);
+			_handleRuntimeOnMessage(request, sendResponse, tab);
 		} else {
 			removeLoadingBadge(tab);
 		}
@@ -115,14 +123,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 /**
- * handleRuntimeOnMessage - called when the background receives a message
+ * _handleRuntimeOnMessage - called when the background receives a message
  *
- * @param  {Object} request
+ * @param  {Object} 	request
  * @param  {Function} sendResponse
- * @param  {Object} tab
+ * @param  {Object} 	tab
  * @return {void}
  */
-export function handleRuntimeOnMessage(request, sendResponse, tab) {
+export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result[STORED_TRACES_KEY]) {
@@ -173,7 +181,14 @@ export function handleRuntimeOnMessage(request, sendResponse, tab) {
 	return request;
 }
 
+
+
+
+
+
+// ------------------------------------------------------------------
 // ------------------------- TAB ACTIVATION -------------------------
+// ------------------------------------------------------------------
 
 chrome.tabs.onActivated.addListener(activeInfo => {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -197,17 +212,29 @@ export function handleTabActivated(tab) {
 		return;
 	}
 
-	Application.retrieveApplicationFromStorage(tab)
-	.then(application => {
-		Application.setCurrentApplication(application);
-		if (!window.CURRENT_APPLICATION) {
-			updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-		}
-		else if (!isBlacklisted(tab.url)) {
-			updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
-			Vulnerability.updateVulnerabilities(tab, window.CURRENT_APPLICATION);
+	const calls = [
+		getStoredCredentials(),
+		Application.retrieveApplicationFromStorage(tab),
+		Vulnerability.removeVulnerabilitiesFromStorage(tab),
+	];
+
+	Promise.all(calls)
+	.then(results => {
+		const credentialed = isCredentialed(results[0]);
+		if (credentialed) {
+			const application = results[1];
+			Application.setCurrentApplication(application);
+			if (!window.CURRENT_APPLICATION) {
+				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+			}
+			else if (!isBlacklisted(tab.url)) {
+				updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
+				Vulnerability.updateVulnerabilities(tab, window.CURRENT_APPLICATION, credentialed);
+			} else {
+				removeLoadingBadge(tab);
+			}
 		} else {
-			removeLoadingBadge(tab);
+			notifyUserToConfigure(tab);
 		}
 	})
 	.catch((error) => {
@@ -215,6 +242,10 @@ export function handleTabActivated(tab) {
 		updateTabBadge(tab, "X", CONTRAST_RED);
 	});
 }
+
+// -------------------------------------------------------------------
+// ------------------------- TAB UPDATED -----------------------------
+// -------------------------------------------------------------------
 
 /**
  * anonymous export function - called when tab is updated including any changes to url
@@ -234,29 +265,43 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		return;
 	}
 
-	Application.retrieveApplicationFromStorage(tab)
-	.then(application => Application.setCurrentApplication(application))
-	.catch((error) => {
-		console.log(error);
-		updateTabBadge(tab, "X", CONTRAST_RED);
-	});
-
-	if (!window.CURRENT_APPLICATION) {
-		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-		return;
-	}
-
 	// GET STUCK ON LOADING if done for both "loading" and "complete"
 	if (changeInfo.status === "loading") {
 		// NOTE: UPDATEBADGE
 		updateTabBadge(tab, "↻", CONTRAST_GREEN);
 	}
 
-	if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
-		Vulnerability.updateVulnerabilities(tab, window.CURRENT_APPLICATION);
-	} else if (isBlacklisted(tab.url)) {
-		removeLoadingBadge(tab);
-	}
+	const calls = [
+		getStoredCredentials(),
+		Application.retrieveApplicationFromStorage(tab),
+		Vulnerability.removeVulnerabilitiesFromStorage(tab),
+	];
+
+	Promise.all(calls)
+	.then(results => {
+		const credentialed = isCredentialed(results[0]);
+		if (credentialed) {
+			const application = results[1];
+			Application.setCurrentApplication(application);
+			if (!window.CURRENT_APPLICATION) {
+				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+				return;
+			}
+
+			if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
+				Vulnerability.updateVulnerabilities(tab, window.CURRENT_APPLICATION, credentialed);
+			} else if (isBlacklisted(tab.url)) {
+				removeLoadingBadge(tab);
+			}
+		} else {
+			notifyUserToConfigure(tab);
+		}
+	})
+	.catch(error => {
+		console.log(error);
+		updateTabBadge(tab, "X", CONTRAST_RED);
+		throw new Error("error setting up tab update");
+	});
 });
 
 /**
@@ -271,6 +316,11 @@ export function tabUpdateComplete(changeInfo, tab) {
 }
 
 
+
+// ------------------------------------------------------------------
+// -------------------------- HELPERS -------------------------------
+// ------------------------------------------------------------------
+
 /**
  * set the TAB_CLOSED global to true if a tab is closed
  * other export function listen to this and will cancel execution if it is true
@@ -279,14 +329,13 @@ chrome.tabs.onRemoved.addListener(() => {
 	TAB_CLOSED = true;
 });
 
-
 /**
- * getCredentials - retrieves and stores credentials for user extension
+ * notifyUserToConfigure - sets badge if user needs to configure
  *
  * @param  {Object} tab Gives the state of the current tab
  * @return {void}
  */
-export function getCredentials(tab) {
+export function notifyUserToConfigure(tab) {
 	if (chrome.runtime.lastError) return;
 
 	const url = new URL(tab.url);
@@ -297,5 +346,6 @@ export function getCredentials(tab) {
 	];
 	if (!TAB_CLOSED && conditions.some(c => !!c)) {
 		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+		TAB_CLOSED = false;
 	}
 }

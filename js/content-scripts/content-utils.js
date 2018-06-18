@@ -23,6 +23,10 @@ const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
 const GATHER_FORMS_ACTION = "contrast__gatherForms";
 const STORED_APPS_KEY     = "contrast__APPS";
 
+function flatten(array) {
+  return array.reduce((newArray, val) => newArray.concat(val), []);
+}
+
 /**
 * deDupeArray - remove duplicate vlues from array, indexOf finds the index of the first item in an array, so all similar items after the first will evaluate to false when compared to their position
 *
