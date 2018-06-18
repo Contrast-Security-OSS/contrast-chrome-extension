@@ -1,4 +1,5 @@
 import {
+  CONTRAST_USERNAME,
   STORED_APPS_KEY,
   STORED_TRACES_KEY,
   VALID_TEAMSERVER_HOSTNAMES,
@@ -7,16 +8,9 @@ import {
   TEAMSERVER_INDEX_PATH_SUFFIX,
   setElementText,
   setElementDisplay,
-  getStoredApp,
-  isBlacklisted,
-  getApplications,
-  getHostFromUrl,
-  isContrastTeamserver,
   changeElementVisibility,
   hideElementAfterTimeout,
 } from '../util.js'
-
-import TableRow from './PopupTableRow.js'
 
 export default function Config(tab, url, credentialed) {
   this.tab = tab;

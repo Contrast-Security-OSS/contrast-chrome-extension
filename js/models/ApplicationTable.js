@@ -34,9 +34,11 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
   setElementDisplay(headings.container, "block");
 
   for (let key in headings) {
-    headings[key].addEventListener('click', () => {
-      this.rollApplications();
-    });
+    if (Object.prototype.hasOwnProperty.call(headings, key)) {
+      headings[key].addEventListener('click', () => {
+        this.rollApplications();
+      });
+    }
   }
 }
 

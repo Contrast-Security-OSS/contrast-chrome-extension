@@ -61,8 +61,8 @@ TableRow.prototype.createConnectButton = function() {
   setElementText(this.nameTD, this.application.name.titleize());
 
   domainBtn.addEventListener('click', () => {
-    const connected = new ConnectedDomain(this.host, this.application);
-    connected.connectDomain()
+    const cd = new ConnectedDomain(this.host, this.application);
+    cd.connectDomain()
     .then(connected => this._showMessage(connected))
     .catch((error) => this._handleConnectError(error));
   });
@@ -111,6 +111,7 @@ TableRow.prototype._handleConnectError = function(error) {
   const message = document.getElementById("connected-domain-message");
   this._failDisonnect(message);
   hideElementAfterTimeout(message);
+  throw new Error(error);
 }
 
 

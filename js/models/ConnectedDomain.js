@@ -1,16 +1,11 @@
 import {
   STORED_APPS_KEY,
-  setElementText,
   setElementDisplay,
-  getStoredApp,
 } from '../util.js'
-
-import TableRow from './PopupTableRow.js'
 
 export default function ConnectedDomain(host, application) {
   this.host = host;
   this.application = application;
-  console.log("new ConnectedDomain", this);
 }
 
 ConnectedDomain.prototype.connectDomain = function() {
