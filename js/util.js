@@ -240,7 +240,7 @@ function getVulnerabilityShort(traceUuid) {
  *
  * @return {Promise<Array>} A promise containing a list of applications in an organization
  */
-function getApplications() {
+function getOrgApplications() {
   return getStoredCredentials()
   .then(items => {
     const url = getApplicationsUrl(
@@ -534,32 +534,6 @@ function changeElementVisibility(element) {
   }
 }
 
-function getStoredApp(storedApps, application) {
-  if (!application) throw new Error("application must be defined");
-  return storedApps[STORED_APPS_KEY].filter(app => {
-    return Object.values(app)[0] === application.app_id;
-  })[0];
-}
-
-function subDomainColonForUnderscore(storedApp) {
-  let domain;
-  if (typeof storedApp === "object") {
-    domain = Object.keys(storedApp)[0];
-  } else { // storedApp is a string
-    domain = storedApp;
-  }
-  return _subColonOrUnderscore(domain);
-}
-
-function _subColonOrUnderscore(string) {
-  if (string.includes("_")) {
-    return string.split("_").join(":"); // local dev stuff
-  } else if (string.includes(":")) {
-    return string.split(":").join("_"); // local dev stuff
-  }
-  return string;
-}
-
 /**
  * hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
  *
@@ -585,7 +559,7 @@ export {
   getStoredCredentials,
   getOrganizationVulnerabilityIds,
   getVulnerabilityShort,
-  getApplications,
+  getOrgApplications,
   isCredentialed,
   deDupeArray,
   getHostFromUrl,
@@ -598,8 +572,6 @@ export {
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
-  subDomainColonForUnderscore,
   changeElementVisibility,
-  getStoredApp,
   hideElementAfterTimeout,
 }

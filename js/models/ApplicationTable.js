@@ -2,13 +2,13 @@ import {
   STORED_APPS_KEY,
   setElementText,
   setElementDisplay,
-  getStoredApp,
   isBlacklisted,
-  getApplications,
+  getOrgApplications,
   getHostFromUrl,
   isContrastTeamserver,
 } from '../util.js'
 
+import Application from './Application.js';
 import TableRow from './PopupTableRow.js'
 
 export default function ApplicationTable(url) {
@@ -35,15 +35,17 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
 
   for (let key in headings) {
     if (Object.prototype.hasOwnProperty.call(headings, key)) {
-      headings[key].addEventListener('click', () => {
-        this.rollApplications();
-      });
+      headings[key].addEventListener('click', () => this.rollApplications());
     }
   }
 }
 
-// only appears on contrast "Your Account" page.
-// Need a roll of applications due to presence of config button
+
+/**
+ * @description - ApplicationTable.prototype.rollApplications - only appears on contrast "Your Account" page. Need a roll of applications due to presence of config button.
+ *
+ * @return {type}  description
+ */
 ApplicationTable.prototype.rollApplications = function() {
   const arrow = document.getElementById('applications-arrow');
   if (arrow.innerText === ' ▶') {
@@ -59,7 +61,7 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
 
   // if less than 2 then only the heading row has been rendered
   if (document.getElementsByTagName('tr').length < 2) {
-    getApplications()
+    getOrgApplications()
     .then(json => {
       if (!json) {
         throw new Error("Error getting applications");
@@ -105,7 +107,7 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   setElementDisplay(vulnsFound, "none");
 
   // if app is not stored, render the table with buttons to add the domain
-  getApplications()
+  getOrgApplications()
   .then(json => {
     if (!json) {
       throw new Error("Error getting applications");
@@ -121,10 +123,18 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   });
 }
 
+/**
+ * @description - Filters an Organization's applications returning only those ones that have NOT been connected to a domain.
+ *
+ * @param {Array<Application>} storedApps - connected apps in chrome storage
+ * @param {Array<Object>} applications    - organization's applications from TS
+ * @return {Array<Application>}           - connected applications
+ */
 ApplicationTable.prototype._filterApplications = function(storedApps, applications) {
   // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
   if (!!storedApps[STORED_APPS_KEY] && !isContrastTeamserver(this.url.href)) {
-    const appIds = storedApps[STORED_APPS_KEY].map(Object.values).flatten();
+    console.log("app table filtering applications", applications);
+    const appIds = storedApps[STORED_APPS_KEY].map(app => app.id).flatten();
 
     // include in applications if it's not in storage
     return applications.filter(app => !appIds.includes(app.app_id));
@@ -133,10 +143,9 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
 }
 
 /**
- * createAppTableRow - renders a table row, either with a button if it's not a contrast url, or with a domain (or blank) if it's a contrast url showing in tab
+ * @description - renders a table row, either with a button if it's not a contrast url, or with a domain (or blank) if it's a contrast url showing in tab
  *
- * @param  {Object} application the contrast application
- * @param  {Object} url         the URL() of the current tab
+ * @param  {Object} application the contrast application from TS
  * @return {void} - adds rows to a table
  */
 ApplicationTable.prototype.createAppTableRow = function(application) {
@@ -157,8 +166,7 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
       if (!storedApps || !storedApps[STORED_APPS_KEY]) {
         storedApps = { [STORED_APPS_KEY]: [] }
       }
-      const storedApp = getStoredApp(storedApps, application);
-
+      const storedApp = Application.getStoredApp(storedApps, application);
       setElementText(tr.nameTD, application.name);
 
       if (!!storedApp) {

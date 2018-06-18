@@ -4,10 +4,10 @@ import {
   setElementText,
   setElementDisplay,
   changeElementVisibility,
-  subDomainColonForUnderscore,
   hideElementAfterTimeout,
 } from '../util.js'
 
+import Application from './Application.js';
 import ConnectedDomain from './ConnectedDomain.js'
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect";
@@ -63,7 +63,7 @@ TableRow.prototype.createConnectButton = function() {
   domainBtn.addEventListener('click', () => {
     const cd = new ConnectedDomain(this.host, this.application);
     cd.connectDomain()
-    .then(connected => this._showMessage(connected))
+    .then(connected => this._showMessage(connected, true))
     .catch((error) => this._handleConnectError(error));
   });
 }
@@ -75,7 +75,7 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
   const disconnectButton = document.createElement('button');
   const connected        = new ConnectedDomain(this.host, storedApp);
   // setElementText(this.domainTD, domain);
-  setElementText(this.domainTD, subDomainColonForUnderscore(this.host));
+  setElementText(this.domainTD, Application.subDomainColonForUnderscore(this.host));
   setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
 
   disconnectButton.setAttribute('class', CONTRAST_BUTTON_CLASS);
@@ -94,10 +94,16 @@ TableRow.prototype.removeDomainAndButton = function() {
 
 // HELPERS
 
-TableRow.prototype._showMessage = function(result) {
+TableRow.prototype._showMessage = function(result, connect) {
   const message = document.getElementById("connected-domain-message");
   changeElementVisibility(message);
-  if (result) {
+  if (result && connect) {
+    this._successConnect(message);
+    message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+  } else if (!result && connect) {
+    this._failConnect(message);
+    message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+  } else if (result && !connect) {
     this._successDisonnect(message);
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
   } else {

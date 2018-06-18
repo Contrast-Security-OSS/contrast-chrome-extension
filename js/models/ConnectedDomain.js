@@ -3,6 +3,8 @@ import {
   setElementDisplay,
 } from '../util.js'
 
+import Application from './Application.js'
+
 export default function ConnectedDomain(host, application) {
   this.host = host;
   this.application = application;
@@ -30,10 +32,8 @@ ConnectedDomain.prototype._addDomainToStorage = function() {
 
       // no applications stored so result[STORED_APPS_KEY] is undefined
       if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
-
-      const updatedStoredApps = result[STORED_APPS_KEY].concat({
-        [host]: application.app_id
-      });
+      const app = new Application(host, application);
+      const updatedStoredApps = result[STORED_APPS_KEY].concat(app);
 
       const applicationTable = document.getElementById("application-table");
       chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
@@ -72,8 +72,14 @@ ConnectedDomain.prototype._removeDomainFromStorage = function(storedApps, tableR
   });
 }
 
+/**
+ * @description ConnectedDomain.prototype._filterOutApp - create a new array of connected apps that does not include the application belonging to this
+ *
+ * @param  {Array<Application>} storedApps - connected apps in chrome storage
+ * @return {Array<Application>}            - filtered apps in chrome storage
+ */
 ConnectedDomain.prototype._filterOutApp = function(storedApps) {
   return storedApps[STORED_APPS_KEY].filter(app => {
-    return Object.values(app)[0] !== Object.values(this.application)[0]
+    return app.id !== this.application.id;
   });
 }
