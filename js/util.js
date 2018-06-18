@@ -560,6 +560,21 @@ function _subColonOrUnderscore(string) {
   return string;
 }
 
+/**
+ * hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
+ *
+ * @param  {Node} element HTML Element to show for 2 seconds
+ * @return {void}
+ */
+function hideElementAfterTimeout(element, callback) {
+  setTimeout(() => { // eslint-disable-line consistent-return
+    changeElementVisibility(element);
+    if (callback) {
+      return callback();
+    }
+  }, 2000); // let the element linger
+}
+
 export {
   fetchTeamserver,
   getAuthorizationHeader,
@@ -586,4 +601,5 @@ export {
   subDomainColonForUnderscore,
   changeElementVisibility,
   getStoredApp,
+  hideElementAfterTimeout,
 }

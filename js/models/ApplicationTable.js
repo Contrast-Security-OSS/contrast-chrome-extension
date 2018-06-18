@@ -35,24 +35,24 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
 
   for (let key in headings) {
     headings[key].addEventListener('click', () => {
-      this.rollApplications(applicationTable);
+      this.rollApplications();
     });
   }
 }
 
 // only appears on contrast "Your Account" page.
 // Need a roll of applications due to presence of config button
-ApplicationTable.prototype.rollApplications = function(applicationTable) {
-  const applicationsArrow = document.getElementById('applications-arrow');
-  if (applicationsArrow.innerText === ' ▶') {
-    this._unrollApplications(applicationsArrow);
+ApplicationTable.prototype.rollApplications = function() {
+  const arrow = document.getElementById('applications-arrow');
+  if (arrow.innerText === ' ▶') {
+    this._unrollApplications(arrow);
   } else {
-    this._rollupApplications(applicationsArrow);
+    this._rollupApplications(arrow);
   }
 }
 
-ApplicationTable.prototype._unrollApplications = function(applicationTable) {
-  setElementText(applicationsArrow, ' ▼');
+ApplicationTable.prototype._unrollApplications = function(arrow) {
+  setElementText(arrow, ' ▼');
   this._changeTableVisibility(true);
 
   // if less than 2 then only the heading row has been rendered

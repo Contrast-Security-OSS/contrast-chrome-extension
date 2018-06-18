@@ -5,6 +5,7 @@ import {
   setElementDisplay,
   changeElementVisibility,
   subDomainColonForUnderscore,
+  hideElementAfterTimeout,
 } from '../util.js'
 
 import ConnectedDomain from './ConnectedDomain.js'
@@ -103,29 +104,15 @@ TableRow.prototype._showMessage = function(result) {
     this._failDisonnect(message);
     message.setAttribute('style', `color: ${CONTRAST_RED}`);
   }
-  _hideElementAfterTimeout(message);
+  hideElementAfterTimeout(message);
 }
 
 TableRow.prototype._handleConnectError = function(error) {
   const message = document.getElementById("connected-domain-message");
   this._failDisonnect(message);
-  _hideElementAfterTimeout(message);
+  hideElementAfterTimeout(message);
 }
 
-/**
- * _hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
- *
- * @param  {Node} element HTML Element to show for 2 seconds
- * @return {void}
- */
-function _hideElementAfterTimeout(element, callback) {
-  setTimeout(() => { // eslint-disable-line consistent-return
-    changeElementVisibility(element);
-    if (callback) {
-      return callback();
-    }
-  }, 2000); // let the element linger
-}
 
 TableRow.prototype._successConnect = function(message) {
   setElementText(message, CONNECT_SUCCESS_MESSAGE);
