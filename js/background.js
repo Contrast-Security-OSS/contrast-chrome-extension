@@ -2,6 +2,7 @@
 	URL,
 	chrome,
 	module,
+	window,
 */
 
 import {
@@ -31,16 +32,30 @@ import Vulnerability from './models/Vulnerability.js';
 /******************************************************************************
  ********************************* GLOBALS ************************************
  ******************************************************************************/
-export let TAB_CLOSED 			= false;
+export let TAB_CLOSED 		 = false;
 export let VULNERABLE_TABS = []; // tab ids of tabs where vulnerabilities count != 0
-export let XHR_REQUESTS 		= []; // use to not re-evaluate xhr requests
+export let XHR_REQUESTS 	 = []; // use to not re-evaluate xhr requests
 
 // set on activated or on initial web request
 // use in place of retrieveApplicationFromStorage due to async
 // NOTE: Need to do this for checking requests before sending to teamserver
 // Only requests from applications that are connected should be sent for checking to teamserver, asynchronously retrieving the application from chrome storage on every request in chrome.webRequest.onBeforeRequest resulted in inconsistent vulnerability returns.
-window.CURRENT_APPLICATION = null;
-export const CURRENT_APPLICATION = window.CURRENT_APPLICATION;
+export let CURRENT_APPLICATION = null;
+
+export function getCurrentApplication() {
+	return CURRENT_APPLICATION;
+}
+
+/**
+ * _setCurrentApplication - description
+ *
+ * @param  {Object} application application to set as the CURRENT_APPLICATION
+ * @return {Object}           	the new CURRENT_APPLICATION
+ */
+export function setCurrentApplication(application) {
+	CURRENT_APPLICATION = application;
+	return CURRENT_APPLICATION;
+}
 
 export function resetXHRRequests() {
 	XHR_REQUESTS = [];
@@ -142,14 +157,14 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 		})
 	}
 
-	else if (request === "EVALUATE_XHR" && window.CURRENT_APPLICATION) {
+	else if (request === "EVALUATE_XHR" && CURRENT_APPLICATION) {
 		return getStoredCredentials()
 		.then(creds => {
 			Vulnerability.evaluateVulnerabilities(
 				isCredentialed(creds), // if credentialed already
 				tab, 									 // current tab
 				XHR_REQUESTS, 				 // gathered xhr requests from page load
-				window.CURRENT_APPLICATION, 	 // current app
+				CURRENT_APPLICATION, 	 // current app
 				true 									 // isXHR
 			);
 		})
@@ -163,12 +178,12 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 		return getStoredCredentials()
 		.then(creds => {
 			const { formActions } = request;
-			if (!!formActions && window.CURRENT_APPLICATION) {
+			if (!!formActions && CURRENT_APPLICATION) {
 				Vulnerability.evaluateVulnerabilities(
 					isCredentialed(creds), // if credentialed already
 					tab, 									 // current tab
 					formActions, 					 // gathered xhr requests from page load
-					window.CURRENT_APPLICATION, 	 // current app
+					CURRENT_APPLICATION, 	 // current app
 					false 								 // isXHR
 				);
 			}
@@ -223,13 +238,13 @@ export function handleTabActivated(tab) {
 		const credentialed = isCredentialed(results[0]);
 		if (credentialed) {
 			const application = results[1];
-			Application.setCurrentApplication(application);
-			if (!window.CURRENT_APPLICATION) {
+			setCurrentApplication(application);
+			if (!CURRENT_APPLICATION) {
 				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 			}
 			else if (!isBlacklisted(tab.url)) {
 				updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
-				Vulnerability.updateVulnerabilities(tab, window.CURRENT_APPLICATION, credentialed);
+				Vulnerability.updateVulnerabilities(tab, CURRENT_APPLICATION, credentialed);
 			} else {
 				removeLoadingBadge(tab);
 			}
@@ -282,14 +297,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		const credentialed = isCredentialed(results[0]);
 		if (credentialed) {
 			const application = results[1];
-			Application.setCurrentApplication(application);
-			if (!window.CURRENT_APPLICATION) {
+			setCurrentApplication(application);
+			if (!CURRENT_APPLICATION) {
 				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 				return;
 			}
 
 			if (tabUpdateComplete(changeInfo, tab) && !isBlacklisted(tab.url)) {
-				Vulnerability.updateVulnerabilities(tab, window.CURRENT_APPLICATION, credentialed);
+				Vulnerability.updateVulnerabilities(tab, CURRENT_APPLICATION, credentialed);
 			} else if (isBlacklisted(tab.url)) {
 				removeLoadingBadge(tab);
 			}
