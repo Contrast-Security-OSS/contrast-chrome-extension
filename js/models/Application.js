@@ -88,9 +88,9 @@ Application.getStoredApp = function(storedApps, application) {
 Application.subDomainColonForUnderscore = function(storedApp) {
   if (typeof storedApp === "object") {
     return this._subColonOrUnderscore(storedApp.domain);
-  } else { // storedApp is a string
-    return this._subColonOrUnderscore(storedApp);
   }
+  // storedApp is a string
+  return this._subColonOrUnderscore(storedApp);
 }
 
 /**
