@@ -1,6 +1,22 @@
+/*global
+chrome,
+document,
+MutationObserver,
+getHostFromUrl,
+deDupeArray,
+flatten,
+STORED_APPS_KEY,
+GATHER_FORMS_ACTION,
+CONTRAST_GREEN,
+*/
+
+"use strict";
+
 function ContrastForm(forms) {
   this.forms = forms;
 }
+
+ContrastForm.MESSAGE_SENT = false;
 
 /**
 * extractActionsFromForm - gets the form actions from each form in a collection
@@ -8,10 +24,10 @@ function ContrastForm(forms) {
 * @param  {HTMLCollection} forms collection of forms extracted from DOM
 * @return {Array<String>} array of form actions
 */
-ContrastForm.prototype._extractActionsFromForm = function() {
+ContrastForm._extractActionsFromForm = function(forms) {
   let actions = [];
-  for (let i = 0; i < this.forms.length; i++) {
-    let form = this.forms[i];
+  for (let i = 0; i < forms.length; i++) {
+    let form = forms[i];
     let conditions = [
       form,
       !!form.action && form.action.length > 0,
@@ -40,21 +56,19 @@ ContrastForm.collectFormActions = function(sendResponse) {
 
     if (!application) return;
 
-    let messageSent = false;
-
     // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
     if (window.CONTRAST__REFRESHED === false) {
       const actions = this._scrapeDOMForForms();
       if (!!actions) {
-        messageSent = true;
-        this.__sendFormActionsToBackground(actions, sendResponse);
+        ContrastForm.MESSAGE_SENT = true;
+        this._sendFormActionsToBackground(actions, sendResponse);
         return;
       }
     }
 
     // MutationObserver watches for changes in DOM elements
     // takes a callback reporting on mutations observed
-    if (!messageSent) {
+    if (!ContrastForm.MESSAGE_SENT) {
       const obs = new MutationObserver((mutations, observer) => {
         this._collectMutatedForms(mutations, observer, sendResponse);
       });
@@ -77,7 +91,7 @@ ContrastForm._collectMutatedForms = function(mutations, observer, sendResponse) 
 
   // send formActions to background and stop observation
   if (formActions.length > 0) {
-    messageSent = true;
+    ContrastForm.MESSAGE_SENT = true;
     this._sendFormActionsToBackground(formActions, sendResponse);
     window.CONTRAST__REFRESHED = false;
     observer.disconnect();
@@ -87,8 +101,8 @@ ContrastForm._collectMutatedForms = function(mutations, observer, sendResponse) 
 /**
  * ContrastForm - description
  *
- * @param  {type} mutations description
- * @return {type}           description
+ * @param  {HTMLCollection} mutations - elements that have mutated
+ * @return {Array}                    - actions on forms
  */
 ContrastForm._getFormsFromMutations = function(mutations) {
   let formActions = [];
@@ -104,10 +118,10 @@ ContrastForm._getFormsFromMutations = function(mutations) {
 
     // if the mutated element has child forms
     if (!!mutatedForms && mutatedForms.length > 0) {
-      let form    = new ContrastForm(mutatedForms);
-      let actions = form._extractActionsFromForm();
+      let actions = this._extractActionsFromForm(mutatedForms);
       return formActions.concat(actions);
     }
+    return null;
   }).filter(Boolean);
 }
 
@@ -130,7 +144,7 @@ ContrastForm._scrapeDOMForForms = function() {
     }
   }
   if (forms.length > 0) {
-    formActions = formActions.concat(extractActionsFromForm(forms));
+    formActions = formActions.concat(this._extractActionsFromForm(forms));
   }
   return formActions;
 }
@@ -177,8 +191,8 @@ ContrastForm.highlightForms = function(traceUrls) {
 /**
  * ContrastForm - description
  *
- * @param  {type} form description
- * @return {type}      description
+ * @param  {HTMLNode} form - form to highlight
+ * @return {Boolean}
  */
 ContrastForm._highlightSubmitInput = function(form) {
   let inputs = form.getElementsByTagName('input');
@@ -198,18 +212,9 @@ ContrastForm._highlightSubmitInput = function(form) {
 
     return true;
   }
+  return false;
 }
 
-
-/**
-* HTMLCollectionToArray - convert a collection of html form to an array
-*
-* @param  {HTMLCollection} collection - Collection of html elements
-* @return {Array<Node>}
-*/
-function HTMLCollectionToArray(collection) {
-  return Array.prototype.slice.call(collection);
-}
 
 /**
  * parentHasDisplayNone - checks if any parent elements of a node has display: none styling
