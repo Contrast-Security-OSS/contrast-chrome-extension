@@ -292,7 +292,7 @@ function deDupeArray(array) {
 * getHostFromUrl - extract the host/domain name from the url
 *
 * @param  {String} url the url from which to extract the domain/host
-* @return {type}     description
+* @return {String}     the domain of the website, underscored if port
 */
 function getHostFromUrl(url) {
   const host      = url.host.split(":").join("_");
@@ -350,7 +350,7 @@ function isContrastTeamserver(url) {
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
-
+  console.log("updating tab badge with ", text);
   try {
     chrome.tabs.get(tab.id, (result) => {
       if (!result) return;

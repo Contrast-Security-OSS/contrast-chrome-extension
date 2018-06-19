@@ -30,7 +30,7 @@ Application.retrieveApplicationFromStorage = function(tab) {
       }
 
       if (!result || !result[STORED_APPS_KEY]) {
-        result = { APPS: [] };
+        result = { [STORED_APPS_KEY]: [] };
       }
 
       const url  = new URL(tab.url);
@@ -75,7 +75,6 @@ Application.retrieveApplicationFromStorage = function(tab) {
 Application.getStoredApp = function(storedApps, application) {
   if (!application) throw new Error("application must be defined");
   return storedApps[STORED_APPS_KEY].filter(app => {
-    console.log("app", app, application);
     return app.id === application.app_id;
   })[0];
 }
@@ -83,17 +82,15 @@ Application.getStoredApp = function(storedApps, application) {
 /**
  * @description - can't use a colon in app name (because objects), sub colon for an underscore. Needed when dealing with ports in app name like localhost:8080
  *
- * @param  {Application} storedApp - the connected application
- * @return {String}                - app domain with colon swapped in/out
+ * @param  {Application/String} storedApp - the connected application
+ * @return {String} - app domain with colon swapped in/out
  */
 Application.subDomainColonForUnderscore = function(storedApp) {
-  let domain;
   if (typeof storedApp === "object") {
-    domain = Object.keys(storedApp)[0];
+    return this._subColonOrUnderscore(storedApp.domain);
   } else { // storedApp is a string
-    domain = storedApp;
+    return this._subColonOrUnderscore(storedApp);
   }
-  return this._subColonOrUnderscore(domain);
 }
 
 /**

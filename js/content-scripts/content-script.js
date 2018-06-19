@@ -2,6 +2,7 @@
 chrome,
 document,
 ContrastForm,
+retrieveApplicationFromStorage,
 TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,
@@ -25,7 +26,14 @@ if (window.performance.navigation.type === 1) {
 }
 
 window.addEventListener("load", function() {
-  chrome.runtime.sendMessage("EVALUATE_XHR")
+  retrieveApplicationFromStorage({ url: window.location.href })
+  .then(application => {
+    if (application) {
+      chrome.runtime.sendMessage("EVALUATE_XHR");
+    }
+  })
+  .catch(() => new Error("Error getting application from storage"));
+
   setTimeout(function() {
     window.CONTRAST__REFRESHED = false;
   }, 1000);

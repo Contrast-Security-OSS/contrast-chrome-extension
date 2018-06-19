@@ -23,6 +23,26 @@ const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
 const GATHER_FORMS_ACTION = "contrast__gatherForms";
 const STORED_APPS_KEY     = "contrast__APPS";
 
+// don't look for vulnerabilities on these domains
+const BLACKLISTED_DOMAINS = [
+  "chrome://",
+  "file://",
+  "/Contrast/api/ng/",
+  "/Contrast/s/",
+  "google.com",
+  "ajax.googleapis.com",
+  "gstatic.net",
+  "cloudfront.com",
+  "developer.chrome",
+  "facebook.com",
+  "atlassian.net",
+  "cloudfront.net",
+  "cloudfront.com",
+  "cdn.sstatic.net",
+  "reddit.com",
+];
+const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
+
 function flatten(array) {
   return array.reduce((newArray, val) => newArray.concat(val), []);
 }
@@ -55,4 +75,68 @@ function getHostFromUrl(url) {
     return hostArray[1];
   }
   return host;
+}
+
+/**
+* isBlacklisted - checks if a url contains a string from the blacklist
+*
+* @param  {String} url - the url to check against
+* @return {Boolean}      if the url is in the blacklist
+*/
+function isBlacklisted(url) {
+  if (!url) return true;
+  url = url.toLowerCase();
+
+  for (let i = 0; i < BLACKLIST_LENGTH; i++) {
+    if (url.includes(BLACKLISTED_DOMAINS[i].toLowerCase())) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+* retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
+*
+* @param  {Object} url - an object with a url key
+* @return {Promise<String>}       the name of the application
+*/
+function retrieveApplicationFromStorage(tab) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error("Error retrieving stored applications"));
+      }
+
+      if (!result || !result[STORED_APPS_KEY]) {
+        result = { APPS: [] };
+      }
+      const url  = new URL(tab.url);
+      const host = getHostFromUrl(url);
+
+      let application;
+      if (!!result[STORED_APPS_KEY]) {
+        application = result[STORED_APPS_KEY].filter(app => app[host])[0];
+      }
+
+      if (!application) {
+        if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(url, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+          } catch (e) {
+            reject(new Error("Error updating url badge"))
+          }
+        } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(url, '', CONTRAST_GREEN);
+          } catch (e) {
+            reject(new Error("Error updating tab badge"))
+          }
+        }
+        resolve(null);
+      }
+
+      resolve(application);
+    });
+  });
 }

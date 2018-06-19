@@ -16,6 +16,8 @@ export default function ApplicationTable(url) {
   this.url = url;
 }
 
+ApplicationTable.RIGHT_ARROW = ' ▶';
+ApplicationTable.DOWN_ARROW  = ' ▼';
 ApplicationTable.TABLE_VISIBLE_CLASS = 'application-table-visible';
 ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
 
@@ -26,17 +28,16 @@ ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
  * @return {void}
  */
 ApplicationTable.prototype.renderApplicationsMenu = function() {
-  const headings = {
-    heading: document.getElementById('applications-heading'),
-    container: document.getElementById('applications-heading-container')
-  }
+  const headings = [
+    document.getElementById('applications-heading'),
+    document.getElementById('applications-arrow'),
+  ]
 
-  setElementDisplay(headings.container, "block");
+  const container = document.getElementById('applications-heading-container');
+  setElementDisplay(container, "block");
 
-  for (let key in headings) {
-    if (Object.prototype.hasOwnProperty.call(headings, key)) {
-      headings[key].addEventListener('click', () => this.rollApplications());
-    }
+  for (let i = 0, len = headings.length; i < len; i++) {
+    headings[i].addEventListener('click', () => this.rollApplications());
   }
 }
 
@@ -48,7 +49,7 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
  */
 ApplicationTable.prototype.rollApplications = function() {
   const arrow = document.getElementById('applications-arrow');
-  if (arrow.innerText === ' ▶') {
+  if (arrow.innerText === ApplicationTable.RIGHT_ARROW) {
     this._unrollApplications(arrow);
   } else {
     this._rollupApplications(arrow);
@@ -56,7 +57,7 @@ ApplicationTable.prototype.rollApplications = function() {
 }
 
 ApplicationTable.prototype._unrollApplications = function(arrow) {
-  setElementText(arrow, ' ▼');
+  setElementText(arrow, ApplicationTable.DOWN_ARROW);
   this._changeTableVisibility(true);
 
   // if less than 2 then only the heading row has been rendered
@@ -74,7 +75,7 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
 
 ApplicationTable.prototype._rollupApplications = function(arrow) {
   this._changeTableVisibility(false);
-  setElementText(arrow, ' ▶');
+  setElementText(arrow, ApplicationTable.RIGHT_ARROW);
 }
 
 /**
@@ -133,7 +134,6 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
 ApplicationTable.prototype._filterApplications = function(storedApps, applications) {
   // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
   if (!!storedApps[STORED_APPS_KEY] && !isContrastTeamserver(this.url.href)) {
-    console.log("app table filtering applications", applications);
     const appIds = storedApps[STORED_APPS_KEY].map(app => app.id).flatten();
 
     // include in applications if it's not in storage
@@ -155,6 +155,7 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
   this._changeTableVisibility(true);
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
+    console.log("before sethost", this);
     tr.setHost(getHostFromUrl(this.url));
     tr.createConnectButton();
   } else {
@@ -170,7 +171,7 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
       setElementText(tr.nameTD, application.name);
 
       if (!!storedApp) {
-        tr.setHost(Object.keys(storedApp)[0]);
+        tr.setHost(storedApp.host);
         tr.renderDisconnect(storedApps, storedApp);
       }
     });

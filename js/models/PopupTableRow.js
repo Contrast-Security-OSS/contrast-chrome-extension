@@ -74,7 +74,7 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
   // const domain           = connected._getDomainFromApplication();
   const disconnectButton = document.createElement('button');
   const connected        = new ConnectedDomain(this.host, storedApp);
-  // setElementText(this.domainTD, domain);
+
   setElementText(this.domainTD, Application.subDomainColonForUnderscore(this.host));
   setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
 
