@@ -47,7 +47,7 @@ export function getCurrentApplication() {
 }
 
 /**
- * _setCurrentApplication - description
+ * setCurrentApplication - description
  *
  * @param  {Object} application application to set as the CURRENT_APPLICATION
  * @return {Object}           	the new CURRENT_APPLICATION

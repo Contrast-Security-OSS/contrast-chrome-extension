@@ -8,10 +8,12 @@ const fetch      = require('node-fetch');
 const { assert, expect } = chai;
 const util       = require('../../lib/util.js');
 const background = require('../../lib/background.js');
+const ApplicationModel = require('../../lib/models/Application.js');
+const Application = ApplicationModel.default;
 
 let {
   handleWebRequest,
-  handleRuntimeOnMessage,
+  _handleRuntimeOnMessage,
   handleTabActivated,
   tabUpdateComplete,
   updateVulnerabilities,
@@ -20,7 +22,7 @@ let {
   buildVulnerabilitiesArray,
   removeVulnerabilitiesFromStorage,
   notifyUserToConfigure,
-  _setCurrentApplication,
+  setCurrentApplication,
   TAB_CLOSED,
   VULNERABLE_TABS,
   XHR_REQUESTS,
@@ -82,7 +84,7 @@ describe('tests for background methods', function() {
       sendResponse: sinon.spy(),
     }
 
-    const handlerSpy = sinon.spy(handleRuntimeOnMessage);
+    const handlerSpy = sinon.spy(_handleRuntimeOnMessage);
     chrome.runtime.onMessage.addListener(handlerSpy);
 
     expect(handlerSpy.called).equal(false);
@@ -101,20 +103,20 @@ describe('tests for background methods', function() {
     };
 
     let hand;
-    hand = handleRuntimeOnMessage({ sender: GATHER_FORMS_ACTION }, spy, tab);
+    hand = _handleRuntimeOnMessage({ sender: GATHER_FORMS_ACTION }, spy, tab);
     expect(hand.constructor.name === "Promise");
 
     expect(chrome.storage.local.get.calledOnce).equal(true);
-    hand = handleRuntimeOnMessage(TRACES_REQUEST, spy, tab);
+    hand = _handleRuntimeOnMessage(TRACES_REQUEST, spy, tab);
     expect(chrome.storage.local.get.calledTwice).equal(true);
 
-    hand = handleRuntimeOnMessage("not a thing", spy, tab);
+    hand = _handleRuntimeOnMessage("not a thing", spy, tab);
     expect(hand).equal("not a thing");
   });
 
   it('sets an application', function() {
-    const application = { localhost_8080: "webgoat" };
-    const setAppSpy = sinon.spy(_setCurrentApplication);
+    const application = new Application("localhost_8080", "webgoat");
+    const setAppSpy = sinon.spy(setCurrentApplication);
 
     expect(CURRENT_APPLICATION).equal(null);
     expect(setAppSpy.called).equal(false);
