@@ -89,8 +89,9 @@ export function handleWebRequest(request) {
 		!isBlacklisted(request.url),
 		!XHR_REQUESTS.includes(request.url),
 		!request.url.includes(TEAMSERVER_API_PATH_SUFFIX),
-	]
+	];
 	if (conditions.every(Boolean)) {
+		console.log("request", request.url);
 		XHR_REQUESTS.push(request.url);
 	}
 	return;
@@ -112,9 +113,12 @@ export function handleWebRequest(request) {
  * This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+	console.log("request", request);
+	chrome.tabs.query({ active: true }, (tabs) => {
+		console.log("tabs", tabs);
 		if (!tabs || tabs.length === 0) return;
 		const tab = tabs[0];
+		console.log("tab in background", tab.id);
 
 		if (!tab.active) return;
 
@@ -124,7 +128,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
 		//#x21bb; is unicode clockwise circular arrow
 		if (request !== TRACES_REQUEST) {
-			updateTabBadge(tab, "↻", CONTRAST_GREEN);
+			if (!TAB_CLOSED) {
+				updateTabBadge(tab, "↻", CONTRAST_GREEN);
+				TAB_CLOSED = false;
+			}
 		}
 
 		if (!!tab && !isBlacklisted(tab.url)) {
@@ -148,6 +155,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
+			console.log("result of STORED_TRACES_KEY", result);
 			if (!!result && !!result[STORED_TRACES_KEY]) {
 				sendResponse({ traces: result[STORED_TRACES_KEY] });
 			} else {
@@ -170,7 +178,10 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 		})
 		.catch((error) => {
 			console.log(error);
-			updateTabBadge(tab, "X", CONTRAST_RED)
+			if (!TAB_CLOSED) {
+				updateTabBadge(tab, "X", CONTRAST_RED)
+				TAB_CLOSED = false;
+			}
 		});
 	}
 
@@ -190,7 +201,10 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 		})
 		.catch((error) => {
 			console.log(error);
-			updateTabBadge(tab, "X", CONTRAST_RED)
+			if (!TAB_CLOSED) {
+				updateTabBadge(tab, "X", CONTRAST_RED)
+				TAB_CLOSED = false;
+			}
 		});
 	}
 	return request;
@@ -236,11 +250,15 @@ export function handleTabActivated(tab) {
 		if (credentialed) {
 			const application = results[1];
 			setCurrentApplication(application);
-			if (!CURRENT_APPLICATION) {
+			if (!CURRENT_APPLICATION && !TAB_CLOSED) {
 				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+				TAB_CLOSED = false;
 			}
 			else if (!isBlacklisted(tab.url)) {
-				updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
+				if (!TAB_CLOSED) {
+					updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
+					TAB_CLOSED = false;
+				}
 				Vulnerability.updateVulnerabilities(tab, CURRENT_APPLICATION, credentialed);
 			} else {
 				removeLoadingBadge(tab);
@@ -251,7 +269,10 @@ export function handleTabActivated(tab) {
 	})
 	.catch((error) => {
 		console.log(error);
-		updateTabBadge(tab, "X", CONTRAST_RED);
+		if (!TAB_CLOSED) {
+			updateTabBadge(tab, "X", CONTRAST_RED)
+			TAB_CLOSED = false;
+		}
 	});
 }
 
@@ -269,7 +290,8 @@ export function handleTabActivated(tab) {
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	console.log("tab updated");
-	if (!tab.active) return;
+	console.log("tab status", changeInfo.status);
+	if (!tab.active || !changeInfo.status) return;
 	if (chrome.runtime.lastError) return;
 
 	// Don't run logic when user opens a new tab, or when url isn't http (ex. chrome://)
@@ -280,7 +302,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	// GET STUCK ON LOADING if done for both "loading" and "complete"
 	if (changeInfo.status === "loading") {
 		// NOTE: UPDATEBADGE
-		updateTabBadge(tab, "↻", CONTRAST_GREEN);
+		if (!TAB_CLOSED) {
+			updateTabBadge(tab, "↻", CONTRAST_GREEN);
+			TAB_CLOSED = false;
+		}
 	}
 
 	const calls = [
@@ -311,7 +336,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	})
 	.catch(error => {
 		console.log(error);
-		updateTabBadge(tab, "X", CONTRAST_RED);
+		if (!TAB_CLOSED) {
+			updateTabBadge(tab, "X", CONTRAST_RED);
+			TAB_CLOSED = false;
+		}
 		throw new Error("error setting up tab update");
 	});
 });

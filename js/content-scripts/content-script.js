@@ -29,6 +29,7 @@ window.addEventListener("load", function() {
   retrieveApplicationFromStorage({ url: window.location.href })
   .then(application => {
     if (application) {
+      // updateTabBadge(tab, "↻", CONTRAST_GREEN);
       chrome.runtime.sendMessage("EVALUATE_XHR");
     }
   })

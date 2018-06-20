@@ -160,6 +160,14 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
   throw new Error("an argument to getApplicationsUrl was undefined");
 }
 
+/**
+ * getVulnerabilityTeamserverUrl - open new tab in contrast showing vulnerability
+ *
+ * @param  {String} teamserverUrl
+ * @param  {String} orgUuid      
+ * @param  {String} traceUuid    
+ * @return {String}              
+ */
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     let contrastURL = teamserverUrl;
