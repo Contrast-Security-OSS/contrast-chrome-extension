@@ -64,6 +64,7 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
   if (document.getElementsByTagName('tr').length < 2) {
     getOrgApplications()
     .then(json => {
+      console.log(json);
       if (!json) {
         throw new Error("Error getting applications");
       }

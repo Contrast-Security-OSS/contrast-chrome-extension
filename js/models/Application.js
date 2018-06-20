@@ -101,9 +101,9 @@ Application.subDomainColonForUnderscore = function(storedApp) {
  */
 Application._subColonOrUnderscore = function(string) {
   if (string.includes("_")) {
-    return string.split("_").join(":"); // local dev stuff
+    return string.replace("_", ":"); // local dev stuff
   } else if (string.includes(":")) {
-    return string.split(":").join("_"); // local dev stuff
+    return string.replace(":", "_"); // local dev stuff
   }
   return string;
 }

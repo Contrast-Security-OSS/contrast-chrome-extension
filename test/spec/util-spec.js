@@ -8,11 +8,14 @@ const btoa      = require('btoa');
 const url       = require('url');
 const { assert, expect } = chai;
 
+const { JSDOM } = jsdom;
+
 const {
   returnShortTraceData,
   returnShortTraceDataLowSeverity,
   returnVulnerabilityIdData,
   returnFilterTraceData,
+  organizationApps,
 } = testData;
 
 const util = require("../../lib/util.js");
@@ -64,11 +67,12 @@ let {
   isContrastTeamserver,
   updateTabBadge,
   removeLoadingBadge,
-  retrieveApplicationFromStorage,
   generateTraceURLString,
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
+  changeElementVisibility,
+  hideElementAfterTimeout,
 } = util;
 
 describe("testing utility functions and constants", function() {
@@ -82,15 +86,12 @@ describe("testing utility functions and constants", function() {
       "Accept": "application/json"
     },
   }
-  let teamserverUrl, orgUuid, traceUuid, urls, credentials, fetchSpy;
+  let teamserverUrl, orgUuid, traceUuid, urls, credentials, fetchSpy, tab;
 
-  beforeEach(() => {
-    global.fetch   = fetch;
-    global.btoa    = btoa;
-    global.chrome  = chrome;
-    global.Headers = fetch.Headers;
-    global.URL     = url.URL;
-
+  beforeEach(function() {
+    setGlobals();
+    resetChrome();
+    tab = { id: 123, url: "http://www.atab.com" }
     credentials = {
       [CONTRAST_USERNAME]: "admin",
       [CONTRAST_SERVICE_KEY]: "demo",
@@ -98,7 +99,6 @@ describe("testing utility functions and constants", function() {
       [CONTRAST_ORG_UUID]: "i-am-an-org-uuid-123",
       [TEAMSERVER_URL]: "localhost:19080",
     };
-    chrome.storage.local.set(credentials);
     orgUuid = "i-am-an-org-uuid-123";
     teamserverUrl = "localhost:19080";
     traceUuid = "7HC2-TYLR-VATF-Z2ZO"; // webgoat sql injection url
@@ -108,6 +108,32 @@ describe("testing utility functions and constants", function() {
       "http://localhost:8080/WebGoat/login",
     ];
   });
+
+  afterEach(function() {
+    resetChrome();
+  })
+
+  function setGlobals() {
+    global.document = (new JSDOM(
+      `<!DOCTYPE html><html><head></head><body></body></html>`
+    )).window.document;
+    global.fetch   = fetch;
+    global.btoa    = btoa;
+    global.chrome  = chrome;
+    global.Headers = fetch.Headers;
+    global.URL     = url.URL;
+  }
+
+  function resetChrome() {
+    chrome.flush();
+    chrome.reset();
+    chrome.runtime.sendMessage.flush();
+    chrome.runtime.sendMessage.reset();
+    chrome.storage.local.get.flush();
+    chrome.storage.local.get.reset();
+    chrome.tabs.query.flush();
+    chrome.tabs.query.reset();
+  }
 
   it('0 == 0 to test if mocha works', function() {
     assert.equal(0, 0);
@@ -260,6 +286,105 @@ describe("testing utility functions and constants", function() {
       expect(result.trace.status).equal("Reported");
       getVulnerabilityShort.reset();
       done();
+    });
+  });
+
+  it('returns a list of organization applications', function(done) {
+    const appsStub  = sinon.stub(util, 'getOrgApplications');
+    const fetchStub = sinon.stub(util, 'fetchTeamserver');
+
+    fetchStub.resolves(organizationApps);
+    appsStub.callsArg(3)
+    appsStub(getStoredCredentials, getApplicationsUrl, getAuthorizationHeader, fetchStub);
+
+    assert.isTrue(appsStub.called);
+    assert.isTrue(fetchStub.called);
+
+    fetchStub()
+    .then(apps => {
+      assert.isTrue(JSON.stringify(organizationApps) === JSON.stringify(apps));
+      done();
     })
-  })
-})
+    .catch(done);
+
+    fetchStub.restore();
+    appsStub.restore();
+  });
+
+  it('gets a host from a url and replaces all : with _', function() {
+    let url = new URL("http://localhost:8080/WebGoat");
+    expect(getHostFromUrl(url)).equal("localhost_8080");
+
+    url = new URL("http://www.example.com");
+    expect(getHostFromUrl(url)).equal("example");
+
+    url = new URL("http://localhost:12345/Contrast/static/ng/index.html#/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/account");
+    expect(getHostFromUrl(url)).equal("localhost_12345");
+
+    url = new URL("https://www.nytimes.com/?WT.z_jog=1&hF=t&vS=undefined");
+    expect(getHostFromUrl(url)).equal("nytimes");
+  });
+
+  it('checks if a url is blacklisted', function() {
+    const blacklisted = [
+      "chrome://about",
+      "file:///Users/example/Documents/test.txt",
+      "http://www.example.com/Contrast/api/ng/",
+      "http://www.example.com/Contrast/s/",
+      "http://www.google.com",
+      "http://www.ajax.googleapis.com",
+      "http://www.gstatic.net",
+      "http://www.cloudfront.com",
+      "http://www.developer.chrome",
+      "http://www.facebook.com",
+      "http://www.atlassian.net",
+      "http://www.cloudfront.net",
+      "http://www.cloudfront.com",
+      "http://www.cdn.sstatic.net",
+      "http://www.reddit.com",
+    ];
+    const notBlacklisted = [
+      "http://www.legisme.com",
+      "http://www.legisme.io",
+      "http://localhost:8080/WebGoat",
+      "http://localhost:5000/hellllllllllllo",
+      "http://www.contrastsecurity.com",
+      "http://app.contrastsecurity.com",
+    ];
+    for (let i = 0, len = blacklisted.length; i < len; i++) {
+      assert.isTrue(isBlacklisted(blacklisted[i]));
+    }
+
+    for (let i = 0, len = notBlacklisted.length; i < len; i++) {
+      assert.isFalse(isBlacklisted(notBlacklisted[i]));
+    }
+
+    assert.throws(isBlacklisted, Error, "url must be a string");
+  });
+
+  it('checks if the current tab is contrast', function() {
+    assert.throws(isContrastTeamserver, Error, "url must be a string");
+
+    const yesContrast = [
+      "http://www.example.com/Contrast/api/ng/",
+      "http://www.example.com/Contrast/s/",
+      "adslkfjasdflskdfj/Contrast/static/ng/indexas;adskfjasldgalsg",
+    ];
+    for (let i = 0, len = yesContrast.length; i < len; i++) {
+      assert.isTrue(isContrastTeamserver(yesContrast[i]));
+    }
+
+    const notContrast = [
+      "hello",
+      "https://github.com/Contrast-Security-OSS/contrast-chrome-extension",
+      "https://www.contrastsecurity.com",
+      "https://app.contrastsecurity.com",
+      "https://docs.contrastsecurity.com/installation-javaconfig.html",
+    ];
+    for (let i = 0, len = notContrast.length; i < len; i++) {
+      assert.isFalse(isContrastTeamserver(notContrast[i]));
+    }
+  });
+
+
+});

@@ -149,7 +149,7 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result[STORED_TRACES_KEY]) {
-				sendResponse({ traces: JSON.parse(result[STORED_TRACES_KEY]) });
+				sendResponse({ traces: result[STORED_TRACES_KEY] });
 			} else {
 				sendResponse({ traces: [] });
 			}

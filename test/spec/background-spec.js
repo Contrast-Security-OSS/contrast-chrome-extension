@@ -50,7 +50,7 @@ describe('tests for background methods', function() {
     chrome.tabs.query.reset();
   });
 
-  after(function() {
+  afterEach(function() {
     chrome.flush();
     chrome.reset();
     chrome.storage.local.get.flush();

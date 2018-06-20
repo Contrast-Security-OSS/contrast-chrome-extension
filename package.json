@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "test": "nyc mocha test/spec",
-    "bab": "babel ./js --out-dir lib && mocha test/spec",
+    "test": "nyc mocha test/spec/*",
+    "bab": "babel ./js --out-dir lib && mocha test/spec/*",
     "lint": "eslint js/"
   },
   "devDependencies": {
