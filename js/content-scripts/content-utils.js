@@ -59,6 +59,7 @@ const GATHER_FORMS_ACTION = "contrast__gatherForms";
 const STORED_TRACES_KEY   = "contrast__traces";
 const TRACES_REQUEST      = "contrast__getStoredTraces";
 const STORED_APPS_KEY     = "contrast__APPS";
+const EVALUATE_XHR        = "contrast__evaluate_xhr_requests";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -160,6 +161,14 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
   throw new Error("an argument to getApplicationsUrl was undefined");
 }
 
+/**
+ * getVulnerabilityTeamserverUrl - open new tab in contrast showing vulnerability
+ *
+ * @param  {String} teamserverUrl
+ * @param  {String} orgUuid
+ * @param  {String} traceUuid
+ * @return {String}
+ */
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     let contrastURL = teamserverUrl;
@@ -295,7 +304,7 @@ function deDupeArray(array) {
 * @return {String}     the domain of the website, underscored if port
 */
 function getHostFromUrl(url) {
-  const host      = url.host.split(":").join("_");
+  const host      = url.host.replace(":", "_");
   const hostArray = host.split(".");
 
   if (hostArray.length < 3) {
@@ -313,6 +322,7 @@ function getHostFromUrl(url) {
 * @return {Boolean}      if the url is in the blacklist
 */
 function isBlacklisted(url) {
+  if (typeof url !== "string") throw new Error("url must be a string");
   if (!url) return true;
   url = url.toLowerCase();
 
@@ -331,6 +341,8 @@ function isBlacklisted(url) {
  * @return {Boolen} - if we're on a contrast teamserver page or not
  */
 function isContrastTeamserver(url) {
+  if (typeof url !== "string") throw new Error("url must be a string");
+  if (!url) return;
   const contrast = [
     "/Contrast/api/ng/",
     "/Contrast/s/",
@@ -350,7 +362,6 @@ function isContrastTeamserver(url) {
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
-  console.log("updating tab badge with ", text);
   try {
     chrome.tabs.get(tab.id, (result) => {
       if (!result) return;
@@ -393,53 +404,6 @@ function removeLoadingBadge(tab) {
       });
 		}
 	});
-}
-
-/**
-* retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
-*
-* @param  {Object} tab the active tab in the active window
-* @return {Promise<String>}       the name of the application
-*/
-function retrieveApplicationFromStorage(tab) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error("Error retrieving stored applications"));
-      }
-
-      if (!result || !result[STORED_APPS_KEY]) {
-        result = { APPS: [] };
-      }
-
-      const url  = new URL(tab.url);
-      const host = getHostFromUrl(url);
-
-      let application;
-      if (!!result[STORED_APPS_KEY]) {
-        application = result[STORED_APPS_KEY].filter(app => app[host])[0];
-      }
-
-      if (!application) {
-        if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
-          try {
-            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-          } catch (e) {
-            reject(new Error("Error updating tab badge"))
-          }
-        } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
-          try {
-            updateTabBadge(tab, '', CONTRAST_GREEN);
-          } catch (e) {
-            reject(new Error("Error updating tab badge"))
-          }
-        }
-        resolve(null);
-      }
-
-      resolve(application);
-    });
-  });
 }
 
 
@@ -548,4 +512,50 @@ function hideElementAfterTimeout(element, callback) {
       return callback();
     }
   }, 2000); // let the element linger
+}
+
+function loadingBadge(tab) {
+  updateTabBadge(tab, "↻", CONTRAST_GREEN);
+}
+
+function retrieveApplicationFromStorage(tab) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error("Error retrieving stored applications"));
+      }
+
+      if (!result || !result[STORED_APPS_KEY]) {
+        result = { [STORED_APPS_KEY]: [] };
+      }
+
+      const url  = new URL(tab.url);
+      const host = getHostFromUrl(url);
+
+      const application = result[STORED_APPS_KEY].filter(app => {
+        return app.host === host;
+      })[0];
+      // application = result[STORED_APPS_KEY].filter(app => app[host])[0];
+
+      if (!application) {
+        if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+          } catch (e) {
+            console.log(e);
+            reject(new Error("Error updating tab badge"))
+          }
+        } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(tab, '', CONTRAST_GREEN);
+          } catch (e) {
+            reject(new Error("Error updating tab badge"))
+          }
+        }
+        resolve(null);
+      } else {
+        resolve(application);
+      }
+    });
+  });
 }

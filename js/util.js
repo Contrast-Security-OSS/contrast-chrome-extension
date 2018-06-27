@@ -59,6 +59,7 @@ export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
+export const EVALUATE_XHR        = "contrast__evaluate_xhr_requests";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -164,9 +165,9 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
  * getVulnerabilityTeamserverUrl - open new tab in contrast showing vulnerability
  *
  * @param  {String} teamserverUrl
- * @param  {String} orgUuid      
- * @param  {String} traceUuid    
- * @return {String}              
+ * @param  {String} orgUuid
+ * @param  {String} traceUuid
+ * @return {String}
  */
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
@@ -513,6 +514,10 @@ function hideElementAfterTimeout(element, callback) {
   }, 2000); // let the element linger
 }
 
+function loadingBadge(tab) {
+  updateTabBadge(tab, "↻", CONTRAST_GREEN);
+}
+
 export {
   fetchTeamserver,
   getAuthorizationHeader,
@@ -537,4 +542,5 @@ export {
   setElementText,
   changeElementVisibility,
   hideElementAfterTimeout,
+  loadingBadge,
 }

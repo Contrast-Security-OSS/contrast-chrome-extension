@@ -12,6 +12,7 @@ CONTRAST_SERVICE_KEY,
 CONTRAST_API_KEY,
 CONTRAST_ORG_UUID,
 TEAMSERVER_URL,
+EVALUATE_XHR,
 MutationObserver,
 TEAMSERVER_API_PATH_SUFFIX,
 */
@@ -26,11 +27,12 @@ if (window.performance.navigation.type === 1) {
 }
 
 window.addEventListener("load", function() {
+  console.log(GATHER_FORMS_ACTION);
   retrieveApplicationFromStorage({ url: window.location.href })
   .then(application => {
+    console.log("application from storage", application);
     if (application) {
-      // updateTabBadge(tab, "↻", CONTRAST_GREEN);
-      chrome.runtime.sendMessage("EVALUATE_XHR");
+      chrome.runtime.sendMessage(EVALUATE_XHR);
     }
   })
   .catch(() => new Error("Error getting application from storage"));

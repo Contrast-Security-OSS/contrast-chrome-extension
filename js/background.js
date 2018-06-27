@@ -18,12 +18,14 @@ import {
 	LISTENING_ON_DOMAIN,
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
+	EVALUATE_XHR,
 	STORED_TRACES_KEY,
 	getStoredCredentials,
 	isCredentialed,
 	isBlacklisted,
 	updateTabBadge,
 	removeLoadingBadge,
+	loadingBadge,
 } from './util.js';
 
 import Application from './models/Application.js';
@@ -91,7 +93,6 @@ export function handleWebRequest(request) {
 		!request.url.includes(TEAMSERVER_API_PATH_SUFFIX),
 	];
 	if (conditions.every(Boolean)) {
-		console.log("request", request.url);
 		XHR_REQUESTS.push(request.url);
 	}
 	return;
@@ -115,10 +116,8 @@ export function handleWebRequest(request) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("request", request);
 	chrome.tabs.query({ active: true }, (tabs) => {
-		console.log("tabs", tabs);
 		if (!tabs || tabs.length === 0) return;
 		const tab = tabs[0];
-		console.log("tab in background", tab.id);
 
 		if (!tab.active) return;
 
@@ -127,9 +126,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// Whent he extension popup is opened it sends a request to the background for the traces in chrome storage. In addition to receiving a message here, chrome.tabs.onUpdated is also called which will update the badge. Since we don't want that to happen twice, don't update the badge here when the extension popup is opened.
 		// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
 		//#x21bb; is unicode clockwise circular arrow
-		if (request !== TRACES_REQUEST) {
+		if (request !== TRACES_REQUEST && request !== EVALUATE_XHR) {
 			if (!TAB_CLOSED) {
-				updateTabBadge(tab, "↻", CONTRAST_GREEN);
+				console.log("setting loading badge", request);
+				loadingBadge(tab);
 				TAB_CLOSED = false;
 			}
 		}
@@ -153,9 +153,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @return {void}
  */
 export function _handleRuntimeOnMessage(request, sendResponse, tab) {
+	console.log("CURRENT_APPLICATION", CURRENT_APPLICATION);
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
-			console.log("result of STORED_TRACES_KEY", result);
 			if (!!result && !!result[STORED_TRACES_KEY]) {
 				sendResponse({ traces: result[STORED_TRACES_KEY] });
 			} else {
@@ -165,7 +165,8 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 		})
 	}
 
-	else if (request === "EVALUATE_XHR" && CURRENT_APPLICATION) {
+	else if (request === EVALUATE_XHR && CURRENT_APPLICATION) {
+		console.log("XHR REQUEST");
 		return getStoredCredentials()
 		.then(creds => {
 			Vulnerability.evaluateVulnerabilities(
@@ -256,7 +257,7 @@ export function handleTabActivated(tab) {
 			}
 			else if (!isBlacklisted(tab.url)) {
 				if (!TAB_CLOSED) {
-					updateTabBadge(tab, "↻", CONTRAST_GREEN); // GET STUCK ON LOADING
+					// loadingBadge(tab); // GET STUCK ON LOADING
 					TAB_CLOSED = false;
 				}
 				Vulnerability.updateVulnerabilities(tab, CURRENT_APPLICATION, credentialed);
@@ -290,7 +291,6 @@ export function handleTabActivated(tab) {
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	console.log("tab updated");
-	console.log("tab status", changeInfo.status);
 	if (!tab.active || !changeInfo.status) return;
 	if (chrome.runtime.lastError) return;
 
@@ -303,7 +303,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	if (changeInfo.status === "loading") {
 		// NOTE: UPDATEBADGE
 		if (!TAB_CLOSED) {
-			updateTabBadge(tab, "↻", CONTRAST_GREEN);
+			console.log("setting loading badge");
+			loadingBadge(tab);
 			TAB_CLOSED = false;
 		}
 	}
