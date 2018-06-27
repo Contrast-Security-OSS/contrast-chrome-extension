@@ -27,10 +27,8 @@ if (window.performance.navigation.type === 1) {
 }
 
 window.addEventListener("load", function() {
-  console.log(GATHER_FORMS_ACTION);
   retrieveApplicationFromStorage({ url: window.location.href })
   .then(application => {
-    console.log("application from storage", application);
     if (application) {
       chrome.runtime.sendMessage(EVALUATE_XHR);
     }

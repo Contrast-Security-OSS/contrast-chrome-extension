@@ -114,7 +114,6 @@ export function handleWebRequest(request) {
  * This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("request", request);
 	chrome.tabs.query({ active: true }, (tabs) => {
 		if (!tabs || tabs.length === 0) return;
 		const tab = tabs[0];
@@ -128,7 +127,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		//#x21bb; is unicode clockwise circular arrow
 		if (request !== TRACES_REQUEST && request !== EVALUATE_XHR) {
 			if (!TAB_CLOSED) {
-				console.log("setting loading badge", request);
+				console.log("setting loading badge");
 				loadingBadge(tab);
 				TAB_CLOSED = false;
 			}
@@ -153,7 +152,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @return {void}
  */
 export function _handleRuntimeOnMessage(request, sendResponse, tab) {
-	console.log("CURRENT_APPLICATION", CURRENT_APPLICATION);
 	if (request === TRACES_REQUEST) {
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result[STORED_TRACES_KEY]) {
@@ -166,7 +164,6 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	}
 
 	else if (request === EVALUATE_XHR && CURRENT_APPLICATION) {
-		console.log("XHR REQUEST");
 		return getStoredCredentials()
 		.then(creds => {
 			Vulnerability.evaluateVulnerabilities(
