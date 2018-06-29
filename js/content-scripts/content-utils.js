@@ -342,7 +342,7 @@ function isBlacklisted(url) {
  */
 function isContrastTeamserver(url) {
   if (typeof url !== "string") throw new Error("url must be a string");
-  if (!url) return;
+  if (!url) return false;
   const contrast = [
     "/Contrast/api/ng/",
     "/Contrast/s/",

@@ -12,7 +12,6 @@ import {
 	TEAMSERVER_PROFILE_PATH_SUFFIX,
 	TEAMSERVER_API_PATH_SUFFIX,
 	CONTRAST_RED,
-	CONTRAST_GREEN,
 	CONTRAST_YELLOW,
 	CONTRAST_CONFIGURE_TEXT,
 	LISTENING_ON_DOMAIN,
@@ -125,6 +124,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// Whent he extension popup is opened it sends a request to the background for the traces in chrome storage. In addition to receiving a message here, chrome.tabs.onUpdated is also called which will update the badge. Since we don't want that to happen twice, don't update the badge here when the extension popup is opened.
 		// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
 		//#x21bb; is unicode clockwise circular arrow
+		// TRACES_REQUEST happens when popup is opened, EVALUATE_XHR happens after tab has updated or activated
 		if (request !== TRACES_REQUEST && request !== EVALUATE_XHR) {
 			if (!TAB_CLOSED) {
 				console.log("setting loading badge");
@@ -235,7 +235,6 @@ export function handleTabActivated(tab) {
 	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 		return;
 	}
-
 	const calls = [
 		getStoredCredentials(),
 		Application.retrieveApplicationFromStorage(tab),
@@ -304,6 +303,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			loadingBadge(tab);
 			TAB_CLOSED = false;
 		}
+		return;
 	}
 
 	const calls = [

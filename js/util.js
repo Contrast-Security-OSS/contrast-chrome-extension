@@ -342,7 +342,7 @@ function isBlacklisted(url) {
  */
 function isContrastTeamserver(url) {
   if (typeof url !== "string") throw new Error("url must be a string");
-  if (!url) return;
+  if (!url) return false;
   const contrast = [
     "/Contrast/api/ng/",
     "/Contrast/s/",
@@ -365,10 +365,19 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   try {
     chrome.tabs.get(tab.id, (result) => {
       if (!result) return;
-
       try {
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
+
+          // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
+          try {
+            if (parseInt(badge, 10) > parseInt(text, 10)) {
+              console.log(parseInt(badge, 10), parseInt(text, 10));
+              return;
+            }
+          } catch (e) {
+            return;
+          }
 
           if (tab.index >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });

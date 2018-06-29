@@ -65,6 +65,14 @@ const returnVulnerabilityIdData = {
   ]
 }
 
+const returnVulnerabilityIdNoData = {
+  success: true,
+  messages: [
+    "Vulnerabilities UUIDs loaded successfully"
+  ],
+  traces: [],
+}
+
 const returnFilterTraceData = {
   success: true,
   messages: [
@@ -307,7 +315,10 @@ const organizationApps = [
   }
 ];
 
+const url = "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/ddac16d8-e915-47b1-a8c9-0c142ab17beb/ids?urls=aHR0cDovL2xvY2FsaG9zdDozMDAwL3VzZXJzL3NpZ25pbg==,L3VzZXJzL3NpZ25pbg==,Y2hyb21lLWV4dGVuc2lvbjovL3BjampubGZjZmFmaG9taWJvaG5lbGdjam5ibmxob3BuL2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4=,L2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4="
+
 module.exports = {
+  url,
   traceUrls,
   returnShortTraceData,
   returnShortTraceDataLowSeverity,
@@ -315,4 +326,5 @@ module.exports = {
   returnFilterTraceData,
   application,
   organizationApps,
+  returnVulnerabilityIdNoData,
 }
