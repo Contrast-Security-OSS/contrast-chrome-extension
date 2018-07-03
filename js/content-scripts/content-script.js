@@ -30,7 +30,8 @@ window.addEventListener("load", function() {
   retrieveApplicationFromStorage({ url: window.location.href })
   .then(application => {
     if (application) {
-      chrome.runtime.sendMessage(EVALUATE_XHR);
+      console.log("application", application);
+      chrome.runtime.sendMessage({ action: EVALUATE_XHR, application });
     }
   })
   .catch(() => new Error("Error getting application from storage"));

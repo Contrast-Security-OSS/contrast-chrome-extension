@@ -42,6 +42,7 @@ export let XHR_REQUESTS 	 = []; // use to not re-evaluate xhr requests
 // NOTE: Need to do this for checking requests before sending to teamserver
 // Only requests from applications that are connected should be sent for checking to teamserver, asynchronously retrieving the application from chrome storage on every request in chrome.webRequest.onBeforeRequest resulted in inconsistent vulnerability returns.
 export let CURRENT_APPLICATION = null;
+let PAGE_FINISHED_LOADING = false;
 
 export function getCurrentApplication() {
 	return CURRENT_APPLICATION;
@@ -91,7 +92,13 @@ export function handleWebRequest(request) {
 		!XHR_REQUESTS.includes(request.url),
 		!request.url.includes(TEAMSERVER_API_PATH_SUFFIX),
 	];
-	if (conditions.every(Boolean)) {
+	const conditionsFulfilled = conditions.every(Boolean);
+	if (conditionsFulfilled && PAGE_FINISHED_LOADING && CURRENT_APPLICATION) {
+		_handleEvaluateXHR(
+			{ application: CURRENT_APPLICATION },
+			{ url: request.url, id: request.tabId }
+		)
+	} else if (conditionsFulfilled) {
 		XHR_REQUESTS.push(request.url);
 	}
 	return;
@@ -125,7 +132,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
 		//#x21bb; is unicode clockwise circular arrow
 		// TRACES_REQUEST happens when popup is opened, EVALUATE_XHR happens after tab has updated or activated
-		if (request !== TRACES_REQUEST && request !== EVALUATE_XHR) {
+		if (request !== TRACES_REQUEST && request.action !== EVALUATE_XHR) {
 			if (!TAB_CLOSED) {
 				console.log("setting loading badge");
 				loadingBadge(tab);
@@ -142,6 +149,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	return true;
 });
+
+/**
+ * _handleEvaluateXHR - used by _handleRuntimeOnMessage and handleWebRequest
+ *
+ * @param  {type} request description
+ * @param  {type} tab     description
+ * @returns {type}         description
+ */
+function _handleEvaluateXHR(request, tab) {
+	return getStoredCredentials()
+	.then(creds => {
+		Vulnerability.evaluateVulnerabilities(
+			isCredentialed(creds), // if credentialed already
+			tab, 									 // current tab
+			XHR_REQUESTS, 				 // gathered xhr requests from page load
+			request.application, 	 // current app
+			true 									 // isXHR
+		);
+	})
+	.catch((error) => {
+		console.log(error);
+		if (!TAB_CLOSED) {
+			updateTabBadge(tab, "X", CONTRAST_RED)
+			TAB_CLOSED = false;
+		}
+	});
+}
 
 /**
  * _handleRuntimeOnMessage - called when the background receives a message
@@ -163,24 +197,9 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 		})
 	}
 
-	else if (request === EVALUATE_XHR && CURRENT_APPLICATION) {
-		return getStoredCredentials()
-		.then(creds => {
-			Vulnerability.evaluateVulnerabilities(
-				isCredentialed(creds), // if credentialed already
-				tab, 									 // current tab
-				XHR_REQUESTS, 				 // gathered xhr requests from page load
-				CURRENT_APPLICATION, 	 // current app
-				true 									 // isXHR
-			);
-		})
-		.catch((error) => {
-			console.log(error);
-			if (!TAB_CLOSED) {
-				updateTabBadge(tab, "X", CONTRAST_RED)
-				TAB_CLOSED = false;
-			}
-		});
+	else if (request.action === EVALUATE_XHR) {
+		PAGE_FINISHED_LOADING = true;
+		_handleEvaluateXHR(request, tab);
 	}
 
 	else if (request.sender === GATHER_FORMS_ACTION) {
@@ -287,7 +306,10 @@ export function handleTabActivated(tab) {
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	console.log("tab updated");
-	if (!tab.active || !changeInfo.status) return;
+	if (!tab.active || !changeInfo.status) {
+		PAGE_FINISHED_LOADING = false;
+		return;
+	}
 	if (chrome.runtime.lastError) return;
 
 	// Don't run logic when user opens a new tab, or when url isn't http (ex. chrome://)
