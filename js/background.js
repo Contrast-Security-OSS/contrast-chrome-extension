@@ -87,6 +87,7 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 
 export function handleWebRequest(request) {
 	const conditions = [
+		!!request.initiator && (request.initiator.includes("http://") || request.initiator.includes("https://")),
 		request.type === "xmlhttprequest",
 		!isBlacklisted(request.url),
 		!XHR_REQUESTS.includes(request.url),
@@ -94,11 +95,14 @@ export function handleWebRequest(request) {
 	];
 	const conditionsFulfilled = conditions.every(Boolean);
 	if (conditionsFulfilled && PAGE_FINISHED_LOADING && CURRENT_APPLICATION) {
+		request.url = request.url.split("?")[0];
+		XHR_REQUESTS.push(request.url);
 		_handleEvaluateXHR(
 			{ application: CURRENT_APPLICATION },
 			{ url: request.url, id: request.tabId }
-		)
+		);
 	} else if (conditionsFulfilled) {
+		request.url = request.url.split("?")[0];
 		XHR_REQUESTS.push(request.url);
 	}
 	return;
@@ -305,7 +309,12 @@ export function handleTabActivated(tab) {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	console.log("tab updated");
+	console.log("tab updated", changeInfo);
+
+	// sometimes favIconUrl is the only attribute of changeInfo
+	if ((!changeInfo.url || !changeInfo.status) && Object.keys(changeInfo).length === 1) {
+		return;
+	}
 	if (!tab.active || !changeInfo.status) {
 		PAGE_FINISHED_LOADING = false;
 		return;

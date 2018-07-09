@@ -369,17 +369,18 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
 
-          // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
-          try {
-            if (parseInt(badge, 10) > parseInt(text, 10)) {
-              console.log(parseInt(badge, 10), parseInt(text, 10));
-              return;
-            }
-          } catch (e) {
-            return;
-          }
 
-          if (tab.index >= 0 && !chrome.runtime.lastError) {
+          // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
+          // try {
+          //   if (parseInt(badge, 10) > parseInt(text, 10)) {
+          //     console.log(parseInt(badge, 10), parseInt(text, 10));
+          //     return;
+          //   }
+          // } catch (e) {
+          //   console.log("error trying to compare current badge and new text", e);
+          //   return;
+          // }
+          if (tab.id >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });
             chrome.browserAction.setBadgeText({ tabId: tab.id, text });
           }
