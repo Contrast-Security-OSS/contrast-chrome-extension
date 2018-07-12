@@ -44,7 +44,6 @@ export const VALID_TEAMSERVER_HOSTNAMES = [
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
   'alpha.contrastsecurity.com',
-  'localhost',
 ];
 
 // Contrast stylings and configuration text
@@ -220,6 +219,7 @@ function getOrganizationVulnerabilityIds(urls, appId) {
 
     const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId);
     const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
+
     const params = "?urls=" + urls;
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });
@@ -373,11 +373,9 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
           // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
           // try {
           //   if (parseInt(badge, 10) > parseInt(text, 10)) {
-          //     console.log(parseInt(badge, 10), parseInt(text, 10));
           //     return;
           //   }
           // } catch (e) {
-          //   console.log("error trying to compare current badge and new text", e);
           //   return;
           // }
           if (tab.id >= 0 && !chrome.runtime.lastError) {
@@ -437,13 +435,15 @@ function generateTraceURLString(traceUrls) {
   });
 
   let urls = traceUrls.concat(prefixedUrls).map(u => {
-    // return the full url
-    // and the path / endpoint of the url
+    if (u.includes("chrome-extension://") || u.includes("sockjs-node/info")) return;
+    /**
+     * NOTE: Send both the full path with the http protocol and port and the path name (everything after the port)
+     */
     return [
       btoa(u),
       btoa(new URL(u).pathname),
     ];
-  }).flatten();
+  }).filter(Boolean).flatten();
 
   // return each base64 encoded url path with a common in between
   return urls.join(',');
