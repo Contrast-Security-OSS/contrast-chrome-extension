@@ -264,7 +264,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  * @return {void}
  */
 export function handleTabActivated(tab) {
-	console.log("tab activated");
+	console.log("tab activated", tab);
 	if (!tab.active) return;
 	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 		return;
