@@ -60,6 +60,7 @@ export function setCurrentApplication(application) {
 }
 
 export function resetXHRRequests() {
+	console.log("restting XHR Requests");
 	XHR_REQUESTS = [];
 }
 
@@ -86,10 +87,9 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 }, { urls: [LISTENING_ON_DOMAIN] });
 
 export function handleWebRequest(request) {
-	if (request.url.includes("/products/show")) {
-	}
 	const conditions = [
 		request.method !== "OPTIONS",
+		!request.url.includes("socket.io"),
 		!!request.initiator && (request.initiator.includes("http://") || request.initiator.includes("https://")),
 		request.type === "xmlhttprequest",
 		!isBlacklisted(request.url),
@@ -98,6 +98,7 @@ export function handleWebRequest(request) {
 	];
 	const conditionsFulfilled = conditions.every(Boolean);
 	if (conditionsFulfilled && PAGE_FINISHED_LOADING && CURRENT_APPLICATION) {
+		console.log("REQUEST", request);
 		request.url = request.url.split("?")[0];
 		XHR_REQUESTS.push(request.url);
 		_handleEvaluateXHR(
@@ -105,6 +106,7 @@ export function handleWebRequest(request) {
 			{ url: request.url, id: request.tabId }
 		);
 	} else if (conditionsFulfilled) {
+		console.log("REQUEST", request);
 		request.url = request.url.split("?")[0];
 		XHR_REQUESTS.push(request.url);
 	}
@@ -130,6 +132,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	chrome.tabs.query({ active: true }, (tabs) => {
 		if (!tabs || tabs.length === 0) return;
 		const tab = tabs[0];
+		console.log("tab in on message", tab);
 		if (!tab.active) return;
 
 		// NOTE: UPDATEBADGE
@@ -140,12 +143,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// TRACES_REQUEST happens when popup is opened, EVALUATE_XHR happens after tab has updated or activated
 		if (request !== TRACES_REQUEST && request.action !== EVALUATE_XHR) {
 			if (!TAB_CLOSED) {
+				console.log("setting loading badge in onMessage");
 				loadingBadge(tab);
 				TAB_CLOSED = false;
 			}
 		}
 
 		if (!!tab && !isBlacklisted(tab.url)) {
+			console.log("Handling Runtime Message");
 			_handleRuntimeOnMessage(request, sendResponse, tab);
 		} else {
 			removeLoadingBadge(tab);
@@ -166,6 +171,7 @@ function _handleEvaluateXHR(request, tab) {
 	if (!PAGE_FINISHED_LOADING) return;
 	return getStoredCredentials()
 	.then(creds => {
+		console.log("evaluating XHR Requests for vulnerabilities", XHR_REQUESTS.length);
 		Vulnerability.evaluateVulnerabilities(
 			isCredentialed(creds), // if credentialed already
 			tab, 									 // current tab
@@ -175,6 +181,7 @@ function _handleEvaluateXHR(request, tab) {
 		);
 	})
 	.catch((error) => {
+		console.log(error);
 		if (!TAB_CLOSED) {
 			updateTabBadge(tab, "X", CONTRAST_RED)
 			TAB_CLOSED = false;
@@ -192,6 +199,7 @@ function _handleEvaluateXHR(request, tab) {
  */
 export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request === TRACES_REQUEST) {
+		console.log("Handling traces request message");
 		chrome.storage.local.get(STORED_TRACES_KEY, (result) => {
 			if (!!result && !!result[STORED_TRACES_KEY]) {
 				sendResponse({ traces: result[STORED_TRACES_KEY] });
@@ -203,11 +211,13 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	}
 
 	else if (request.action === EVALUATE_XHR) {
+		console.log("handing EVALUATE_XHR message");
 		PAGE_FINISHED_LOADING = true;
 		_handleEvaluateXHR(request, tab);
 	}
 
 	else if (request.sender === GATHER_FORMS_ACTION) {
+		console.log("handling GATHER_FORMS_ACTION message");
 		return getStoredCredentials()
 		.then(creds => {
 			const { formActions } = request;
@@ -222,6 +232,7 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			}
 		})
 		.catch((error) => {
+			console.log(error);
 			if (!TAB_CLOSED) {
 				updateTabBadge(tab, "X", CONTRAST_RED)
 				TAB_CLOSED = false;
@@ -253,6 +264,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  * @return {void}
  */
 export function handleTabActivated(tab) {
+	console.log("tab activated");
 	if (!tab.active) return;
 	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
 		return;
@@ -287,6 +299,7 @@ export function handleTabActivated(tab) {
 		}
 	})
 	.catch((error) => {
+		console.log(error);
 		if (!TAB_CLOSED) {
 			updateTabBadge(tab, "X", CONTRAST_RED)
 			TAB_CLOSED = false;
@@ -307,6 +320,7 @@ export function handleTabActivated(tab) {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	console.log("tab updated", changeInfo);
 
 	// sometimes favIconUrl is the only attribute of changeInfo
 	if (changeInfo.favIconUrl && Object.keys(changeInfo).length === 1) {
@@ -323,6 +337,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		// GET STUCK ON LOADING if done for both "loading" and "complete"
 		// NOTE: UPDATEBADGE
 		if (!TAB_CLOSED) {
+			console.log("setting loading badge");
 			loadingBadge(tab);
 			TAB_CLOSED = false;
 		}
@@ -356,6 +371,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		}
 	})
 	.catch(error => {
+		console.log(error);
 		if (!TAB_CLOSED) {
 			updateTabBadge(tab, "X", CONTRAST_RED);
 			TAB_CLOSED = false;

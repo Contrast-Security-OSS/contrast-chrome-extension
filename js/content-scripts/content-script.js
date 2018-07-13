@@ -7,6 +7,7 @@ TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 GATHER_FORMS_ACTION,
+HIGHLIGHT_VULNERABLE_FORMS,
 CONTRAST_USERNAME,
 CONTRAST_SERVICE_KEY,
 CONTRAST_API_KEY,
@@ -53,7 +54,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
 
-  else if (request.action === "HIGHLIGHT_VULNERABLE_FORMS") {
+  else if (request.action === HIGHLIGHT_VULNERABLE_FORMS) {
     sendResponse(ContrastForm.highlightForms(request.traceUrls));
   }
 

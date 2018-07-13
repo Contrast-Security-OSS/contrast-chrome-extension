@@ -59,6 +59,7 @@ export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
 export const EVALUATE_XHR        = "contrast__evaluate_xhr_requests";
+export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -66,6 +67,7 @@ const BLACKLISTED_DOMAINS = [
   "file://",
   "/Contrast/api/ng/",
   "/Contrast/s/",
+  "/Contrast/static/ng",
   "google.com",
   "ajax.googleapis.com",
   "gstatic.net",
@@ -77,6 +79,7 @@ const BLACKLISTED_DOMAINS = [
   "cloudfront.com",
   "cdn.sstatic.net",
   "reddit.com",
+  "sockjs-node/info",
 ];
 const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
@@ -111,6 +114,7 @@ String.prototype.titleize = function() {
 
 function fetchTeamserver(url, params, authHeader, apiKey) {
   const requestUrl   = url + params;
+  console.log("TEAMSERVER REQUEST URL", requestUrl);
   const fetchOptions = {
     method: "GET",
     headers: new Headers({
@@ -434,8 +438,12 @@ function generateTraceURLString(traceUrls) {
     return u;
   });
 
+  // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
+  let matchRoutePathParams = false;
+
   let urls = traceUrls.concat(prefixedUrls).map(u => {
-    if (u.includes("chrome-extension://") || u.includes("sockjs-node/info")) return;
+    if (isBlacklisted(u)) return;
+    if (!matchRoutePathParams && hasIDorUUID(u)) matchRoutePathParams = true;
     /**
      * NOTE: Send both the full path with the http protocol and port and the path name (everything after the port)
      */
@@ -446,7 +454,24 @@ function generateTraceURLString(traceUrls) {
   }).filter(Boolean).flatten();
 
   // return each base64 encoded url path with a common in between
+  if (matchRoutePathParams) {
+    return urls.join(',') + `&matchRoutePathParams=${matchRoutePathParams}`;
+  }
   return urls.join(',');
+}
+
+/**
+ * @description - use regex to determine if a url path has an ID or UUID present
+ *
+ * @param  {String} url
+ * @returns {Boolean} - true if url path has ID or UUID
+ */
+const UUID_V4_REGEX = new RegExp(
+      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i);
+const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
+function hasIDorUUID(url) {
+  const path = new URL(url).pathname;
+  return PATH_ID_REGEX.test(path) || UUID_V4_REGEX.test(path);
 }
 
 /**
@@ -547,6 +572,7 @@ export {
   updateTabBadge,
   removeLoadingBadge,
   generateTraceURLString,
+  hasIDorUUID,
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
@@ -554,3 +580,13 @@ export {
   hideElementAfterTimeout,
   loadingBadge,
 }
+
+
+[
+"/123",
+"/1",
+"/products/12",
+"/products/13/new",
+"/products/test/no",
+"/products/show/a71b2dee-5357-4e7f-adfe-3c616a414eaf",
+]
