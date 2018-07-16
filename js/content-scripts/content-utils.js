@@ -59,7 +59,7 @@ const GATHER_FORMS_ACTION = "contrast__gatherForms";
 const STORED_TRACES_KEY   = "contrast__traces";
 const TRACES_REQUEST      = "contrast__getStoredTraces";
 const STORED_APPS_KEY     = "contrast__APPS";
-const EVALUATE_XHR        = "contrast__evaluate_xhr_requests";
+const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
 
 // don't look for vulnerabilities on these domains

@@ -58,7 +58,7 @@ export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
-export const EVALUATE_XHR        = "contrast__evaluate_xhr_requests";
+export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
 
 // don't look for vulnerabilities on these domains

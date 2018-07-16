@@ -13,7 +13,7 @@ CONTRAST_SERVICE_KEY,
 CONTRAST_API_KEY,
 CONTRAST_ORG_UUID,
 TEAMSERVER_URL,
-EVALUATE_XHR,
+LOADING_DONE,
 MutationObserver,
 TEAMSERVER_API_PATH_SUFFIX,
 */
@@ -28,13 +28,7 @@ if (window.performance.navigation.type === 1) {
 }
 
 window.addEventListener("load", function() {
-  retrieveApplicationFromStorage({ url: window.location.href })
-  .then(application => {
-    if (application) {
-      chrome.runtime.sendMessage({ action: EVALUATE_XHR, application });
-    }
-  })
-  .catch(() => new Error("Error getting application from storage"));
+  chrome.runtime.sendMessage({ action: LOADING_DONE });
 
   setTimeout(function() {
     window.CONTRAST__REFRESHED = false;
