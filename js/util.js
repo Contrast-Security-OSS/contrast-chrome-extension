@@ -80,6 +80,7 @@ const BLACKLISTED_DOMAINS = [
   "cdn.sstatic.net",
   "reddit.com",
   "sockjs-node/info",
+  "socket.io",
 ];
 const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
@@ -338,6 +339,10 @@ function isBlacklisted(url) {
   return false;
 }
 
+function isHTTP(string) {
+  return string.includes("http://") || string.includes("https://");
+}
+
 /**
  * isContrastTeamserver - check if we're on a Contrast teamserver page or not
  *
@@ -357,6 +362,9 @@ function isContrastTeamserver(url) {
   return contrast.some(c => url.includes(c));
 }
 
+// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
+//#x21bb; is unicode clockwise circular arrow
+// TRACES_REQUEST happens when popup is opened, LOADING_DONE happens after tab has updated or activated
 /**
 * updateTabBadge - updates the extension badge on the toolbar
 *
@@ -430,12 +438,13 @@ function generateTraceURLString(tracePaths) {
 
   // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
   let matchRoutePathParams = false;
-  
+
   const paths = tracePaths.map(path => {
-    if (isBlacklisted(path)) return;
-    if (!matchRoutePathParams && hasIDorUUID(path)) matchRoutePathParams = true;
+    if (!matchRoutePathParams && hasIDorUUID(path)) {
+      matchRoutePathParams = true;
+    }
     return btoa(path);
-  }).filter(Boolean);
+  });
 
   // return each base64 encoded url path with a common in between
   if (matchRoutePathParams) {
@@ -562,14 +571,5 @@ export {
   changeElementVisibility,
   hideElementAfterTimeout,
   loadingBadge,
+  isHTTP,
 }
-
-
-[
-"/123",
-"/1",
-"/products/12",
-"/products/13/new",
-"/products/test/no",
-"/products/show/a71b2dee-5357-4e7f-adfe-3c616a414eaf",
-]

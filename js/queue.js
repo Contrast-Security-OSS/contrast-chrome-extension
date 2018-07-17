@@ -59,10 +59,22 @@ class Queue {
     this.isCredentialed = credentialed;
   }
 
+  resetQueue() {
+    this.xhrRequests    = [];
+    this.gatheredForms  = [];
+    this.traceIDs       = [];
+    this.xhrReady       = false;
+    this.formsReady     = false;
+    this.isCredentialed = false;
+    this.tab            = null;
+    this.application    = null;
+  }
+
   async executeQueue() {
     console.log("executing queue", this);
     // NOTE: At start loading badge still true
 
+    // If tab URL is blacklisted, don't process anything
     if (isBlacklisted(this.tab.url)) {
       removeLoadingBadge(tab);
       return;

@@ -6,6 +6,7 @@
 */
 
 import Queue from './queue.js';
+const QUEUE = new Queue();
 
 import {
 	TEAMSERVER_INDEX_PATH_SUFFIX,
@@ -27,6 +28,7 @@ import {
 	updateTabBadge,
 	removeLoadingBadge,
 	loadingBadge,
+	isHTTP,
 } from './util.js';
 
 import Application from './models/Application.js';
@@ -87,20 +89,19 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 }, { urls: [LISTENING_ON_DOMAIN] });
 
 export function handleWebRequest(request) {
+	const { method, initiator, url, type } = request;
 	const conditions = [
-		request.method !== "OPTIONS",
-		!request.url.includes("socket.io"),
-		!!request.initiator && (request.initiator.includes("http://") || request.initiator.includes("https://")),
-		request.type === "xmlhttprequest",
-		!isBlacklisted(request.url),
-		!XHR_REQUESTS.includes(request.url),
-		!request.url.includes(TEAMSERVER_API_PATH_SUFFIX),
+		type === "xmlhttprequest", 					// is an xhr request
+		method !== "OPTIONS", 							// no CORS pre-flight requests
+		initiator && (isHTTP(initiator)), // no requests from extension
+		!isBlacklisted(url), 								// no blacklisted urls, see utils
+		!XHR_REQUESTS.includes(url), 				// no dupes
 	];
 
 	// NOTE: For after page has finished loading, capture additional requests made
 	if (conditions.every(Boolean)) {
-		request.url = request.url.split("?")[0];
-		XHR_REQUESTS.push(request.url);
+		const requestURL = url.split("?")[0]; // remove query string
+		XHR_REQUESTS.push(requestURL);
 	}
 	return;
 }
@@ -145,22 +146,16 @@ function _handleEvaluateXHR(request, tab) {
  * @param  {Function} sendResponse return information to sender, must be JSON serializable
  * @return {Boolean} - From the documentation:
  * https://developer.chrome.com/extensions/runtime#event-onMessage
- * This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
+ * NOTE: This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	chrome.tabs.query({ active: true }, (tabs) => {
 		if (!tabs || tabs.length === 0) return;
 		const tab = tabs[0];
-		console.log("On message called", request);
-		// console.log("tab in on message", tab);
 		if (!tab.active) return;
 
-		// NOTE: UPDATEBADGE
-		// Don't update badge when popup is opened
-		// Whent he extension popup is opened it sends a request to the background for the traces in chrome storage. In addition to receiving a message here, chrome.tabs.onUpdated is also called which will update the badge. Since we don't want that to happen twice, don't update the badge here when the extension popup is opened.
-		// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
-		//#x21bb; is unicode clockwise circular arrow
-		// TRACES_REQUEST happens when popup is opened, LOADING_DONE happens after tab has updated or activated
+		console.log("On message called", request);
+
 		if (request !== TRACES_REQUEST && request.action !== LOADING_DONE) {
 			if (!TAB_CLOSED) {
 				console.log("setting loading badge in onMessage");
@@ -169,15 +164,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			}
 		}
 
-		if (!!tab && !isBlacklisted(tab.url)) {
-			console.log("Handling Runtime Message");
+		if (tab && !isBlacklisted(tab.url)) {
 			_handleRuntimeOnMessage(request, sendResponse, tab);
 		} else {
 			removeLoadingBadge(tab);
 		}
 	});
 
-	return true;
+	return true; // NOTE: Keep this, see note at top of function.
 });
 
 /**
@@ -208,73 +202,60 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	return request;
 }
 
+async function _queueActions(tab) {
+	QUEUE.setTab(tab);
 
+	const calls = [
+		getStoredCredentials(),
+		Application.retrieveApplicationFromStorage(tab),
+	];
+
+	const initalActions = await Promise.all(calls);
+	if (!initalActions) updateTabBadge(tab, "X", CONTRAST_RED);
+
+	if (!initalActions[0] || !initalActions[1]) {
+		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+		return;
+	}
+
+	QUEUE.setCredentialed(isCredentialed(initalActions[0]));
+	QUEUE.setApplication(initalActions[1]);
+
+	const formActions = await _gatherFormsFromPage(tab);
+	QUEUE.addForms(formActions, true);
+	QUEUE.addXHRequests(XHR_REQUESTS, true);
+
+	// NOTE: Hacky
+	function waitForPageLoad() {
+		if (!PAGE_FINISHED_LOADING) {
+			return waitForPageLoad();
+		} else {
+			return QUEUE.executeQueue();
+		}
+	}
+	waitForPageLoad();
+}
 
 // ------------------------------------------------------------------
 // ------------------------- TAB ACTIVATION -------------------------
+// - switch to tab from another tab
 // ------------------------------------------------------------------
 
-// chrome.tabs.onActivated.addListener(activeInfo => {
-// 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-// 		if (!tabs || tabs.length === 0) return;
-// 		const tab = tabs[0];
-//
-// 		handleTabActivated(tab);
-// 	});
-// 	return activeInfo;
-// });
-//
-// /**
-//  * handleTabActivated - retrieves the current application from storage and updates the tab badge before checking tab for vulnerabilities
-//  * @param {Object} tab - the current tab
-//  * @return {void}
-//  */
-// export function handleTabActivated(tab) {
-// 	console.log("tab activated", tab);
-// 	if (!tab.active) return;
-// 	if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
-// 		return;
-// 	}
-// 	const calls = [
-// 		getStoredCredentials(),
-// 		Application.retrieveApplicationFromStorage(tab),
-// 		Vulnerability.removeVulnerabilitiesFromStorage(tab),
-// 	];
-//
-// 	Promise.all(calls)
-// 	.then(results => {
-// 		const credentialed = isCredentialed(results[0]);
-// 		if (credentialed) {
-// 			const application = results[1];
-// 			setCurrentApplication(application);
-// 			if (!CURRENT_APPLICATION && !TAB_CLOSED) {
-// 				updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-// 				TAB_CLOSED = false;
-// 			}
-// 			else if (!isBlacklisted(tab.url)) {
-// 				if (!TAB_CLOSED) {
-// 					// loadingBadge(tab); // GET STUCK ON LOADING
-// 					TAB_CLOSED = false;
-// 				}
-// 				Vulnerability.updateVulnerabilities(tab, CURRENT_APPLICATION, credentialed);
-// 			} else {
-// 				removeLoadingBadge(tab);
-// 			}
-// 		} else {
-// 			notifyUserToConfigure(tab);
-// 		}
-// 	})
-// 	.catch((error) => {
-// 		console.log(error);
-// 		if (!TAB_CLOSED) {
-// 			updateTabBadge(tab, "X", CONTRAST_RED)
-// 			TAB_CLOSED = false;
-// 		}
-// 	});
-// }
+chrome.tabs.onActivated.addListener(activeInfo => {
+	PAGE_FINISHED_LOADING = true;
+	QUEUE.resetQueue();
+
+	chrome.tabs.get(activeInfo.tabId, (tab) => {
+		console.log("tab activated", tab);
+		if (!tab) return;
+		_queueActions(tab);
+	});
+});
 
 // -------------------------------------------------------------------
 // ------------------------- TAB UPDATED -----------------------------
+// - on Refresh
+// - when URL of current tab changes
 // -------------------------------------------------------------------
 
 /**
@@ -288,46 +269,17 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	console.log("tab updated", tab);
 
-	if (!_tabIsReady(changeInfo, tab)) return;
+	QUEUE.resetQueue();
 
-	const QUEUE = new Queue();
-
-	QUEUE.setTab(tab);
-
-	const calls = [
-		getStoredCredentials(),
-		Application.retrieveApplicationFromStorage(tab),
-	];
-
-	Promise.all(calls)
-	.then(initalActions => {
-		if (!initalActions) updateTabBadge(tab, "X", CONTRAST_RED);
-
-		if (!initalActions[0] || !initalActions[1]) {
-			updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-			return;
-		}
-
-		QUEUE.setCredentialed(isCredentialed(initalActions[0]));
-		QUEUE.setApplication(initalActions[1]);
-
-		_gatherFormsFromPage(tab).then(formActions => {
-			QUEUE.addForms(formActions, true);
-			QUEUE.addXHRequests(XHR_REQUESTS, true);
-
-			// NOTE: Hacky
-			function waitForPageLoad() {
-				if (!PAGE_FINISHED_LOADING) {
-					return waitForPageLoad();
-				} else {
-					return QUEUE.executeQueue();
-				}
-			}
-			waitForPageLoad();
-		});
-	})
-	.catch(console.error);
+	if (!_tabIsReady(changeInfo, tab)) {
+		return;
+	}
+	_queueActions(tab);
 });
+
+// ------------------------------------------------------------------
+// -------------------------- HELPERS -------------------------------
+// ------------------------------------------------------------------
 
 function _tabIsReady(changeInfo, tab) {
 	// sometimes favIconUrl is the only attribute of changeInfo
@@ -360,28 +312,12 @@ function _gatherFormsFromPage(tab) {
 			if (res && res.formActions && Array.isArray(res.formActions)) {
 				resolve(res.formActions);
 			} else {
-				reject("Error gathering forms");
+				console.error("Error gathering forms", res);
+				resolve([]);
 			}
 		});
 	});
 }
-
-/**
- * tabUpdateComplete - returns if the tab has completed updating and has a url
- *
- * @param  {Object} changeInfo info about that status of the tab changes
- * @param  {Object} tab        the chrome tab
- * @return {Boolean}           if the tab has completed updating
- */
-export function tabUpdateComplete(changeInfo, tab) {
-	return changeInfo.status === "complete" && tab.url.startsWith("http");
-}
-
-
-
-// ------------------------------------------------------------------
-// -------------------------- HELPERS -------------------------------
-// ------------------------------------------------------------------
 
 /**
  * set the TAB_CLOSED global to true if a tab is closed

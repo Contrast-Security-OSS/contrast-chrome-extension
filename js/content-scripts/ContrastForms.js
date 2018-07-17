@@ -155,7 +155,7 @@ ContrastForm._scrapeDOMForForms = function() {
 * @return {void}
 */
 ContrastForm._sendFormActionsToBackground = function(formActions, sendResponse) {
-  console.log("sending forms back");
+  console.log("sending forms back", formActions);
   sendResponse({
     sender: GATHER_FORMS_ACTION,
     formActions: deDupeArray(formActions.flatten()),
