@@ -5,9 +5,7 @@
 	window,
 */
 
-import Queue from './Queue.js';
-
-const Queue = new Queue();
+import Queue from './queue.js';
 
 import {
 	TEAMSERVER_INDEX_PATH_SUFFIX,
@@ -99,21 +97,8 @@ export function handleWebRequest(request) {
 		!request.url.includes(TEAMSERVER_API_PATH_SUFFIX),
 	];
 
-	const conditionsFulfilled = conditions.every(Boolean);
-
-	if (conditionsFulfilled && PAGE_FINISHED_LOADING && CURRENT_APPLICATION) {
-		request.url = request.url.split("?")[0];
-		XHR_REQUESTS.push(request.url);
-
-		Queue.addXHRequests(XHR_REQUESTS, true);
-		// _handleEvaluateXHR(
-		// 	{ application: CURRENT_APPLICATION },
-		// 	{ url: request.url, id: request.tabId }
-		// );
-	}
-
 	// NOTE: For after page has finished loading, capture additional requests made
-	else if (conditionsFulfilled) {
+	if (conditions.every(Boolean)) {
 		request.url = request.url.split("?")[0];
 		XHR_REQUESTS.push(request.url);
 	}
@@ -131,7 +116,6 @@ function _handleEvaluateXHR(request, tab) {
 	if (!PAGE_FINISHED_LOADING) return;
 	return getStoredCredentials()
 	.then(creds => {
-		console.log("evaluating XHR Requests for vulnerabilities", XHR_REQUESTS.length);
 		Vulnerability.evaluateVulnerabilities(
 			isCredentialed(creds), // if credentialed already
 			tab, 									 // current tab
@@ -302,29 +286,13 @@ export function _handleRuntimeOnMessage(request, sendResponse, tab) {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	Queue.setTab(tab);
+	console.log("tab updated", tab);
 
-	// sometimes favIconUrl is the only attribute of changeInfo
-	if (changeInfo.favIconUrl && Object.keys(changeInfo).length === 1) {
-		return;
-	} else if (!tab.active || !changeInfo.status) {
-		PAGE_FINISHED_LOADING = false;
-		return;
-	} else if (chrome.runtime.lastError) {
-		return;
-	} else if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
-		// Don't run logic when user opens a new tab, or when url isn't http (ex. chrome://)
-		return;
-	} else if (changeInfo.status === "loading") {
-		// GET STUCK ON LOADING if done for both "loading" and "complete"
-		// NOTE: UPDATEBADGE
-		if (!TAB_CLOSED) {
-			console.log("setting loading badge");
-			loadingBadge(tab);
-			TAB_CLOSED = false;
-		}
-		return;
-	}
+	if (!_tabIsReady(changeInfo, tab)) return;
+
+	const QUEUE = new Queue();
+
+	QUEUE.setTab(tab);
 
 	const calls = [
 		getStoredCredentials(),
@@ -335,31 +303,62 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	.then(initalActions => {
 		if (!initalActions) updateTabBadge(tab, "X", CONTRAST_RED);
 
-		if (!result[0] || !result[1]) {
+		if (!initalActions[0] || !initalActions[1]) {
 			updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 			return;
 		}
 
-		Queue.setCredentialed(isCredentialed(initalActions[0]));
-		Queue.setApplication(results[1]);
+		QUEUE.setCredentialed(isCredentialed(initalActions[0]));
+		QUEUE.setApplication(initalActions[1]);
 
-		_gatherFormsFromPage().then(formActions => {
-			Queue.addForms(formActions)
-			if (PAGE_FINISHED_LOADING) {
-				Queue.executeQueue();
+		_gatherFormsFromPage(tab).then(formActions => {
+			QUEUE.addForms(formActions, true);
+			QUEUE.addXHRequests(XHR_REQUESTS, true);
+
+			// NOTE: Hacky
+			function waitForPageLoad() {
+				if (!PAGE_FINISHED_LOADING) {
+					return waitForPageLoad();
+				} else {
+					return QUEUE.executeQueue();
+				}
 			}
+			waitForPageLoad();
 		});
 	})
-	.catch(console.error)
+	.catch(console.error);
 });
 
-function _gatherFormsFromPage() {
+function _tabIsReady(changeInfo, tab) {
+	// sometimes favIconUrl is the only attribute of changeInfo
+	if (changeInfo.favIconUrl && Object.keys(changeInfo).length === 1) {
+		return false;
+	} else if (!tab.active || !changeInfo.status) {
+		PAGE_FINISHED_LOADING = false;
+		return false;
+	} else if (chrome.runtime.lastError) {
+		return false;
+	} else if (!tab.url.includes("http://") && !tab.url.includes("https://")) {
+		// Don't run logic when user opens a new tab, or when url isn't http (ex. chrome://)
+		return false;
+	} else if (changeInfo.status === "loading") {
+		// GET STUCK ON LOADING if done for both "loading" and "complete"
+		// NOTE: UPDATEBADGE
+		if (!TAB_CLOSED) {
+			console.log("setting loading badge");
+			loadingBadge(tab);
+			TAB_CLOSED = false;
+		}
+		return false;
+	}
+	return true;
+}
+
+function _gatherFormsFromPage(tab) {
 	return new Promise((resolve, reject) => {
-		chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (resp) => {
-      console.log("Response to gather GATHER_FORMS_ACTION send message", resp);
-			if (resp && resp.formActions && resp.formActions.length > 0) {
-				const formActions = deDupeArray(resp.formActions);
-				resolve(formActions);
+		chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (res) => {
+			if (res && res.formActions && Array.isArray(res.formActions)) {
+				resolve(res.formActions);
 			} else {
 				reject("Error gathering forms");
 			}

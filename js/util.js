@@ -286,7 +286,7 @@ function isCredentialed(credentials) {
   // return noUsername || noServiceKey || noApiKey || noTeamserverUrl;
   const values = Object.values(credentials);
 
-  return !!values && values.length > 0 && values.every(item => !!item);
+  return values && values.length > 0 && values.every(Boolean);
 }
 
 /**
@@ -422,42 +422,26 @@ function removeLoadingBadge(tab) {
 /**
 * generateTraceURLString - creates a string of base64 encoded urls to send to TS as params
 *
-* @param  {Array} traceUrls - array of urls retrieved from tab and form actions
+* @param  {Array} tracePaths - array of urls retrieved from tab and form actions
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
-function generateTraceURLString(traceUrls) {
-  if (!traceUrls || traceUrls.length === 0) return "";
-
-  // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
-  // example.com/login vs another-example.com/login
-  const prefix = new URL(document.URL).origin;
-  let prefixedUrls = traceUrls.map(u => {
-    if (prefix && prefix !== "null") {
-      return prefix + "/" + u;
-    }
-    return u;
-  });
+function generateTraceURLString(tracePaths) {
+  if (!tracePaths || tracePaths.length === 0) return "";
 
   // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
   let matchRoutePathParams = false;
-
-  let urls = traceUrls.concat(prefixedUrls).map(u => {
-    if (isBlacklisted(u)) return;
-    if (!matchRoutePathParams && hasIDorUUID(u)) matchRoutePathParams = true;
-    /**
-     * NOTE: Send both the full path with the http protocol and port and the path name (everything after the port)
-     */
-    return [
-      btoa(u),
-      btoa(new URL(u).pathname),
-    ];
-  }).filter(Boolean).flatten();
+  
+  const paths = tracePaths.map(path => {
+    if (isBlacklisted(path)) return;
+    if (!matchRoutePathParams && hasIDorUUID(path)) matchRoutePathParams = true;
+    return btoa(path);
+  }).filter(Boolean);
 
   // return each base64 encoded url path with a common in between
   if (matchRoutePathParams) {
-    return urls.join(',') + `&matchRoutePathParams=${matchRoutePathParams}`;
+    return paths.join(',') + `&matchRoutePathParams=${matchRoutePathParams}`;
   }
-  return urls.join(',');
+  return paths.join(',');
 }
 
 /**
@@ -469,8 +453,7 @@ function generateTraceURLString(traceUrls) {
 const UUID_V4_REGEX = new RegExp(
       /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i);
 const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
-function hasIDorUUID(url) {
-  const path = new URL(url).pathname;
+function hasIDorUUID(path) {
   return PATH_ID_REGEX.test(path) || UUID_V4_REGEX.test(path);
 }
 

@@ -1,3 +1,28 @@
+import {
+	TEAMSERVER_INDEX_PATH_SUFFIX,
+	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
+	VALID_TEAMSERVER_HOSTNAMES,
+	TEAMSERVER_PROFILE_PATH_SUFFIX,
+	TEAMSERVER_API_PATH_SUFFIX,
+	CONTRAST_RED,
+	CONTRAST_YELLOW,
+	CONTRAST_CONFIGURE_TEXT,
+	LISTENING_ON_DOMAIN,
+	TRACES_REQUEST,
+	GATHER_FORMS_ACTION,
+	LOADING_DONE,
+	STORED_TRACES_KEY,
+	getStoredCredentials,
+	isCredentialed,
+	isBlacklisted,
+	updateTabBadge,
+	removeLoadingBadge,
+	loadingBadge,
+  deDupeArray,
+} from './util.js';
+
+import Vulnerability from './models/Vulnerability.js';
+
 class Queue {
   constructor() {
     this.xhrRequests    = [];
@@ -10,30 +35,32 @@ class Queue {
     this.application    = null;
   }
 
-  addXHRequests = (requests, xhrSet) => {
-    this.xhrReady    = xhrSet;
+  addXHRequests(requests, xhrReady) {
+    this.xhrReady    = xhrReady;
     this.xhrRequests = this.xhrRequests.concat(requests);
   }
 
-  addForms = (forms) => {
+  addForms(forms, formsReady) {
+    this.formsReady    = formsReady;
     this.gatheredForms = this.gatheredForms.concat(forms);
   }
 
-  setTab = (tab) => {
+  setTab(tab) {
     if (!tab.url) throw new Error("Tab URL is falsey, received", tab.url);
     this.tab    = tab;
     this.tabUrl = tab.url;
   }
 
-  setApplication = (application) => {
+  setApplication(application) {
     this.application = application;
   }
 
-  setCredentialed = (credentialed) => {
+  setCredentialed(credentialed) {
     this.isCredentialed = credentialed;
   }
 
-  executeQueue = async() => {
+  async executeQueue() {
+    console.log("executing queue", this);
     // NOTE: At start loading badge still true
 
     if (isBlacklisted(this.tab.url)) {
@@ -53,26 +80,29 @@ class Queue {
       throw new Error("Queue not ready to execute!", conditions)
     }
 
+    console.log("Removing vulnerabilities");
   	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab);
 
-    const urls = this.xhrRequests.concat(this.gatheredForms, [this.tab.url]);
+    let traceUrls = this.xhrRequests.concat(this.gatheredForms, [this.tab.url]);
+        traceUrls = traceUrls.filter(url => !isBlacklisted(url));
+        traceUrls = traceUrls.map(trace => (new URL(trace)).pathname);
+
+    console.log("traceUrls", deDupeArray(traceUrls));
 
     Vulnerability.evaluateVulnerabilities(
-      isCredentialed(creds), // if credentialed already
-      this.tab, 					   // current tab
-      urls, 					       // gathered xhr requests from page load
-      CURRENT_APPLICATION, 	 // current app
-      false 								 // isXHR
+      this.isCredentialed,    // if credentialed already
+      this.tab, 					    // current tab
+      deDupeArray(traceUrls), // gathered xhr requests from page load
+      this.application, 	    // current app
+      false 								  // isXHR
     );
 
     // NOTE: At end, badge is number of vulnerabilities
   }
 
-  _storeTabVulnerabilities = () => {
+  _storeTabVulnerabilities()  {
     const tab = new VulnerableTab(this.tab.url);
   }
-
-
 }
 
 export default Queue;

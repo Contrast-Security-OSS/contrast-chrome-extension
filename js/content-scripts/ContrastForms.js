@@ -45,7 +45,7 @@ ContrastForm._extractActionsFromForm = function(forms) {
 */
 ContrastForm.collectFormActions = function(sendResponse) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
-
+    console.log("ContrastForm.collectFormActions STORED_APPS_KEY, result", STORED_APPS_KEY, result, result[STORED_APPS_KEY]);
     if (chrome.runtime.lastError) return;
     if (!result || !result[STORED_APPS_KEY]) return;
 
@@ -55,29 +55,29 @@ ContrastForm.collectFormActions = function(sendResponse) {
 
     if (!application) return;
 
-    // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
-    if (window.CONTRAST__REFRESHED === false) {
-      const actions = this._scrapeDOMForForms();
-      if (!!actions) {
-        ContrastForm.MESSAGE_SENT = true;
-        this._sendFormActionsToBackground(actions, sendResponse);
-        return;
-      }
-    }
+    // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefine
+    // if (window.CONTRAST__REFRESHED === false) {
+    const actions = this._scrapeDOMForForms() || [];
+    console.log("form actions", actions);
+    this.MESSAGE_SENT = true;
+    console.log("sending form actions to background");
+    this._sendFormActionsToBackground(actions, sendResponse);
+    return;
+    // }
 
     // MutationObserver watches for changes in DOM elements
     // takes a callback reporting on mutations observed
-    if (!ContrastForm.MESSAGE_SENT) {
-      const obs = new MutationObserver((mutations, observer) => {
-        this._collectMutatedForms(mutations, observer, sendResponse);
-      });
-      obs.observe(document.body, {
-        subtree: true,
-        attributes: true,
-        attributeOldValue: true,
-        childList: true,
-      });
-    }
+    // else if (!this.MESSAGE_SENT) {
+    //   const obs = new MutationObserver((mutations, observer) => {
+    //     this._collectMutatedForms(mutations, observer, sendResponse);
+    //   });
+    //   obs.observe(document.body, {
+    //     subtree: true,
+    //     attributes: true,
+    //     attributeOldValue: true,
+    //     childList: true,
+    //   });
+    // }
   });
 }
 
@@ -155,6 +155,7 @@ ContrastForm._scrapeDOMForForms = function() {
 * @return {void}
 */
 ContrastForm._sendFormActionsToBackground = function(formActions, sendResponse) {
+  console.log("sending forms back");
   sendResponse({
     sender: GATHER_FORMS_ACTION,
     formActions: deDupeArray(formActions.flatten()),
