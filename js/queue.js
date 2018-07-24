@@ -64,7 +64,7 @@ class Queue {
   }
 
   async executeQueue() {
-    console.log("executing queue", this);
+    console.log("executing queue");
     // NOTE: At start loading badge still true
 
     // If tab URL is blacklisted, don't process anything
@@ -84,7 +84,7 @@ class Queue {
     ];
 
     if (!conditions.every(Boolean)) {
-      throw new Error("Queue not ready to execute!", conditions)
+      throw new Error("Queue not ready to execute!", conditions);
     }
 
     console.log("Removing vulnerabilities");
@@ -93,8 +93,6 @@ class Queue {
     let traceUrls = this.xhrRequests.concat(this.gatheredForms, [this.tabUrl]);
         traceUrls = traceUrls.filter(url => !isBlacklisted(url));
         traceUrls = traceUrls.map(trace => (new URL(trace)).pathname);
-
-    console.log("traceUrls", deDupeArray(traceUrls));
 
     Vulnerability.evaluateVulnerabilities(
       this.isCredentialed,    // if credentialed already
