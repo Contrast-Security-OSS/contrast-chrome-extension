@@ -49,7 +49,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   else if (request.action === HIGHLIGHT_VULNERABLE_FORMS) {
-    sendResponse(ContrastForm.highlightForms(request.traceUrls));
+    sendResponse(ContrastForm.highlightForms(request.formActions));
   }
 
   else if (request.url !== undefined && request.action === "INITIALIZE") {

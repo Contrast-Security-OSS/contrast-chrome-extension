@@ -63,6 +63,22 @@ class Queue {
     this.executionCount = 0;
   }
 
+	_highLightVulnerableForms(formTraces) {
+		console.log("In queue, highlighting forms");
+		const highlightActions = formTraces.map(ft => {
+			if (ft.traces && ft.traces.length > 0) {
+				return ft.action;
+			}
+			return false;
+		}).filter(Boolean);
+		Vulnerability.highlightForms(this.tab, highlightActions);
+	}
+
+	_evaluateForms() {
+		Vulnerability.evaluateFormActions(
+			this.gatheredForms, this.tab, this.application);
+	}
+
   async executeQueue() {
     console.log("executing queue");
     // NOTE: At start loading badge still true
@@ -87,18 +103,29 @@ class Queue {
       throw new Error("Queue not ready to execute!", conditions);
     }
 
-    console.log("Removing vulnerabilities");
+    console.log("In queue, removing vulnerabilities");
   	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab);
 
-    let traceUrls = this.xhrRequests.concat(this.gatheredForms, [this.tabUrl]);
+		// NOTE: In order to highlight vulnerable forms, form actions must be evaluated separately
+		console.log("In queue, evaluating forms");
+		const formTraces = await this._evaluateForms();
+
+		if (formTraces && formTraces.length > 0) {
+			this._highLightVulnerableForms(formTraces);
+		}
+
+    let traceUrls = this.xhrRequests.concat([this.tabUrl]);
         traceUrls = traceUrls.filter(url => !isBlacklisted(url));
         traceUrls = traceUrls.map(trace => (new URL(trace)).pathname);
+
+		console.log("evaluating urls from page in queue");
 
     Vulnerability.evaluateVulnerabilities(
       this.isCredentialed,    // if credentialed already
       this.tab, 					    // current tab
       deDupeArray(traceUrls), // gathered xhr requests from page load
       this.application, 	    // current app
+			formTraces.map(f => f.traces).flatten() // vulnerable forms
     );
 
     this._increaseExecutionCount();

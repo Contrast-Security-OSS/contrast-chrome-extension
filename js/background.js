@@ -68,7 +68,6 @@ const XHR_Domains = new DomainStorage();
  * @return {void}
  */
 chrome.webRequest.onBeforeRequest.addListener(request => {
-	console.log("XHR_Domains.domains", XHR_Domains.domains, request.url);
 	_handleWebRequest(request);
 }, {
 	urls: XHR_Domains.domains,
@@ -150,11 +149,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	if (request.action === TRACES_REQUEST) {
 		console.log("Handling traces request message");
-		const tabPath				= (new URL(tab.url)).pathname;
+		const tabPath				= VulnerableTab.buildTabPath(tab.url);
 		const vulnerableTab = new VulnerableTab(tabPath, request.application.name)
-		const traces 				= await vulnerableTab.getStoredTab();
-
-		sendResponse({ traces: traces[vulnerableTab.id] });
+		const storedTabs		= await vulnerableTab.getStoredTab();
+		sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
 		removeLoadingBadge(tab);
 	}
 
@@ -169,16 +167,17 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	else if (request.action === LOADING_DONE) {
 		window.PAGE_FINISHED_LOADING = true;
 	}
-	const calls = [
-		getStoredCredentials(),
-		Application.retrieveApplicationFromStorage(tab),
-		Vulnerability.removeVulnerabilitiesFromStorage(tab),
-	];
+
+	// const calls = [
+	// 	getStoredCredentials(),
+	// 	Application.retrieveApplicationFromStorage(tab),
+	// 	Vulnerability.removeVulnerabilitiesFromStorage(tab),
+	// ];
 
 	return request;
 }
 
-async function _queueActions(tab) {
+async function _queueActions(tab, tabUpdated) {
 	QUEUE.setTab(tab);
 
 	const calls = [
@@ -197,7 +196,10 @@ async function _queueActions(tab) {
 	QUEUE.setCredentialed(isCredentialed(initalActions[0]));
 	QUEUE.setApplication(initalActions[1]);
 
-	const formActions = await _gatherFormsFromPage(tab);
+	let formActions = [];
+	if (tabUpdated) {
+		formActions = await _gatherFormsFromPage(tab);
+	}
 	QUEUE.addForms(formActions, true);
 	QUEUE.addXHRequests(window.XHR_REQUESTS, true);
 
@@ -222,9 +224,9 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 	QUEUE.resetQueue();
 
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
-		// console.log("tab activated", tab);
+		console.log("tab activated");
 		if (!tab) return;
-		_queueActions(tab);
+		_queueActions(tab, false);
 	});
 });
 
@@ -243,13 +245,13 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	// console.log("tab updated", tab);
+	console.log("tab updated");
 	if (!_tabIsReady(changeInfo, tab)) {
 		console.log("Tab not ready after update");
 		return;
 	}
 	QUEUE.resetQueue();
-	_queueActions(tab);
+	_queueActions(tab, true);
 });
 
 // ------------------------------------------------------------------

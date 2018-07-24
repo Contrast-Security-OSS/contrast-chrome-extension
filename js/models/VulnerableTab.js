@@ -20,12 +20,8 @@ function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
 function VulnerableTab(path, applicationName, traces = []) {
   this.traceIDs        = traces;
   this.path            = path.split("?")[0];
-  this.vulnTabId       = btoa(this.path + "|" + applicationName);
-  this.applicationName = btoa(applicationName);
-}
-
-VulnerableTab.prototype.decodeID = function() {
-  return atob(this.vulnTabId);
+  this.vulnTabId       = md5(this.path + "|" + applicationName);;
+  this.applicationName = md5(applicationName);
 }
 
 VulnerableTab.prototype.setTraceIDs = function(traceIDs) {
@@ -37,7 +33,7 @@ VulnerableTab.prototype.storeTab = function() {
     chrome.storage.local.set({
       [this.applicationName]: { [this.vulnTabId]: this.traceIDs }
     }, () => {
-      chrome.storage.local.get(this.applicationName, (storedTab) => {
+      chrome.storage.local.get([this.applicationName], (storedTab) => {
         if (storedTab[this.applicationName]) {
           resolve(storedTab[this.applicationName]);
         } else {
@@ -51,7 +47,7 @@ VulnerableTab.prototype.storeTab = function() {
 
 VulnerableTab.prototype.getStoredTab = function() {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(this.applicationName, (storedTabs) => {
+    chrome.storage.local.get([this.applicationName], (storedTabs) => {
       if (storedTabs && storedTabs[this.applicationName]) {
         resolve(storedTabs[this.applicationName]);
       } else {
@@ -59,6 +55,15 @@ VulnerableTab.prototype.getStoredTab = function() {
       }
     });
   });
+}
+
+VulnerableTab.buildTabPath = function(tabUrl) {
+  const url = (new URL(tabUrl));
+  let path = url.pathname;
+  if (url.hash) {
+    path += url.hash;
+  }
+  return path;
 }
 
 export default VulnerableTab;

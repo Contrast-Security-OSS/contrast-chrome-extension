@@ -54,7 +54,7 @@ export const CONTRAST_YELLOW          = "#FFD300";
 export const CONTRAST_CONFIGURE_TEXT  = "*";
 
 // chrome storage and message event keys
-export const LISTENING_ON_DOMAIN = "<all_urls>";
+export const LISTENING_ON_DOMAIN = ["<all_urls>"];
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
@@ -119,7 +119,6 @@ String.prototype.titleize = function() {
 
 function fetchTeamserver(url, params, authHeader, apiKey) {
   const requestUrl   = url + params;
-  console.log("TEAMSERVER REQUEST URL", requestUrl);
   const fetchOptions = {
     method: "GET",
     headers: new Headers({
@@ -446,7 +445,6 @@ function generateTraceURLString(tracePaths) {
 
   // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
   let matchRoutePathParams = false;
-
   const paths = tracePaths.map(path => {
     if (!matchRoutePathParams && hasIDorUUID(path)) {
       matchRoutePathParams = true;
@@ -471,7 +469,12 @@ const UUID_V4_REGEX = new RegExp(
       /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i);
 const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
 function hasIDorUUID(url) {
-  const path = new URL(url).pathname;
+  let path;
+  if (url.includes("http://") || url.includes("https://")) {
+    path = new URL(url).pathname;
+  } else {
+    path = url;
+  }
   return PATH_ID_REGEX.test(path) || UUID_V4_REGEX.test(path);
 }
 

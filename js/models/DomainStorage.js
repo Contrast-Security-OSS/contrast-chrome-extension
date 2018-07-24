@@ -5,7 +5,7 @@ import {
 class DomainStorage {
   constructor() {
     const domains = this._getDomainsFromStorage();
-    this.domains  = ["http://localhost:*/"].concat(domains);
+    this.domains  = ["http://localhost:*/*"].concat(domains);
   }
 
   addDomainsToStorage(requestDomains) {
