@@ -3,7 +3,7 @@ chrome,
 document,
 */
 
-import { getStorageVulnsAndRender } from './vulnerabilityMethods.js';
+import { getStorageVulnsAndRender } from './popupMethods.js';
 import {
   STORED_APPS_KEY,
   getStoredCredentials,
