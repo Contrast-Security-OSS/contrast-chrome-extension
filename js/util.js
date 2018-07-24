@@ -58,6 +58,8 @@ export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
+export const EVALUATE_XHR        = "contrast__evaluate_xhr_requests";
+export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -65,6 +67,7 @@ const BLACKLISTED_DOMAINS = [
   "file://",
   "/Contrast/api/ng/",
   "/Contrast/s/",
+  "/Contrast/static/ng",
   "google.com",
   "ajax.googleapis.com",
   "gstatic.net",
@@ -76,6 +79,7 @@ const BLACKLISTED_DOMAINS = [
   "cloudfront.com",
   "cdn.sstatic.net",
   "reddit.com",
+  "sockjs-node/info",
 ];
 const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
@@ -110,6 +114,7 @@ String.prototype.titleize = function() {
 
 function fetchTeamserver(url, params, authHeader, apiKey) {
   const requestUrl   = url + params;
+  console.log("TEAMSERVER REQUEST URL", requestUrl);
   const fetchOptions = {
     method: "GET",
     headers: new Headers({
@@ -159,6 +164,14 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
   throw new Error("an argument to getApplicationsUrl was undefined");
 }
 
+/**
+ * getVulnerabilityTeamserverUrl - open new tab in contrast showing vulnerability
+ *
+ * @param  {String} teamserverUrl
+ * @param  {String} orgUuid
+ * @param  {String} traceUuid
+ * @return {String}
+ */
 function getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, traceUuid) {
   if (teamserverUrl && orgUuid && traceUuid) {
     let contrastURL = teamserverUrl;
@@ -194,6 +207,7 @@ function getStoredCredentials() {
   });
 }
 
+
 /**
  * getOrganizationVulnerabilityIds - sets up the teamserver request
  *
@@ -209,6 +223,7 @@ function getOrganizationVulnerabilityIds(urls, appId) {
 
     const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId);
     const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
+
     const params = "?urls=" + urls;
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });
@@ -239,7 +254,7 @@ function getVulnerabilityShort(traceUuid) {
  *
  * @return {Promise<Array>} A promise containing a list of applications in an organization
  */
-function getApplications() {
+function getOrgApplications() {
   return getStoredCredentials()
   .then(items => {
     const url = getApplicationsUrl(
@@ -290,10 +305,10 @@ function deDupeArray(array) {
 * getHostFromUrl - extract the host/domain name from the url
 *
 * @param  {String} url the url from which to extract the domain/host
-* @return {type}     description
+* @return {String}     the domain of the website, underscored if port
 */
 function getHostFromUrl(url) {
-  const host      = url.host.split(":").join("_");
+  const host      = url.host.replace(":", "_");
   const hostArray = host.split(".");
 
   if (hostArray.length < 3) {
@@ -311,6 +326,7 @@ function getHostFromUrl(url) {
 * @return {Boolean}      if the url is in the blacklist
 */
 function isBlacklisted(url) {
+  if (typeof url !== "string") throw new Error("url must be a string");
   if (!url) return true;
   url = url.toLowerCase();
 
@@ -329,6 +345,8 @@ function isBlacklisted(url) {
  * @return {Boolen} - if we're on a contrast teamserver page or not
  */
 function isContrastTeamserver(url) {
+  if (typeof url !== "string") throw new Error("url must be a string");
+  if (!url) return false;
   const contrast = [
     "/Contrast/api/ng/",
     "/Contrast/s/",
@@ -348,16 +366,23 @@ function isContrastTeamserver(url) {
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
-
   try {
     chrome.tabs.get(tab.id, (result) => {
       if (!result) return;
-
       try {
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
 
-          if (tab.index >= 0 && !chrome.runtime.lastError) {
+
+          // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
+          // try {
+          //   if (parseInt(badge, 10) > parseInt(text, 10)) {
+          //     return;
+          //   }
+          // } catch (e) {
+          //   return;
+          // }
+          if (tab.id >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });
             chrome.browserAction.setBadgeText({ tabId: tab.id, text });
           }
@@ -393,61 +418,14 @@ function removeLoadingBadge(tab) {
 	});
 }
 
-/**
-* retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
-*
-* @param  {Object} tab the active tab in the active window
-* @return {Promise<String>}       the name of the application
-*/
-function retrieveApplicationFromStorage(tab) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error("Error retrieving stored applications"));
-      }
-
-      if (!result || !result[STORED_APPS_KEY]) {
-        result = { APPS: [] };
-      }
-
-      const url  = new URL(tab.url);
-      const host = getHostFromUrl(url);
-
-      let application;
-      if (!!result[STORED_APPS_KEY]) {
-        application = result[STORED_APPS_KEY].filter(app => app[host])[0];
-      }
-
-      if (!application) {
-        if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
-          try {
-            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-          } catch (e) {
-            reject(new Error("Error updating tab badge"))
-          }
-        } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
-          try {
-            updateTabBadge(tab, '', CONTRAST_GREEN);
-          } catch (e) {
-            reject(new Error("Error updating tab badge"))
-          }
-        }
-        resolve(null);
-      }
-
-      resolve(application);
-    });
-  });
-}
-
 
 /**
-* generateURLString - creates a string of base64 encoded urls to send to TS as params
+* generateTraceURLString - creates a string of base64 encoded urls to send to TS as params
 *
 * @param  {Array} traceUrls - array of urls retrieved from tab and form actions
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
-function generateURLString(traceUrls) {
+function generateTraceURLString(traceUrls) {
   if (!traceUrls || traceUrls.length === 0) return "";
 
   // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
@@ -460,17 +438,40 @@ function generateURLString(traceUrls) {
     return u;
   });
 
+  // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
+  let matchRoutePathParams = false;
+
   let urls = traceUrls.concat(prefixedUrls).map(u => {
-    // return the full url
-    // and the path / endpoint of the url
+    if (isBlacklisted(u)) return;
+    if (!matchRoutePathParams && hasIDorUUID(u)) matchRoutePathParams = true;
+    /**
+     * NOTE: Send both the full path with the http protocol and port and the path name (everything after the port)
+     */
     return [
       btoa(u),
       btoa(new URL(u).pathname),
     ];
-  }).flatten();
+  }).filter(Boolean).flatten();
 
   // return each base64 encoded url path with a common in between
+  if (matchRoutePathParams) {
+    return urls.join(',') + `&matchRoutePathParams=${matchRoutePathParams}`;
+  }
   return urls.join(',');
+}
+
+/**
+ * @description - use regex to determine if a url path has an ID or UUID present
+ *
+ * @param  {String} url
+ * @returns {Boolean} - true if url path has ID or UUID
+ */
+const UUID_V4_REGEX = new RegExp(
+      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i);
+const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
+function hasIDorUUID(url) {
+  const path = new URL(url).pathname;
+  return PATH_ID_REGEX.test(path) || UUID_V4_REGEX.test(path);
 }
 
 /**
@@ -522,6 +523,36 @@ function setElementText(element, text) {
   }
 }
 
+function changeElementVisibility(element) {
+  const classes = Array.prototype.slice.call(element.classList);
+  if (classes.includes("visible")) {
+    element.classList.remove("visible");
+    element.classList.add("hidden");
+  } else {
+    element.classList.add("visible");
+    element.classList.remove("hidden");
+  }
+}
+
+/**
+ * hideElementAfterTimeout - leave a success/failure message on the screen for 2 seconds by toggling a class
+ *
+ * @param  {Node} element HTML Element to show for 2 seconds
+ * @return {void}
+ */
+function hideElementAfterTimeout(element, callback) {
+  setTimeout(() => { // eslint-disable-line consistent-return
+    changeElementVisibility(element);
+    if (callback) {
+      return callback();
+    }
+  }, 2000); // let the element linger
+}
+
+function loadingBadge(tab) {
+  updateTabBadge(tab, "↻", CONTRAST_GREEN);
+}
+
 export {
   fetchTeamserver,
   getAuthorizationHeader,
@@ -532,7 +563,7 @@ export {
   getStoredCredentials,
   getOrganizationVulnerabilityIds,
   getVulnerabilityShort,
-  getApplications,
+  getOrgApplications,
   isCredentialed,
   deDupeArray,
   getHostFromUrl,
@@ -540,9 +571,22 @@ export {
   isContrastTeamserver,
   updateTabBadge,
   removeLoadingBadge,
-  retrieveApplicationFromStorage,
-  generateURLString,
+  generateTraceURLString,
+  hasIDorUUID,
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
+  changeElementVisibility,
+  hideElementAfterTimeout,
+  loadingBadge,
 }
+
+
+[
+"/123",
+"/1",
+"/products/12",
+"/products/13/new",
+"/products/test/no",
+"/products/show/a71b2dee-5357-4e7f-adfe-3c616a414eaf",
+]
