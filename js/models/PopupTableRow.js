@@ -126,7 +126,6 @@ TableRow.prototype._handleConnectError = function(error) {
 TableRow.prototype._successConnect = function(message) {
   setElementText(message, CONNECT_SUCCESS_MESSAGE);
   message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-  console.log("this.application", this.host);
   chrome.runtime.sendMessage({
     action: APPLICATION_CONNECTED,
     data: {

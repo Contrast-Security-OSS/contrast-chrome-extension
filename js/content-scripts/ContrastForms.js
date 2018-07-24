@@ -58,7 +58,6 @@ ContrastForm.collectFormActions = function(sendResponse) {
     // if (window.CONTRAST__REFRESHED === false) {
     const actions = this._scrapeDOMForForms() || [];
     this.MESSAGE_SENT = true;
-    console.log("sending form actions to background");
     this._sendFormActionsToBackground(actions, sendResponse);
     return;
     // }
@@ -153,7 +152,6 @@ ContrastForm._scrapeDOMForForms = function() {
 * @return {void}
 */
 ContrastForm._sendFormActionsToBackground = function(formActions, sendResponse) {
-  console.log("sending forms back", formActions);
   sendResponse({
     sender: GATHER_FORMS_ACTION,
     formActions: deDupeArray(formActions.flatten()),

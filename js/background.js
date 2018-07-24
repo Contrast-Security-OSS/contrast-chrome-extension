@@ -119,8 +119,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		const tab = tabs[0];
 		if (!tab.active) return;
 
-		console.log("On message called", request);
-
 		if (request.action !== TRACES_REQUEST && request.action !== LOADING_DONE) {
 			if (!TAB_CLOSED) {
 				console.log("setting loading badge in onMessage");
@@ -171,6 +169,11 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	else if (request.action === LOADING_DONE) {
 		window.PAGE_FINISHED_LOADING = true;
 	}
+	const calls = [
+		getStoredCredentials(),
+		Application.retrieveApplicationFromStorage(tab),
+		Vulnerability.removeVulnerabilitiesFromStorage(tab),
+	];
 
 	return request;
 }

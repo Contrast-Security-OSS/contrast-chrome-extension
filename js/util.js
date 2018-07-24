@@ -475,6 +475,20 @@ function hasIDorUUID(path) {
 }
 
 /**
+ * @description - use regex to determine if a url path has an ID or UUID present
+ *
+ * @param  {String} url
+ * @returns {Boolean} - true if url path has ID or UUID
+ */
+const UUID_V4_REGEX = new RegExp(
+      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i);
+const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
+function hasIDorUUID(url) {
+  const path = new URL(url).pathname;
+  return PATH_ID_REGEX.test(path) || UUID_V4_REGEX.test(path);
+}
+
+/**
  * processTeamserverUrl - transforms a given url into a valid teamserver url
  *
  * @param  {String} teamserverUrlValue domain or domain:host
@@ -582,3 +596,13 @@ export {
   isHTTP,
   isEmptyObject,
 }
+
+
+[
+"/123",
+"/1",
+"/products/12",
+"/products/13/new",
+"/products/test/no",
+"/products/show/a71b2dee-5357-4e7f-adfe-3c616a414eaf",
+]
