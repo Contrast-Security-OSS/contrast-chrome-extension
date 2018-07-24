@@ -33,6 +33,7 @@ class Queue {
     this.isCredentialed = false;
     this.tab            = null;
     this.application    = null;
+    this.tabUrl         = "";
   }
 
   addXHRequests(requests, xhrReady) {
@@ -59,6 +60,10 @@ class Queue {
     this.isCredentialed = credentialed;
   }
 
+  _increaseExecutionCount() {
+    this.executionCount += 1;
+  }
+
   resetQueue() {
     this.xhrRequests    = [];
     this.gatheredForms  = [];
@@ -68,6 +73,7 @@ class Queue {
     this.isCredentialed = false;
     this.tab            = null;
     this.application    = null;
+    this.executionCount = 0;
   }
 
   async executeQueue() {
@@ -75,7 +81,8 @@ class Queue {
     // NOTE: At start loading badge still true
 
     // If tab URL is blacklisted, don't process anything
-    if (isBlacklisted(this.tab.url)) {
+    const url = this.tabUrl || this.tab.url;
+    if (isBlacklisted(url)) {
       removeLoadingBadge(tab);
       return;
     }
@@ -84,6 +91,7 @@ class Queue {
       this.xhrReady,
       this.formsReady,
       this.tab,
+      this.tabUrl,
       this.isCredentialed,
       this.application,
     ];
@@ -95,7 +103,7 @@ class Queue {
     console.log("Removing vulnerabilities");
   	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab);
 
-    let traceUrls = this.xhrRequests.concat(this.gatheredForms, [this.tab.url]);
+    let traceUrls = this.xhrRequests.concat(this.gatheredForms, [this.tabUrl]);
         traceUrls = traceUrls.filter(url => !isBlacklisted(url));
         traceUrls = traceUrls.map(trace => (new URL(trace)).pathname);
 
@@ -106,14 +114,10 @@ class Queue {
       this.tab, 					    // current tab
       deDupeArray(traceUrls), // gathered xhr requests from page load
       this.application, 	    // current app
-      false 								  // isXHR
     );
 
+    this._increaseExecutionCount();
     // NOTE: At end, badge is number of vulnerabilities
-  }
-
-  _storeTabVulnerabilities()  {
-    const tab = new VulnerableTab(this.tab.url);
   }
 }
 
@@ -127,4 +131,5 @@ export default Queue;
  * 3a. Capture XHR Requests
  * 4. Scrape for forms
  * 5. Execute on stored XHR, forms and tab url
+ * 6. Continuously evaluate XHR
  */

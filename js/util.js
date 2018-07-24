@@ -44,6 +44,7 @@ export const VALID_TEAMSERVER_HOSTNAMES = [
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
   'alpha.contrastsecurity.com',
+  'localhost',
 ];
 
 // Contrast stylings and configuration text
@@ -60,6 +61,9 @@ export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
 export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
+export const APPLICATION_CONNECTED    = 'contrast__application__connected';
+export const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
+export const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -300,6 +304,10 @@ function deDupeArray(array) {
   return array.filter((item, position, self) => {
     return self.indexOf(item) === position;
   });
+}
+
+function isEmptyObject(obj) {
+  return Object.keys(obj).length === 0 && obj.constructor === Object;
 }
 
 /**
@@ -572,4 +580,5 @@ export {
   hideElementAfterTimeout,
   loadingBadge,
   isHTTP,
+  isEmptyObject,
 }

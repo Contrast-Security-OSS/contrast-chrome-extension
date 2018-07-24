@@ -13,7 +13,7 @@ import TableRow from './PopupTableRow.js'
 
 export default function ApplicationTable(url) {
   this.table = document.getElementById('application-table');
-  this.url = url;
+  this.url   = url;
 }
 
 ApplicationTable.RIGHT_ARROW = ' ▶';
@@ -64,7 +64,7 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
   if (document.getElementsByTagName('tr').length < 2) {
     getOrgApplications()
     .then(json => {
-      console.log(json);
+      console.log("get applications json in application table", json);
       if (!json) {
         throw new Error("Error getting applications");
       }

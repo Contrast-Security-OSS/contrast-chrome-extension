@@ -5,6 +5,8 @@ import {
   setElementDisplay,
   changeElementVisibility,
   hideElementAfterTimeout,
+  APPLICATION_CONNECTED,
+  APPLICATION_DISCONNECTED,
 } from '../util.js'
 
 import Application from './Application.js';
@@ -124,6 +126,13 @@ TableRow.prototype._handleConnectError = function(error) {
 TableRow.prototype._successConnect = function(message) {
   setElementText(message, CONNECT_SUCCESS_MESSAGE);
   message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+  console.log("this.application", this.host);
+  chrome.runtime.sendMessage({
+    action: APPLICATION_CONNECTED,
+    data: {
+      domains: this._addHTTProtocol(this.host),
+    },
+  });
 }
 
 TableRow.prototype._failConnect = function(message) {
@@ -134,9 +143,28 @@ TableRow.prototype._failConnect = function(message) {
 TableRow.prototype._successDisonnect = function(message) {
   setElementText(message, DISCONNECT_SUCCESS_MESSAGE);
   message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+  chrome.runtime.sendMessage({
+    action: APPLICATION_DISCONNECTED,
+    data: {
+      domains: this._addHTTProtocol(this.host),
+    },
+  });
 }
 
 TableRow.prototype._failDisonnect = function(message) {
   setElementText(message, DISCONNECT_FAILURE_MESSAGE);
   message.setAttribute('style', `color: ${CONTRAST_RED}`);
+}
+
+TableRow.prototype._addHTTProtocol = function(host) {
+  host = Application.subDomainColonForUnderscore(host);
+  let http  = host;
+  let https = host;
+  if (!http.includes('http://')) {
+    http = 'http://' + host + "/*";
+  }
+  if (!https.includes('https://')) {
+    https = 'https://' + host + "/*";
+  }
+  return [http, https];
 }

@@ -45,7 +45,6 @@ ContrastForm._extractActionsFromForm = function(forms) {
 */
 ContrastForm.collectFormActions = function(sendResponse) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
-    console.log("ContrastForm.collectFormActions STORED_APPS_KEY, result", STORED_APPS_KEY, result, result[STORED_APPS_KEY]);
     if (chrome.runtime.lastError) return;
     if (!result || !result[STORED_APPS_KEY]) return;
 
@@ -58,7 +57,6 @@ ContrastForm.collectFormActions = function(sendResponse) {
     // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefine
     // if (window.CONTRAST__REFRESHED === false) {
     const actions = this._scrapeDOMForForms() || [];
-    console.log("form actions", actions);
     this.MESSAGE_SENT = true;
     console.log("sending form actions to background");
     this._sendFormActionsToBackground(actions, sendResponse);
