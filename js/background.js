@@ -47,7 +47,6 @@ window.XHR_REQUESTS 				 = []; // use to not re-evaluate xhr requests
 window.PAGE_FINISHED_LOADING = false;
 
 export function resetXHRRequests() {
-	console.log("restting XHR Requests");
 	window.XHR_REQUESTS = [];
 }
 
@@ -69,6 +68,7 @@ const XHR_Domains = new DomainStorage();
  * @return {void}
  */
 chrome.webRequest.onBeforeRequest.addListener(request => {
+	console.log("XHR_Domains.domains", XHR_Domains.domains, request.url);
 	_handleWebRequest(request);
 }, {
 	urls: XHR_Domains.domains,
@@ -219,7 +219,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 	QUEUE.resetQueue();
 
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
-		console.log("tab activated", tab);
+		// console.log("tab activated", tab);
 		if (!tab) return;
 		_queueActions(tab);
 	});
@@ -240,7 +240,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	console.log("tab updated", tab);
+	// console.log("tab updated", tab);
 	if (!_tabIsReady(changeInfo, tab)) {
 		console.log("Tab not ready after update");
 		return;

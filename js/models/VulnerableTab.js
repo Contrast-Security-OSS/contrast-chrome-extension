@@ -17,15 +17,15 @@ function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
   throw new Error(message, vulnTabId, vulnTabUrl);
 }
 
-function VulnerableTab(path, application, traces = []) {
-  this.path        = path.split("?")[0];
-  this.id          = btoa(path + "|" + application);
-  this.traceIDs    = traces;
-  this.application = btoa(application);
+function VulnerableTab(path, applicationName, traces = []) {
+  this.traceIDs        = traces;
+  this.path            = path.split("?")[0];
+  this.vulnTabId       = btoa(this.path + "|" + applicationName);
+  this.applicationName = btoa(applicationName);
 }
 
 VulnerableTab.prototype.decodeID = function() {
-  return atob(this.id);
+  return atob(this.vulnTabId);
 }
 
 VulnerableTab.prototype.setTraceIDs = function(traceIDs) {
@@ -35,54 +35,28 @@ VulnerableTab.prototype.setTraceIDs = function(traceIDs) {
 VulnerableTab.prototype.storeTab = function() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.set({
-      [this.application]: { [this.id]: this.traceIDs }
+      [this.applicationName]: { [this.vulnTabId]: this.traceIDs }
     }, () => {
-      chrome.storage.local.get(this.application, (storedTab) => {
-        if (storedTab[this.application]) {
-          resolve(storedTab[this.application]);
+      chrome.storage.local.get(this.applicationName, (storedTab) => {
+        if (storedTab[this.applicationName]) {
+          resolve(storedTab[this.applicationName]);
         } else {
-          reject(new VulnerableTabError("Error Storing Tab", this.id, this.path));
+          reject(new VulnerableTabError("Error Storing Tab", this.vulnTabId, this.path));
         }
       });
     });
   });
 }
 
-VulnerableTab.prototype.getApplicationVulnerableTabs = function() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get([this.application], (appTabs) => {
-      if (appTabs) {
-        resolve(appTabs);
-      } else {
-        reject(new VulnerableTabError("No vulnerable tabs for " + this.application), this.id, this.path);
-      }
-    })
-  });
-}
 
 VulnerableTab.prototype.getStoredTab = function() {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(this.application, (storedTab) => {
-      if (storedTab && storedTab[this.application]) {
-        resolve(storedTab[this.application]);
+    chrome.storage.local.get(this.applicationName, (storedTabs) => {
+      if (storedTabs && storedTabs[this.applicationName]) {
+        resolve(storedTabs[this.applicationName]);
       } else {
         resolve(null);
       }
-    });
-  });
-}
-
-VulnerableTab.prototype.removeStoredTab = function() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.remove(this.id, () => {
-      chrome.storage.local.get(this.id, (storedTab) => {
-        console.log("REMOVE STORED TAB in removeStoredTab", storedTab);
-        if (storedTab) {
-          reject(new VulnerableTabError("Error Removing Tab", this.id, this.path));
-        } else {
-          resolve({ success: true, message: "Successfully Removed Vulnerable Tab" });
-        }
-      });
     });
   });
 }

@@ -1,21 +1,6 @@
 import {
-	TEAMSERVER_INDEX_PATH_SUFFIX,
-	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
-	VALID_TEAMSERVER_HOSTNAMES,
-	TEAMSERVER_PROFILE_PATH_SUFFIX,
-	TEAMSERVER_API_PATH_SUFFIX,
-	CONTRAST_RED,
-	CONTRAST_YELLOW,
-	CONTRAST_CONFIGURE_TEXT,
-	LISTENING_ON_DOMAIN,
-	TRACES_REQUEST,
-	GATHER_FORMS_ACTION,
-	LOADING_DONE,
-	STORED_TRACES_KEY,
-	getStoredCredentials,
 	isCredentialed,
 	isBlacklisted,
-	updateTabBadge,
 	removeLoadingBadge,
 	loadingBadge,
   deDupeArray,
@@ -34,6 +19,7 @@ class Queue {
     this.tab            = null;
     this.application    = null;
     this.tabUrl         = "";
+		this.executionCount = 0;
   }
 
   addXHRequests(requests, xhrReady) {
@@ -65,7 +51,7 @@ class Queue {
   }
 
   resetQueue() {
-    this.xhrRequests    = [];
+		this.xhrRequests    = [];
     this.gatheredForms  = [];
     this.traceIDs       = [];
     this.xhrReady       = false;
@@ -73,6 +59,7 @@ class Queue {
     this.isCredentialed = false;
     this.tab            = null;
     this.application    = null;
+    this.tabUrl         = "";
     this.executionCount = 0;
   }
 
