@@ -383,13 +383,15 @@ function isContrastTeamserver(url) {
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
+  if (chrome.runtime.lastError) null;
   try {
     chrome.tabs.get(tab.id, (result) => {
+      if (chrome.runtime.lastError) null;
       if (!result) return;
       try {
+        if (chrome.runtime.lastError) null;
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
-
 
           // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
           // try {
@@ -399,6 +401,7 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
           // } catch (e) {
           //   return;
           // }
+          if (chrome.runtime.lastError) null;
           if (tab.id >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });
             chrome.browserAction.setBadgeText({ tabId: tab.id, text });
