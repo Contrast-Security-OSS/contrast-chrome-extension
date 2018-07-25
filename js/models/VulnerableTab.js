@@ -11,6 +11,7 @@ import {
   getOrganizationVulnerabilityIds,
   hasIDorUUID,
   isBlacklisted,
+  murmur,
 } from '../util.js';
 
 function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
@@ -20,8 +21,8 @@ function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
 function VulnerableTab(path, applicationName, traces = []) {
   this.traceIDs        = traces;
   this.path            = path.split("?")[0];
-  this.vulnTabId       = md5(this.path + "|" + applicationName);;
-  this.applicationName = md5(applicationName);
+  this.vulnTabId       = murmur(this.path + "|" + applicationName);;
+  this.applicationName = murmur(applicationName);
 }
 
 VulnerableTab.prototype.setTraceIDs = function(traceIDs) {

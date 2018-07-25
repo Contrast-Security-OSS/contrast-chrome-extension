@@ -557,6 +557,12 @@ function loadingBadge(tab) {
   updateTabBadge(tab, "↻", CONTRAST_GREEN);
 }
 
+// Return a 128bit hash as a unsigned hex:
+// https://github.com/karanlyons/murmurHash3.js
+function murmur(string) {
+  return murmurHash3.x86.hash128(string);
+}
+
 export {
   fetchTeamserver,
   getAuthorizationHeader,
@@ -585,6 +591,7 @@ export {
   loadingBadge,
   isHTTP,
   isEmptyObject,
+  murmur,
 }
 
 

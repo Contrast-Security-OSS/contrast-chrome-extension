@@ -125,7 +125,7 @@ class Queue {
       this.tab, 					    // current tab
       deDupeArray(traceUrls), // gathered xhr requests from page load
       this.application, 	    // current app
-			formTraces.map(f => f.traces).flatten() // vulnerable forms
+			formTraces ? formTraces.map(f => f.traces).flatten() : [] // vulnerable forms
     );
 
     this._increaseExecutionCount();
