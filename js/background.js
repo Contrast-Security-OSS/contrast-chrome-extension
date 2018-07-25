@@ -38,12 +38,12 @@ import DomainStorage from './models/DomainStorage.js';
 /******************************************************************************
  ********************************* GLOBALS ************************************
  ******************************************************************************/
-export let TAB_CLOSED	= false;
+let TAB_CLOSED	= false;
 
 window.XHR_REQUESTS 				 = []; // use to not re-evaluate xhr requests
 window.PAGE_FINISHED_LOADING = false;
 
-export function resetXHRRequests() {
+function resetXHRRequests() {
 	console.log("RESETTING XHR REQUESTS from", window.XHR_REQUESTS);
 	window.XHR_REQUESTS = [];
 }
@@ -166,12 +166,6 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	else if (request.action === LOADING_DONE) {
 		window.PAGE_FINISHED_LOADING = true;
 	}
-
-	// const calls = [
-	// 	getStoredCredentials(),
-	// 	Application.retrieveApplicationFromStorage(tab),
-	// 	Vulnerability.removeVulnerabilitiesFromStorage(tab),
-	// ];
 
 	return request;
 }
@@ -314,7 +308,7 @@ chrome.tabs.onRemoved.addListener(() => {
  * @param  {Object} tab Gives the state of the current tab
  * @return {void}
  */
-export function notifyUserToConfigure(tab) {
+function notifyUserToConfigure(tab) {
 	if (chrome.runtime.lastError) return;
 
 	const url = new URL(tab.url);
@@ -327,4 +321,11 @@ export function notifyUserToConfigure(tab) {
 		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 		TAB_CLOSED = false;
 	}
+}
+
+export {
+	TAB_CLOSED,
+	_handleRuntimeOnMessage,
+	notifyUserToConfigure,
+	resetXHRRequests,
 }
