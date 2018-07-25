@@ -6,7 +6,7 @@
 */
 
 import Queue from './queue.js';
-const QUEUE = new Queue();
+let QUEUE;
 
 import {
 	TEAMSERVER_INDEX_PATH_SUFFIX,
@@ -47,6 +47,7 @@ window.XHR_REQUESTS 				 = []; // use to not re-evaluate xhr requests
 window.PAGE_FINISHED_LOADING = false;
 
 export function resetXHRRequests() {
+	console.log("RESETTING XHR REQUESTS from", window.XHR_REQUESTS);
 	window.XHR_REQUESTS = [];
 }
 
@@ -80,16 +81,17 @@ chrome.webRequest.onBeforeRequest.addListener(request => {
 // initiator && (isHTTP(initiator)), // no requests from extension
 function _handleWebRequest(request) {
 	const { method, url, } = request;
+	const requestURL = url.split("?")[0]; // remove query string
 	const conditions = [
 		method !== "OPTIONS", 							// no CORS pre-flight requests
-		!isBlacklisted(url), 								// no blacklisted urls, see utils
-		!window.XHR_REQUESTS.includes(url),	// no dupes
+		!isBlacklisted(url),								// no blacklisted urls, see utils
+		!window.XHR_REQUESTS.includes(requestURL),	// no dupes
 	];
 
-	const requestURL = url.split("?")[0]; // remove query string
-
 	// evaluate new XHR requests immediately
-	if (PAGE_FINISHED_LOADING && QUEUE.executionCount > 0 && conditions.every(Boolean)) {
+	if (window.PAGE_FINISHED_LOADING && QUEUE.executionCount > 0 && conditions.every(Boolean)) {
+		console.log("request", QUEUE);
+		window.XHR_REQUESTS.push(requestURL);
 		Vulnerability.evaluateSingleURL(requestURL, QUEUE.tab, QUEUE.application);
 	}
 
@@ -178,6 +180,7 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 }
 
 async function _queueActions(tab, tabUpdated) {
+
 	QUEUE.setTab(tab);
 
 	const calls = [
@@ -204,14 +207,12 @@ async function _queueActions(tab, tabUpdated) {
 	QUEUE.addXHRequests(window.XHR_REQUESTS, true);
 
 	// NOTE: Hacky
-	function waitForPageLoad() {
-		if (!window.PAGE_FINISHED_LOADING) {
-			return waitForPageLoad();
-		} else {
-			return QUEUE.executeQueue();
-		}
+	let slept = 0;
+	while (!window.PAGE_FINISHED_LOADING) {
+		if (slept === 5) window.PAGE_FINISHED_LOADING = true;
+		setTimeout(() => slept += 1)
 	}
-	waitForPageLoad();
+	QUEUE.executeQueue();
 }
 
 // ------------------------------------------------------------------
@@ -221,7 +222,8 @@ async function _queueActions(tab, tabUpdated) {
 
 chrome.tabs.onActivated.addListener(activeInfo => {
 	window.PAGE_FINISHED_LOADING = true;
-	QUEUE.resetQueue();
+	// QUEUE.resetQueue();
+	QUEUE = new Queue();
 
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
 		console.log("tab activated");
@@ -246,11 +248,14 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	console.log("tab updated");
+	QUEUE.resetExecutionCount(); // execution count is used by onBeforeRequest
 	if (!_tabIsReady(changeInfo, tab)) {
 		console.log("Tab not ready after update");
 		return;
 	}
-	QUEUE.resetQueue();
+	QUEUE = new Queue();
+	// QUEUE.resetQueue();
+	console.log("Queue after Reset", QUEUE);
 	_queueActions(tab, true);
 });
 
@@ -263,7 +268,6 @@ function _tabIsReady(changeInfo, tab) {
 	if (changeInfo.favIconUrl && Object.keys(changeInfo).length === 1) {
 		return false;
 	} else if (!tab.active || !changeInfo.status) {
-		window.PAGE_FINISHED_LOADING = false;
 		return false;
 	} else if (chrome.runtime.lastError) {
 		return false;
@@ -271,6 +275,7 @@ function _tabIsReady(changeInfo, tab) {
 		// Don't run logic when user opens a new tab, or when url isn't http (ex. chrome://)
 		return false;
 	} else if (changeInfo.status === "loading") {
+		resetXHRRequests();
 		// GET STUCK ON LOADING if done for both "loading" and "complete"
 		// NOTE: UPDATEBADGE
 		if (!TAB_CLOSED) {

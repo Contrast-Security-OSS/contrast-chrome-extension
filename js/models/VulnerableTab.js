@@ -19,24 +19,26 @@ function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
 }
 
 function VulnerableTab(path, applicationName, traces = []) {
-  this.traceIDs        = traces;
-  this.path            = path.split("?")[0];
-  this.vulnTabId       = murmur(this.path + "|" + applicationName);;
-  this.applicationName = murmur(applicationName);
+  this.traceIDs    = traces;
+  this.path        = path.split("?")[0];
+  this.vulnTabId   = murmur(this.path + "|" + applicationName);;
+  this.appNameHash = murmur(applicationName);
 }
 
 VulnerableTab.prototype.setTraceIDs = function(traceIDs) {
-  this.traceIDs = deDupeArray(traceIDs);
+  this.traceIDs = deDupeArray(this.traceIDs.concat(traceIDs));
 }
 
 VulnerableTab.prototype.storeTab = function() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set({
-      [this.applicationName]: { [this.vulnTabId]: this.traceIDs }
-    }, () => {
-      chrome.storage.local.get([this.applicationName], (storedTab) => {
-        if (storedTab[this.applicationName]) {
-          resolve(storedTab[this.applicationName]);
+  return new Promise( async(resolve, reject) => {
+
+    let appTabs = await this.getApplicationTabs();
+        appTabs[this.appNameHash][this.vulnTabId] = this.traceIDs;
+
+    chrome.storage.local.set(appTabs, () => {
+      chrome.storage.local.get(this.appNameHash, (storedTab) => {
+        if (storedTab && storedTab[this.appNameHash]) {
+          resolve(storedTab[this.appNameHash]);
         } else {
           reject(new VulnerableTabError("Error Storing Tab", this.vulnTabId, this.path));
         }
@@ -45,12 +47,18 @@ VulnerableTab.prototype.storeTab = function() {
   });
 }
 
+VulnerableTab.prototype.getApplicationTabs = function() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(this.appNameHash, (appTabs) => resolve(appTabs));
+  });
+}
 
 VulnerableTab.prototype.getStoredTab = function() {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get([this.applicationName], (storedTabs) => {
-      if (storedTabs && storedTabs[this.applicationName]) {
-        resolve(storedTabs[this.applicationName]);
+    chrome.storage.local.get(this.appNameHash, (storedTabs) => {
+      console.log("STORED TABS", storedTabs);
+      if (storedTabs && storedTabs[this.appNameHash]) {
+        resolve(storedTabs[this.appNameHash]);
       } else {
         resolve(null);
       }

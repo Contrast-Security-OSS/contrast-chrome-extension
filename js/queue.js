@@ -50,18 +50,26 @@ class Queue {
     this.executionCount += 1;
   }
 
-  resetQueue() {
-		this.xhrRequests    = [];
-    this.gatheredForms  = [];
-    this.traceIDs       = [];
-    this.xhrReady       = false;
-    this.formsReady     = false;
-    this.isCredentialed = false;
-    this.tab            = null;
-    this.application    = null;
-    this.tabUrl         = "";
-    this.executionCount = 0;
-  }
+	resetExecutionCount() {
+		this.executionCount = 0;
+	}
+
+  /**
+   * NOTE: Not using, doesn't reset *this*, only resets instance
+   */
+  // resetQueue() {
+	// 	this.xhrRequests    = [];
+  //   this.gatheredForms  = [];
+  //   this.traceIDs       = [];
+  //   this.xhrReady       = false;
+  //   this.formsReady     = false;
+  //   this.isCredentialed = false;
+  //   this.tab            = null;
+  //   this.application    = null;
+  //   this.tabUrl         = "";
+  //   this.executionCount = 0;
+	// 	console.log("Queue Reset");
+  // }
 
 	_highLightVulnerableForms(formTraces) {
 		console.log("In queue, highlighting forms");
@@ -75,12 +83,12 @@ class Queue {
 	}
 
 	_evaluateForms() {
-		Vulnerability.evaluateFormActions(
+		return Vulnerability.evaluateFormActions(
 			this.gatheredForms, this.tab, this.application);
 	}
 
   async executeQueue() {
-    console.log("executing queue");
+    console.log("executing queue", this);
     // NOTE: At start loading badge still true
 
     // If tab URL is blacklisted, don't process anything
@@ -109,6 +117,8 @@ class Queue {
 		// NOTE: In order to highlight vulnerable forms, form actions must be evaluated separately
 		console.log("In queue, evaluating forms");
 		const formTraces = await this._evaluateForms();
+
+		console.log("FORM TRACES", formTraces);
 
 		if (formTraces && formTraces.length > 0) {
 			this._highLightVulnerableForms(formTraces);
