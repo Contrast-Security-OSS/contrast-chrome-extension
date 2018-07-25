@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 // allow ununed vars in this file since they are used throughout other files
 /*eslint no-unused-vars: "off"*/
 /*global

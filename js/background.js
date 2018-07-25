@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
 	URL,
 	chrome,
@@ -13,15 +14,12 @@ import {
 	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 	VALID_TEAMSERVER_HOSTNAMES,
 	TEAMSERVER_PROFILE_PATH_SUFFIX,
-	TEAMSERVER_API_PATH_SUFFIX,
 	CONTRAST_RED,
 	CONTRAST_YELLOW,
 	CONTRAST_CONFIGURE_TEXT,
-	LISTENING_ON_DOMAIN,
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	LOADING_DONE,
-	STORED_TRACES_KEY,
 	APPLICATION_CONNECTED,
 	APPLICATION_DISCONNECTED,
 	getStoredCredentials,
@@ -30,7 +28,6 @@ import {
 	updateTabBadge,
 	removeLoadingBadge,
 	loadingBadge,
-	isHTTP,
 } from './util.js';
 
 import Application from './models/Application.js';
@@ -51,7 +48,7 @@ export function resetXHRRequests() {
 	window.XHR_REQUESTS = [];
 }
 
-const XHR_Domains = new DomainStorage();
+const XHRDomains = new DomainStorage();
 
 /******************************************************************************
  *************************** CHROME EVENT LISTENERS ***************************
@@ -71,7 +68,7 @@ const XHR_Domains = new DomainStorage();
 chrome.webRequest.onBeforeRequest.addListener(request => {
 	_handleWebRequest(request);
 }, {
-	urls: XHR_Domains.domains,
+	urls: XHRDomains.domains,
 	types: ["xmlhttprequest"],
 });
 
@@ -159,11 +156,11 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	}
 
 	else if (request.action === APPLICATION_CONNECTED) {
-		XHR_Domains.addDomainsToStorage(request.data.domains);
+		XHRDomains.addDomainsToStorage(request.data.domains);
 	}
 
 	else if (request.action === APPLICATION_DISCONNECTED) {
-		XHR_Domains.removeDomainsFromStorage(request.data.domains);
+		XHRDomains.removeDomainsFromStorage(request.data.domains);
 	}
 
 	else if (request.action === LOADING_DONE) {
@@ -207,12 +204,14 @@ async function _queueActions(tab, tabUpdated) {
 	QUEUE.addXHRequests(window.XHR_REQUESTS, true);
 
 	// NOTE: Hacky
-	let slept = 0;
-	while (!window.PAGE_FINISHED_LOADING) {
-		if (slept === 5) window.PAGE_FINISHED_LOADING = true;
-		setTimeout(() => slept += 1)
-	}
-	QUEUE.executeQueue();
+	// let slept = 0;
+	// while (!window.PAGE_FINISHED_LOADING) {
+	// 	if (slept === 5) window.PAGE_FINISHED_LOADING = true;
+	// 	setTimeout(() => {
+	// 		slept += 1
+	// 	}, 200);
+	// }
+	QUEUE.executeQueue(resetXHRRequests);
 }
 
 // ------------------------------------------------------------------
@@ -289,7 +288,7 @@ function _tabIsReady(changeInfo, tab) {
 }
 
 function _gatherFormsFromPage(tab) {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (res) => {
 			if (res && res.formActions && Array.isArray(res.formActions)) {
 				resolve(res.formActions);

@@ -1,7 +1,9 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 // allow ununed vars in this file since they are used throughout other files
 /*eslint no-unused-vars: "off"*/
 /*global
 btoa,
+murmurHash3,
 chrome
 */
 
@@ -466,7 +468,7 @@ function generateTraceURLString(tracePaths) {
  * @returns {Boolean} - true if url path has ID or UUID
  */
 const UUID_V4_REGEX = new RegExp(
-      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i);
+      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i); //eslint-disable-line
 const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
 function hasIDorUUID(url) {
   let path;

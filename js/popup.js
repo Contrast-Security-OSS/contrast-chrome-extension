@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
 chrome,
 document,
@@ -9,13 +10,8 @@ import {
   getStoredCredentials,
   isCredentialed,
   getHostFromUrl,
-  isContrastTeamserver,
   isEmptyObject,
 } from './util.js'
-
-import {
-  notifyUserToConfigure,
-} from './background.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
@@ -26,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const url   = new URL(tab.url);
       const host  = getHostFromUrl(url);
       const store = result[STORED_APPS_KEY];
-      const app   = store ? store.filter(app => app[host])[0] : store;
+      const app   = store ? store.filter(a => a[host])[0] : store;
 
       // console.log("app", app);
       // console.log("isContrastTeamserver(tab.url)", isContrastTeamserver(tab.url));
@@ -41,8 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         })
         .catch(error => new Error(error));
-      } else if (isContrastTeamserver(tab.url)) {
-
       }
     });
   });

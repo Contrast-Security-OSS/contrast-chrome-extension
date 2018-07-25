@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   CONTRAST_ORG_UUID,
   TEAMSERVER_URL,

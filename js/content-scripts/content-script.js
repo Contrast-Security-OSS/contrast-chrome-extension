@@ -1,8 +1,8 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
 chrome,
 document,
 ContrastForm,
-retrieveApplicationFromStorage,
 TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,

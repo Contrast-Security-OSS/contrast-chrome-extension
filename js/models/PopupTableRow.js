@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   CONTRAST_RED,
   CONTRAST_GREEN,
@@ -165,5 +166,5 @@ TableRow.prototype._addHTTProtocol = function(host) {
   if (!https.includes('https://')) {
     https = 'https://' + host + "/*";
   }
-  return [http, https];
+  return [http, https]; // eslint-disable-line
 }

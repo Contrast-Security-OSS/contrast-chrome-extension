@@ -1,16 +1,6 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
-  CONTRAST_CONFIGURE_TEXT,
-  CONTRAST_RED,
-  CONTRAST_YELLOW,
-  CONTRAST_GREEN,
-  STORED_TRACES_KEY,
-  GATHER_FORMS_ACTION,
-  HIGHLIGHT_VULNERABLE_FORMS,
   deDupeArray,
-  generateTraceURLString,
-  getOrganizationVulnerabilityIds,
-  hasIDorUUID,
-  isBlacklisted,
   murmur,
 } from '../util.js';
 
@@ -21,7 +11,7 @@ function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
 function VulnerableTab(path, applicationName, traces = []) {
   this.traceIDs    = traces;
   this.path        = path.split("?")[0];
-  this.vulnTabId   = murmur(this.path + "|" + applicationName);;
+  this.vulnTabId   = murmur(this.path + "|" + applicationName);
   this.appNameHash = murmur(applicationName);
 }
 
@@ -30,7 +20,7 @@ VulnerableTab.prototype.setTraceIDs = function(traceIDs) {
 }
 
 VulnerableTab.prototype.storeTab = function() {
-  return new Promise( async(resolve, reject) => {
+  return new Promise(async(resolve, reject) => {
 
     let appTabs = await this.getApplicationTabs();
         appTabs[this.appNameHash][this.vulnTabId] = this.traceIDs;
@@ -48,13 +38,13 @@ VulnerableTab.prototype.storeTab = function() {
 }
 
 VulnerableTab.prototype.getApplicationTabs = function() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     chrome.storage.local.get(this.appNameHash, (appTabs) => resolve(appTabs));
   });
 }
 
 VulnerableTab.prototype.getStoredTab = function() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     chrome.storage.local.get(this.appNameHash, (storedTabs) => {
       console.log("STORED TABS", storedTabs);
       if (storedTabs && storedTabs[this.appNameHash]) {

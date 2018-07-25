@@ -1,8 +1,7 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
-	isCredentialed,
 	isBlacklisted,
 	removeLoadingBadge,
-	loadingBadge,
   deDupeArray,
 } from './util.js';
 
@@ -87,14 +86,14 @@ class Queue {
 			this.gatheredForms, this.tab, this.application);
 	}
 
-  async executeQueue() {
+  async executeQueue(resetXHRRequests) {
     console.log("executing queue", this);
     // NOTE: At start loading badge still true
 
     // If tab URL is blacklisted, don't process anything
     const url = this.tabUrl || this.tab.url;
     if (isBlacklisted(url)) {
-      removeLoadingBadge(tab);
+      removeLoadingBadge(this.tab);
       return;
     }
 
@@ -112,7 +111,7 @@ class Queue {
     }
 
     console.log("In queue, removing vulnerabilities");
-  	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab);
+  	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab); //eslint-disable-line
 
 		// NOTE: In order to highlight vulnerable forms, form actions must be evaluated separately
 		console.log("In queue, evaluating forms");
@@ -125,7 +124,7 @@ class Queue {
 		}
 
     let traceUrls = this.xhrRequests.concat([this.tabUrl]);
-        traceUrls = traceUrls.filter(url => !isBlacklisted(url));
+        traceUrls = traceUrls.filter(tu => !isBlacklisted(tu));
         traceUrls = traceUrls.map(trace => (new URL(trace)).pathname);
 
 		console.log("evaluating urls from page in queue");
@@ -135,7 +134,8 @@ class Queue {
       this.tab, 					    // current tab
       deDupeArray(traceUrls), // gathered xhr requests from page load
       this.application, 	    // current app
-			formTraces ? formTraces.map(f => f.traces).flatten() : [] // vulnerable forms
+			(formTraces ? formTraces.map(f => f.traces).flatten() : []),
+			resetXHRRequests
     );
 
     this._increaseExecutionCount();
