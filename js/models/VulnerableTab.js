@@ -2,6 +2,7 @@
 import {
   deDupeArray,
   murmur,
+  isEmptyObject,
 } from '../util.js';
 
 function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
@@ -23,7 +24,7 @@ VulnerableTab.prototype.storeTab = function() {
   return new Promise(async(resolve, reject) => {
 
     let appTabs = await this.getApplicationTabs();
-        appTabs[this.appNameHash][this.vulnTabId] = this.traceIDs;
+    appTabs[this.appNameHash][this.vulnTabId] = this.traceIDs;
 
     chrome.storage.local.set(appTabs, () => {
       chrome.storage.local.get(this.appNameHash, (storedTab) => {
@@ -39,7 +40,16 @@ VulnerableTab.prototype.storeTab = function() {
 
 VulnerableTab.prototype.getApplicationTabs = function() {
   return new Promise((resolve) => {
-    chrome.storage.local.get(this.appNameHash, (appTabs) => resolve(appTabs));
+    chrome.storage.local.get(this.appNameHash, (appTabs) => {
+
+      // NOTE: if an application has just been added, appTabs will be empty obj
+      // Add appNameHash key with val as empty object for storing vulnTabIds
+      if (!appTabs || isEmptyObject(appTabs)) {
+        appTabs[this.appNameHash] = {};
+      }
+
+      resolve(appTabs)
+    });
   });
 }
 

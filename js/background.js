@@ -247,7 +247,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	console.log("tab updated");
-	QUEUE.resetExecutionCount(); // execution count is used by onBeforeRequest
+	if (QUEUE) QUEUE.resetExecutionCount(); // execution count is used by onBeforeRequest
 	if (!_tabIsReady(changeInfo, tab)) {
 		console.log("Tab not ready after update");
 		return;
