@@ -40,9 +40,13 @@ VulnerableTab.prototype.storeTab = function() {
 VulnerableTab.prototype.getApplicationTabs = function() {
   return new Promise((resolve) => {
     chrome.storage.local.get(this.appNameHash, (appTabs) => {
-      if (!appTabs[this.appNameHash]) {
+
+      // NOTE: if an application has just been added, appTabs will be empty obj
+      // Add appNameHash key with val as empty object for storing vulnTabIds
+      if (!appTabs || isEmptyObject(appTabs)) {
         appTabs[this.appNameHash] = {};
       }
+
       resolve(appTabs)
     });
   });

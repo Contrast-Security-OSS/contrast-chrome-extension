@@ -49,6 +49,7 @@ function resetXHRRequests() {
 	window.XHR_REQUESTS = [];
 }
 
+
 const XHRDomains = new DomainStorage();
 
 /******************************************************************************
@@ -201,8 +202,6 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			return request;
 		}
 	}
-	return request;
-}
 
 async function _queueActions(tab, tabUpdated) {
 
@@ -259,6 +258,23 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 	});
 });
 
+// ------------------------------------------------------------------
+// ------------------------- TAB ACTIVATION -------------------------
+// - switch to tab from another tab
+// ------------------------------------------------------------------
+
+chrome.tabs.onActivated.addListener(activeInfo => {
+	window.PAGE_FINISHED_LOADING = true;
+	// QUEUE.resetQueue();
+	QUEUE = new Queue();
+
+	chrome.tabs.get(activeInfo.tabId, (tab) => {
+		console.log("tab activated");
+		if (!tab) return;
+		_queueActions(tab, false);
+	});
+});
+
 // -------------------------------------------------------------------
 // ------------------------- TAB UPDATED -----------------------------
 // - on Refresh
@@ -275,7 +291,7 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	console.log("tab updated");
-	QUEUE.resetExecutionCount(); // execution count is used by onBeforeRequest
+	if (QUEUE) QUEUE.resetExecutionCount(); // execution count is used by onBeforeRequest
 	if (!_tabIsReady(changeInfo, tab)) {
 		console.log("Tab not ready after update");
 		return;

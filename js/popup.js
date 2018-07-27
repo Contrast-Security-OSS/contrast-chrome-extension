@@ -16,7 +16,6 @@ import {
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      console.log("TABS", tabs);
       if (!tabs[0]) return;
 
       const tab   = tabs[0];
@@ -28,15 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // console.log("app", app);
       // console.log("isContrastTeamserver(tab.url)", isContrastTeamserver(tab.url));
 
-      console.log("APP", app);
-
       if (app && !isEmptyObject(app)) {
         getStoredCredentials()
         .then(items => {
-          console.log("STORED CREDS", items);
           if (isCredentialed(items)) {
-            console.log("IS CREDENTIALED");
-            getStorageVulnsAndRender(items, app, tab);
+            getStorageVulnsAndRender(items, app);
           } else {
             throw new Error("Not Credentialed")
           }
