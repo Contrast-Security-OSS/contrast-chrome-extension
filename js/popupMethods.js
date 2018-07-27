@@ -1,6 +1,6 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
-/* global
-* tippy
+/*global
+tippy
 */
 import {
   CONTRAST_RED,
@@ -174,7 +174,7 @@ function _updateTabBadge(application, traceUuid) {
       console.log("CURRENT BADGE VALUE", currentBadgeValue);
       if (!currentBadgeValue) return;
 
-      if ((currentBadgeValue - 1) == 0) {
+      if ((currentBadgeValue - 1) === 0) {
         const noVulnsFound = document.getElementById("no-vulnerabilities-found");
         const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
         setElementDisplay(noVulnsFound, "block");

@@ -120,8 +120,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (!tab || !tab.active) {
 		console.log("No Tab");
 		sendResponse("Tab not active");
-		return;
-	};
+		return false;
+	}
 
 	if (request.action !== TRACES_REQUEST
 			&& request.action !== LOADING_DONE
@@ -156,11 +156,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @param  {Object} 	request
  * @param  {Function} sendResponse
  * @param  {Object} 	tab
- * @return {void}
  */
 async function _handleRuntimeOnMessage(request, sendResponse, tab) {
-	switch(request.action) {
-		case TRACES_REQUEST:
+	switch (request.action) {
+		case TRACES_REQUEST: {
 			console.log("Handling traces request message");
 			const tabPath				= VulnerableTab.buildTabPath(tab.url);
 			const vulnerableTab = new VulnerableTab(tabPath, request.application.name)
@@ -168,20 +167,24 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
 			removeLoadingBadge(tab);
 			break;
+		}
 
-		case APPLICATION_CONNECTED:
+		case APPLICATION_CONNECTED: {
 			XHRDomains.addDomainsToStorage(request.data.domains);
 			break;
+		}
 
-		case APPLICATION_DISCONNECTED:
+		case APPLICATION_DISCONNECTED: {
 			XHRDomains.removeDomainsFromStorage(request.data.domains);
 			break;
+		}
 
-		case LOADING_DONE:
+		case LOADING_DONE: {
 			window.PAGE_FINISHED_LOADING = true;
 			break;
+		}
 
-		case DELETE_TRACE:
+		case DELETE_TRACE: {
 			const { application, traceUuid } = request;
 			const path 			= VulnerableTab.buildTabPath(tab.url);
 			const vulnTab 	= new VulnerableTab(path, application.name);
@@ -191,11 +194,14 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			vulnTab.setTraceIDs(filteredTraces);
 			vulnTab.storeTab();
 			break;
+		}
 
-		default:
+		default: {
 			console.log("Default Case in _handleRuntimeOnMessage, request action was", request.action);
 			return request;
 		}
+	}
+	return request;
 }
 
 async function _queueActions(tab, tabUpdated) {
@@ -243,12 +249,12 @@ async function _queueActions(tab, tabUpdated) {
 
 chrome.tabs.onActivated.addListener(activeInfo => {
 	window.PAGE_FINISHED_LOADING = true;
-	// QUEUE.resetQueue();
 	QUEUE = new Queue();
 
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
+		if (!tab || chrome.runtime.lastError) return;
+
 		console.log("tab activated");
-		if (!tab) return;
 		_queueActions(tab, false);
 	});
 });

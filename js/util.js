@@ -134,7 +134,6 @@ function fetchTeamserver(url, params, authHeader, apiKey, method = 'GET') {
     fetchOptions.body = JSON.stringify(params);
     fetchOptions.headers.append('Content-Type', 'application/json');
   }
-  console.log("FETCHOPTIONS", fetchOptions, url);
   return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
