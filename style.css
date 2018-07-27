@@ -123,14 +123,19 @@ label {
   cursor: pointer;
 }
 
-.discovered-vulnerabilities-h {
-  margin-top: 5px;
-  margin-bottom: 5px;
+/* TRASH ICON ON POPUP FOR REMOVING VULNERABILITIES */
+.trash-icon {
+  right: 5px;
+  float: right;
+  cursor: pointer;
 }
 
-.no-margin {
-  margin-top: 0px;
-  margin-bottom: 0px;
+#tooltipTemplate {
+  display: none;
+}
+
+div.tippy-content {
+  font-size: 14px;
 }
 
 #vulnerabilities-found-on-page {

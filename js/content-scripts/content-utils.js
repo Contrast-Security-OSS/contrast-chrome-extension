@@ -3,26 +3,25 @@
 /*eslint no-unused-vars: "off"*/
 /*global
 btoa,
-murmurHash3,
 chrome
 */
 
 // keys for credentials
-export const CONTRAST_USERNAME    = "contrast_username";
-export const CONTRAST_SERVICE_KEY = "contrast_service_key";
-export const CONTRAST_API_KEY     = "contrast_api_key";
-export const CONTRAST_ORG_UUID    = "contrast_org_uuid";
-export const TEAMSERVER_URL       = "teamserver_url";
+const CONTRAST_USERNAME    = "contrast_username";
+const CONTRAST_SERVICE_KEY = "contrast_service_key";
+const CONTRAST_API_KEY     = "contrast_api_key";
+const CONTRAST_ORG_UUID    = "contrast_org_uuid";
+const TEAMSERVER_URL       = "teamserver_url";
 
 // Vulnerability Severity Levels
-export const SEVERITY_NOTE     = "Note";
-export const SEVERITY_LOW      = "Low";
-export const SEVERITY_MEDIUM   = "Medium";
-export const SEVERITY_HIGH     = "High";
-export const SEVERITY_CRITICAL = "Critical";
+const SEVERITY_NOTE     = "Note";
+const SEVERITY_LOW      = "Low";
+const SEVERITY_MEDIUM   = "Medium";
+const SEVERITY_HIGH     = "High";
+const SEVERITY_CRITICAL = "Critical";
 
 // Useful for ordering vulnerabilities by severity
-export const SEVERITY = {
+const SEVERITY = {
   [SEVERITY_NOTE]: 0,
   [SEVERITY_LOW]: 1,
   [SEVERITY_MEDIUM]: 2,
@@ -31,17 +30,17 @@ export const SEVERITY = {
 };
 
 // Vulnerability Severity Icons
-export const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
-export const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
-export const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
-export const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
-export const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
+const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
+const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
+const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
+const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
+const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
 
-export const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
-export const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
-export const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
-export const TEAMSERVER_API_PATH_SUFFIX     = "/Contrast/api";
-export const VALID_TEAMSERVER_HOSTNAMES = [
+const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
+const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
+const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
+const TEAMSERVER_API_PATH_SUFFIX     = "/Contrast/api";
+const VALID_TEAMSERVER_HOSTNAMES = [
   'app.contrastsecurity.com',
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
@@ -50,23 +49,19 @@ export const VALID_TEAMSERVER_HOSTNAMES = [
 ];
 
 // Contrast stylings and configuration text
-export const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
-export const CONTRAST_RED             = "#E63025";
-export const CONTRAST_YELLOW          = "#FFD300";
-export const CONTRAST_CONFIGURE_TEXT  = "*";
+const CONTRAST_GREEN           = "#65C0B2" // or is it #3CC3B2?;
+const CONTRAST_RED             = "#E63025";
+const CONTRAST_YELLOW          = "#FFD300";
+const CONTRAST_CONFIGURE_TEXT  = "*";
 
 // chrome storage and message event keys
-export const LISTENING_ON_DOMAIN = ["<all_urls>"];
-export const GATHER_FORMS_ACTION = "contrast__gatherForms";
-export const STORED_TRACES_KEY   = "contrast__traces";
-export const TRACES_REQUEST      = "contrast__getStoredTraces";
-export const DELETE_TRACE        = "contrast__remove_storedTrace";
-export const STORED_APPS_KEY     = "contrast__APPS";
-export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
-export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
-export const APPLICATION_CONNECTED    = 'contrast__application__connected';
-export const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
-export const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
+const LISTENING_ON_DOMAIN = "<all_urls>";
+const GATHER_FORMS_ACTION = "contrast__gatherForms";
+const STORED_TRACES_KEY   = "contrast__traces";
+const TRACES_REQUEST      = "contrast__getStoredTraces";
+const STORED_APPS_KEY     = "contrast__APPS";
+const LOADING_DONE        = "contrast__LOADING_DONE_requests";
+const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -74,7 +69,6 @@ const BLACKLISTED_DOMAINS = [
   "file://",
   "/Contrast/api/ng/",
   "/Contrast/s/",
-  "/Contrast/static/ng",
   "google.com",
   "ajax.googleapis.com",
   "gstatic.net",
@@ -86,8 +80,6 @@ const BLACKLISTED_DOMAINS = [
   "cloudfront.com",
   "cdn.sstatic.net",
   "reddit.com",
-  "sockjs-node/info",
-  "socket.io",
 ];
 const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
@@ -120,20 +112,16 @@ String.prototype.titleize = function() {
 
 // --------- HELPER FUNCTIONS -------------
 
-function fetchTeamserver(url, params, authHeader, apiKey, method = 'GET') {
-  const requestUrl   = method === 'GET' ? url + params : url;
+function fetchTeamserver(url, params, authHeader, apiKey) {
+  const requestUrl   = url + params;
   const fetchOptions = {
-    method,
+    method: "GET",
     headers: new Headers({
       "Authorization": authHeader,
       "API-Key": apiKey,
       "Accept": "application/json",
     }),
   };
-  if (method !== 'GET') {
-    fetchOptions.body = JSON.stringify(params);
-    fetchOptions.headers.append('Content-Type', 'application/json');
-  }
   return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
@@ -173,13 +161,6 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
   throw new Error("an argument to getApplicationsUrl was undefined");
-}
-
-function deleteApplicationTracesUrl(teamserverUrl, orgUuid, appId, traceUuids) {
-  if (teamserverUrl && orgUuid && appId) {
-    return teamserverUrl + "/ng/" + orgUuid + "/traces/" + appId;
-  }
-  throw new Error("An argument to deleteApplicationTraces was undefined");
 }
 
 /**
@@ -241,7 +222,6 @@ function getOrganizationVulnerabilityIds(urls, appId) {
 
     const url = getOrganizationVulnerabilitiesIdsUrl(items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId);
     const authHeader = getAuthorizationHeader(items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]);
-
     const params = "?urls=" + urls;
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });
@@ -286,26 +266,6 @@ function getOrgApplications() {
   });
 }
 
-/**
- * deleteApplicationTraces - description
- *
- * @returns {type}  description
- */
-function deleteApplicationTraces(traces, appId) {
-  return getStoredCredentials()
-  .then(items => {
-    const url = deleteApplicationTracesUrl(
-      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId
-    );
-    const authHeader = getAuthorizationHeader(
-      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
-    );
-
-    return fetchTeamserver(
-      url, { traces }, authHeader, items[CONTRAST_API_KEY], 'DELETE');
-  });
-}
-
 // ---------  OTHER HELPER FUNCTIONS -------------
 
 /**
@@ -324,7 +284,7 @@ function isCredentialed(credentials) {
   // return noUsername || noServiceKey || noApiKey || noTeamserverUrl;
   const values = Object.values(credentials);
 
-  return values && values.length > 0 && values.every(Boolean);
+  return !!values && values.length > 0 && values.every(item => !!item);
 }
 
 /**
@@ -337,10 +297,6 @@ function deDupeArray(array) {
   return array.filter((item, position, self) => {
     return self.indexOf(item) === position;
   });
-}
-
-function isEmptyObject(obj) {
-  return Object.keys(obj).length === 0 && obj.constructor === Object;
 }
 
 /**
@@ -380,10 +336,6 @@ function isBlacklisted(url) {
   return false;
 }
 
-function isHTTP(string) {
-  return string.includes("http://") || string.includes("https://");
-}
-
 /**
  * isContrastTeamserver - check if we're on a Contrast teamserver page or not
  *
@@ -403,9 +355,6 @@ function isContrastTeamserver(url) {
   return contrast.some(c => url.includes(c));
 }
 
-// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
-//#x21bb; is unicode clockwise circular arrow
-// TRACES_REQUEST happens when popup is opened, LOADING_DONE happens after tab has updated or activated
 /**
 * updateTabBadge - updates the extension badge on the toolbar
 *
@@ -415,36 +364,25 @@ function isContrastTeamserver(url) {
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
-  if (chrome.runtime.lastError) null;
   try {
     chrome.tabs.get(tab.id, (result) => {
-      if (chrome.runtime.lastError) null;
       if (!result) return;
+
       try {
-        if (chrome.runtime.lastError) null;
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
 
-          // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
-          // try {
-          //   if (parseInt(badge, 10) > parseInt(text, 10)) {
-          //     return;
-          //   }
-          // } catch (e) {
-          //   return;
-          // }
-          if (chrome.runtime.lastError) null;
-          if (tab.id >= 0 && !chrome.runtime.lastError) {
+          if (tab.index >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });
             chrome.browserAction.setBadgeText({ tabId: tab.id, text });
           }
         })
       } catch (e) {
-        throw new Error("Error updating badge0", e);
+        throw new Error("Error updating badge")
       }
     })
   } catch (e) {
-    throw new Error("Error updating badge1", e);
+    throw new Error("Error updating badge")
   }
 }
 
@@ -474,45 +412,33 @@ function removeLoadingBadge(tab) {
 /**
 * generateTraceURLString - creates a string of base64 encoded urls to send to TS as params
 *
-* @param  {Array} tracePaths - array of urls retrieved from tab and form actions
+* @param  {Array} traceUrls - array of urls retrieved from tab and form actions
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
-function generateTraceURLString(tracePaths) {
-  if (!tracePaths || tracePaths.length === 0) return "";
+function generateTraceURLString(traceUrls) {
+  if (!traceUrls || traceUrls.length === 0) return "";
 
-  // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
-  let matchRoutePathParams = false;
-  const paths = tracePaths.map(path => {
-    if (!matchRoutePathParams && hasIDorUUID(path)) {
-      matchRoutePathParams = true;
+  // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
+  // example.com/login vs another-example.com/login
+  const prefix = new URL(document.URL).origin;
+  let prefixedUrls = traceUrls.map(u => {
+    if (prefix && prefix !== "null") {
+      return prefix + "/" + u;
     }
-    return btoa(path);
+    return u;
   });
 
-  // return each base64 encoded url path with a common in between
-  if (matchRoutePathParams) {
-    return paths.join(',') + `&matchRoutePathParams=${matchRoutePathParams}`;
-  }
-  return paths.join(',');
-}
+  let urls = traceUrls.concat(prefixedUrls).map(u => {
+    // return the full url
+    // and the path / endpoint of the url
+    return [
+      btoa(u),
+      btoa(new URL(u).pathname),
+    ];
+  }).flatten();
 
-/**
- * @description - use regex to determine if a url path has an ID or UUID present
- *
- * @param  {String} url
- * @returns {Boolean} - true if url path has ID or UUID
- */
-const UUID_V4_REGEX = new RegExp(
-      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i); //eslint-disable-line
-const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
-function hasIDorUUID(url) {
-  let path;
-  if (url.includes("http://") || url.includes("https://")) {
-    path = new URL(url).pathname;
-  } else {
-    path = url;
-  }
-  return PATH_ID_REGEX.test(path) || UUID_V4_REGEX.test(path);
+  // return each base64 encoded url path with a common in between
+  return urls.join(',');
 }
 
 /**
@@ -594,40 +520,44 @@ function loadingBadge(tab) {
   updateTabBadge(tab, "↻", CONTRAST_GREEN);
 }
 
-// Return a 128bit hash as a unsigned hex:
-// https://github.com/karanlyons/murmurHash3.js
-function murmur(string) {
-  return murmurHash3.x86.hash128(string);
-}
+function retrieveApplicationFromStorage(tab) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error("Error retrieving stored applications"));
+      }
 
-export {
-  fetchTeamserver,
-  getAuthorizationHeader,
-  getOrganizationVulnerabilitiesIdsUrl,
-  getVulnerabilityShortUrl,
-  getApplicationsUrl,
-  getVulnerabilityTeamserverUrl,
-  getStoredCredentials,
-  getOrganizationVulnerabilityIds,
-  getVulnerabilityShort,
-  getOrgApplications,
-  deleteApplicationTraces,
-  isCredentialed,
-  deDupeArray,
-  getHostFromUrl,
-  isBlacklisted,
-  isContrastTeamserver,
-  updateTabBadge,
-  removeLoadingBadge,
-  generateTraceURLString,
-  hasIDorUUID,
-  processTeamserverUrl,
-  setElementDisplay,
-  setElementText,
-  changeElementVisibility,
-  hideElementAfterTimeout,
-  loadingBadge,
-  isHTTP,
-  isEmptyObject,
-  murmur,
+      if (!result || !result[STORED_APPS_KEY]) {
+        result = { [STORED_APPS_KEY]: [] };
+      }
+
+      const url  = new URL(tab.url);
+      const host = getHostFromUrl(url);
+
+      const application = result[STORED_APPS_KEY].filter(app => {
+        return app.host === host;
+      })[0];
+      // application = result[STORED_APPS_KEY].filter(app => app[host])[0];
+
+      if (!application) {
+        if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+          } catch (e) {
+            console.log(e);
+            reject(new Error("Error updating tab badge"))
+          }
+        } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
+          try {
+            updateTabBadge(tab, '', CONTRAST_GREEN);
+          } catch (e) {
+            reject(new Error("Error updating tab badge"))
+          }
+        }
+        resolve(null);
+      } else {
+        resolve(application);
+      }
+    });
+  });
 }
