@@ -60,6 +60,7 @@ export const LISTENING_ON_DOMAIN = ["<all_urls>"];
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
+export const DELETE_TRACE        = "contrast__remove_storedTrace";
 export const STORED_APPS_KEY     = "contrast__APPS";
 export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
@@ -119,16 +120,20 @@ String.prototype.titleize = function() {
 
 // --------- HELPER FUNCTIONS -------------
 
-function fetchTeamserver(url, params, authHeader, apiKey) {
-  const requestUrl   = url + params;
+function fetchTeamserver(url, params, authHeader, apiKey, method = 'GET') {
+  const requestUrl   = method === 'GET' ? url + params : url;
   const fetchOptions = {
-    method: "GET",
+    method,
     headers: new Headers({
       "Authorization": authHeader,
       "API-Key": apiKey,
       "Accept": "application/json",
     }),
   };
+  if (method !== 'GET') {
+    fetchOptions.body = JSON.stringify(params);
+    fetchOptions.headers.append('Content-Type', 'application/json');
+  }
   return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
@@ -168,6 +173,13 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
   throw new Error("an argument to getApplicationsUrl was undefined");
+}
+
+function deleteApplicationTracesUrl(teamserverUrl, orgUuid, appId, traceUuids) {
+  if (teamserverUrl && orgUuid && appId) {
+    return teamserverUrl + "/ng/" + orgUuid + "/traces/" + appId;
+  }
+  throw new Error("An argument to deleteApplicationTraces was undefined");
 }
 
 /**
@@ -271,6 +283,26 @@ function getOrgApplications() {
     );
 
     return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
+  });
+}
+
+/**
+ * deleteApplicationTraces - description
+ *
+ * @returns {type}  description
+ */
+function deleteApplicationTraces(traces, appId) {
+  return getStoredCredentials()
+  .then(items => {
+    const url = deleteApplicationTracesUrl(
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId
+    );
+    const authHeader = getAuthorizationHeader(
+      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+    );
+
+    return fetchTeamserver(
+      url, { traces }, authHeader, items[CONTRAST_API_KEY], 'DELETE');
   });
 }
 
@@ -383,13 +415,15 @@ function isContrastTeamserver(url) {
 */
 function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   if (!tab) return;
+  if (chrome.runtime.lastError) null;
   try {
     chrome.tabs.get(tab.id, (result) => {
+      if (chrome.runtime.lastError) null;
       if (!result) return;
       try {
+        if (chrome.runtime.lastError) null;
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
-
 
           // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
           // try {
@@ -399,17 +433,18 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
           // } catch (e) {
           //   return;
           // }
+          if (chrome.runtime.lastError) null;
           if (tab.id >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });
             chrome.browserAction.setBadgeText({ tabId: tab.id, text });
           }
         })
       } catch (e) {
-        throw new Error("Error updating badge")
+        throw new Error("Error updating badge0", e);
       }
     })
   } catch (e) {
-    throw new Error("Error updating badge")
+    throw new Error("Error updating badge1", e);
   }
 }
 
@@ -576,6 +611,7 @@ export {
   getOrganizationVulnerabilityIds,
   getVulnerabilityShort,
   getOrgApplications,
+  deleteApplicationTraces,
   isCredentialed,
   deDupeArray,
   getHostFromUrl,
@@ -595,13 +631,3 @@ export {
   isEmptyObject,
   murmur,
 }
-
-
-[
-"/123",
-"/1",
-"/products/12",
-"/products/13/new",
-"/products/test/no",
-"/products/show/a71b2dee-5357-4e7f-adfe-3c616a414eaf",
-]

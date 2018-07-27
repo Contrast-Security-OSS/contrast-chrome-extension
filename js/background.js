@@ -20,6 +20,7 @@ import {
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	LOADING_DONE,
+	DELETE_TRACE,
 	APPLICATION_CONNECTED,
 	APPLICATION_DISCONNECTED,
 	getStoredCredentials,
@@ -38,15 +39,16 @@ import DomainStorage from './models/DomainStorage.js';
 /******************************************************************************
  ********************************* GLOBALS ************************************
  ******************************************************************************/
-export let TAB_CLOSED	= false;
+let TAB_CLOSED	= false;
 
 window.XHR_REQUESTS 				 = []; // use to not re-evaluate xhr requests
 window.PAGE_FINISHED_LOADING = false;
 
-export function resetXHRRequests() {
+function resetXHRRequests() {
 	console.log("RESETTING XHR REQUESTS from", window.XHR_REQUESTS);
 	window.XHR_REQUESTS = [];
 }
+
 
 const XHRDomains = new DomainStorage();
 
@@ -112,27 +114,39 @@ function _handleWebRequest(request) {
  * NOTE: This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	chrome.tabs.query({ active: true }, (tabs) => {
-		if (!tabs || tabs.length === 0) return;
-		const tab = tabs[0];
-		if (!tab.active) return;
 
-		if (request.action !== TRACES_REQUEST && request.action !== LOADING_DONE) {
-			if (!TAB_CLOSED) {
-				console.log("setting loading badge in onMessage");
-				loadingBadge(tab);
-				TAB_CLOSED = false;
-			}
-		}
+	// NOTE: REMOVED TAB QUERY
 
-		if (tab && !isBlacklisted(tab.url)) {
-			_handleRuntimeOnMessage(request, sendResponse, tab);
-		} else if (request.action === APPLICATION_DISCONNECTED) {
-			_handleRuntimeOnMessage(request, sendResponse, tab);
-		} else {
-			removeLoadingBadge(tab);
+	const { tab } = request;
+	if (!tab || !tab.active) {
+		console.log("No Tab");
+		sendResponse("Tab not active");
+		return false;
+	}
+
+	if (request.action !== TRACES_REQUEST
+			&& request.action !== LOADING_DONE
+			&& request.action !== DELETE_TRACE) {
+		if (!TAB_CLOSED) {
+			console.log("setting loading badge in onMessage");
+			loadingBadge(tab);
+			TAB_CLOSED = false;
 		}
-	});
+	}
+
+	if (tab && !isBlacklisted(tab.url)) {
+		_handleRuntimeOnMessage(request, sendResponse, tab);
+	}
+
+	// NOTE: applications are disconnected from Contrast and Contrast is Blacklisted
+	else if (request.action === APPLICATION_DISCONNECTED) {
+		_handleRuntimeOnMessage(request, sendResponse, tab);
+	}
+
+	else {
+		removeLoadingBadge(tab);
+		sendResponse(null);
+	}
 
 	return true; // NOTE: Keep this, see note at top of function.
 });
@@ -143,36 +157,51 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @param  {Object} 	request
  * @param  {Function} sendResponse
  * @param  {Object} 	tab
- * @return {void}
  */
 async function _handleRuntimeOnMessage(request, sendResponse, tab) {
-	if (request.action === TRACES_REQUEST) {
-		console.log("Handling traces request message");
-		const tabPath				= VulnerableTab.buildTabPath(tab.url);
-		const vulnerableTab = new VulnerableTab(tabPath, request.application.name)
-		const storedTabs		= await vulnerableTab.getStoredTab();
-		sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
-		removeLoadingBadge(tab);
+	switch (request.action) {
+		case TRACES_REQUEST: {
+			console.log("Handling traces request message");
+			const tabPath				= VulnerableTab.buildTabPath(tab.url);
+			const vulnerableTab = new VulnerableTab(tabPath, request.application.name)
+			const storedTabs		= await vulnerableTab.getStoredTab();
+			sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
+			removeLoadingBadge(tab);
+			break;
+		}
+
+		case APPLICATION_CONNECTED: {
+			XHRDomains.addDomainsToStorage(request.data.domains);
+			break;
+		}
+
+		case APPLICATION_DISCONNECTED: {
+			XHRDomains.removeDomainsFromStorage(request.data.domains);
+			break;
+		}
+
+		case LOADING_DONE: {
+			window.PAGE_FINISHED_LOADING = true;
+			break;
+		}
+
+		case DELETE_TRACE: {
+			const { application, traceUuid } = request;
+			const path 			= VulnerableTab.buildTabPath(tab.url);
+			const vulnTab 	= new VulnerableTab(path, application.name);
+			const storedTab = await vulnTab.getStoredTab();
+			const storedTabTraces = storedTab[vulnTab.vulnTabId];
+			const filteredTraces 	= storedTabTraces.filter(t => t !== traceUuid);
+			vulnTab.setTraceIDs(filteredTraces);
+			vulnTab.storeTab();
+			break;
+		}
+
+		default: {
+			console.log("Default Case in _handleRuntimeOnMessage, request action was", request.action);
+			return request;
+		}
 	}
-
-	else if (request.action === APPLICATION_CONNECTED) {
-		XHRDomains.addDomainsToStorage(request.data.domains);
-	}
-
-	else if (request.action === APPLICATION_DISCONNECTED) {
-		XHRDomains.removeDomainsFromStorage(request.data.domains);
-	}
-
-	else if (request.action === LOADING_DONE) {
-		window.PAGE_FINISHED_LOADING = true;
-	}
-
-	// const calls = [
-	// 	getStoredCredentials(),
-	// 	Application.retrieveApplicationFromStorage(tab),
-	// 	Vulnerability.removeVulnerabilitiesFromStorage(tab),
-	// ];
-
 	return request;
 }
 
@@ -213,6 +242,23 @@ async function _queueActions(tab, tabUpdated) {
 	// }
 	QUEUE.executeQueue(resetXHRRequests);
 }
+
+// ------------------------------------------------------------------
+// ------------------------- TAB ACTIVATION -------------------------
+// - switch to tab from another tab
+// ------------------------------------------------------------------
+
+chrome.tabs.onActivated.addListener(activeInfo => {
+	window.PAGE_FINISHED_LOADING = true;
+	QUEUE = new Queue();
+
+	chrome.tabs.get(activeInfo.tabId, (tab) => {
+		if (!tab || chrome.runtime.lastError) return;
+
+		console.log("tab activated");
+		_queueActions(tab, false);
+	});
+});
 
 // ------------------------------------------------------------------
 // ------------------------- TAB ACTIVATION -------------------------
@@ -314,7 +360,7 @@ chrome.tabs.onRemoved.addListener(() => {
  * @param  {Object} tab Gives the state of the current tab
  * @return {void}
  */
-export function notifyUserToConfigure(tab) {
+function notifyUserToConfigure(tab) {
 	if (chrome.runtime.lastError) return;
 
 	const url = new URL(tab.url);
@@ -327,4 +373,11 @@ export function notifyUserToConfigure(tab) {
 		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 		TAB_CLOSED = false;
 	}
+}
+
+export {
+	TAB_CLOSED,
+	_handleRuntimeOnMessage,
+	notifyUserToConfigure,
+	resetXHRRequests,
 }

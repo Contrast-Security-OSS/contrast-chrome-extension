@@ -24,7 +24,7 @@ VulnerableTab.prototype.storeTab = function() {
   return new Promise(async(resolve, reject) => {
 
     let appTabs = await this.getApplicationTabs();
-    appTabs[this.appNameHash][this.vulnTabId] = this.traceIDs;
+        appTabs[this.appNameHash][this.vulnTabId] = this.traceIDs;
 
     chrome.storage.local.set(appTabs, () => {
       chrome.storage.local.get(this.appNameHash, (storedTab) => {
@@ -56,7 +56,6 @@ VulnerableTab.prototype.getApplicationTabs = function() {
 VulnerableTab.prototype.getStoredTab = function() {
   return new Promise((resolve) => {
     chrome.storage.local.get(this.appNameHash, (storedTabs) => {
-      console.log("STORED TABS", storedTabs);
       if (storedTabs && storedTabs[this.appNameHash]) {
         resolve(storedTabs[this.appNameHash]);
       } else {
