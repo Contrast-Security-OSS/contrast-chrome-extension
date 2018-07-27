@@ -12,13 +12,13 @@ const {
   returnShortTraceDataLowSeverity,
 } = testData;
 
-const vulnMethods = require('../../lib/vulnerabilityMethods')
+const popupMethods = require('../../lib/popupMethods.js');
 let {
   renderListItem,
   populateVulnerabilitySection,
   getStorageVulnsAndRender,
   getShortVulnerabilities,
-} = vulnMethods;
+} = popupMethods;
 
 const util = require("../../lib/util.js");
 let {
@@ -226,7 +226,7 @@ describe('test how vulnerabilities are rendered to user', function() {
     // 1 set in beforeEach
     assert.isTrue(availableNodes().container.children.length === 1);
 
-    let shortStub = sinon.stub(vulnMethods, 'getShortVulnerabilities');
+    let shortStub = sinon.stub(popupMethods, 'getShortVulnerabilities');
     const shortTraces = [returnShortTraceData, returnShortTraceDataLowSeverity];
 
     shortStub.callsFake(function() {

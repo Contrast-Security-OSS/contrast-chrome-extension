@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   CONTRAST_ORG_UUID,
   TEAMSERVER_URL,
@@ -47,10 +48,8 @@ function populateVulnerabilitySection(traces, teamserverUrl, orgUuid) {
 function getShortVulnerabilities(traces) {
   return Promise.all(traces.map(t => getVulnerabilityShort(t)))
   .then(shortTraces => {
-    return shortTraces.sort((a, b) => {
-      let severityA = a.trace.severity;
-      let severityB = b.trace.severity;
-      return SEVERITY[severityA] < SEVERITY[severityB];
+    return shortTraces.map(t => t.trace).sort((a, b) => {
+      return SEVERITY[b.severity] - SEVERITY[a.severity];
     });
   })
   .catch(new Error("Error getting and rendering vulnerabilities"));
@@ -64,8 +63,7 @@ function getShortVulnerabilities(traces) {
  * @param  {String} orgUuid       The uuid of our org
  * @return {void}                 a new list item
  */
-function renderListItem(shortTrace, teamserverUrl, orgUuid) {
-  const trace = shortTrace.trace
+function renderListItem(trace, teamserverUrl, orgUuid) {
 
   if (!trace) return;
 
@@ -128,10 +126,10 @@ function renderListItem(shortTrace, teamserverUrl, orgUuid) {
  * @param  {Object} items - credentials
  * @return {void}
  */
-function getStorageVulnsAndRender(items) {
+function getStorageVulnsAndRender(items, application) {
   const noVulnsFound = document.getElementById("no-vulnerabilities-found");
   const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
-  chrome.runtime.sendMessage(TRACES_REQUEST, (response) => {
+  chrome.runtime.sendMessage({ action: TRACES_REQUEST, application }, (response) => {
     if (response && response.traces && response.traces.length > 0) {
       setElementDisplay(noVulnsFound, "none");
       setElementDisplay(vulnsOnPage, "block");

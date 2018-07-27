@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   CONTRAST_USERNAME,
   STORED_APPS_KEY,

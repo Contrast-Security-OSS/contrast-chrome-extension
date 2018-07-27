@@ -1,7 +1,9 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 // allow ununed vars in this file since they are used throughout other files
 /*eslint no-unused-vars: "off"*/
 /*global
 btoa,
+murmurHash3,
 chrome
 */
 
@@ -44,6 +46,7 @@ export const VALID_TEAMSERVER_HOSTNAMES = [
   'apptwo.contrastsecurity.com',
   'eval.contratsecurity.com',
   'alpha.contrastsecurity.com',
+  'localhost',
 ];
 
 // Contrast stylings and configuration text
@@ -53,13 +56,16 @@ export const CONTRAST_YELLOW          = "#FFD300";
 export const CONTRAST_CONFIGURE_TEXT  = "*";
 
 // chrome storage and message event keys
-export const LISTENING_ON_DOMAIN = "<all_urls>";
+export const LISTENING_ON_DOMAIN = ["<all_urls>"];
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
-export const EVALUATE_XHR        = "contrast__evaluate_xhr_requests";
+export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
+export const APPLICATION_CONNECTED    = 'contrast__application__connected';
+export const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
+export const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -80,6 +86,7 @@ const BLACKLISTED_DOMAINS = [
   "cdn.sstatic.net",
   "reddit.com",
   "sockjs-node/info",
+  "socket.io",
 ];
 const BLACKLIST_LENGTH    = BLACKLISTED_DOMAINS.length;
 
@@ -114,7 +121,6 @@ String.prototype.titleize = function() {
 
 function fetchTeamserver(url, params, authHeader, apiKey) {
   const requestUrl   = url + params;
-  console.log("TEAMSERVER REQUEST URL", requestUrl);
   const fetchOptions = {
     method: "GET",
     headers: new Headers({
@@ -286,7 +292,7 @@ function isCredentialed(credentials) {
   // return noUsername || noServiceKey || noApiKey || noTeamserverUrl;
   const values = Object.values(credentials);
 
-  return !!values && values.length > 0 && values.every(item => !!item);
+  return values && values.length > 0 && values.every(Boolean);
 }
 
 /**
@@ -299,6 +305,10 @@ function deDupeArray(array) {
   return array.filter((item, position, self) => {
     return self.indexOf(item) === position;
   });
+}
+
+function isEmptyObject(obj) {
+  return Object.keys(obj).length === 0 && obj.constructor === Object;
 }
 
 /**
@@ -338,6 +348,10 @@ function isBlacklisted(url) {
   return false;
 }
 
+function isHTTP(string) {
+  return string.includes("http://") || string.includes("https://");
+}
+
 /**
  * isContrastTeamserver - check if we're on a Contrast teamserver page or not
  *
@@ -357,6 +371,9 @@ function isContrastTeamserver(url) {
   return contrast.some(c => url.includes(c));
 }
 
+// NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
+//#x21bb; is unicode clockwise circular arrow
+// TRACES_REQUEST happens when popup is opened, LOADING_DONE happens after tab has updated or activated
 /**
 * updateTabBadge - updates the extension badge on the toolbar
 *
@@ -422,42 +439,26 @@ function removeLoadingBadge(tab) {
 /**
 * generateTraceURLString - creates a string of base64 encoded urls to send to TS as params
 *
-* @param  {Array} traceUrls - array of urls retrieved from tab and form actions
+* @param  {Array} tracePaths - array of urls retrieved from tab and form actions
 * @return {String} - string of base64 encoded urls to send to TS as params
 */
-function generateTraceURLString(traceUrls) {
-  if (!traceUrls || traceUrls.length === 0) return "";
-
-  // add a prefixed copy of each url to get endpoints that might have been registered in a different way, for example
-  // example.com/login vs another-example.com/login
-  const prefix = new URL(document.URL).origin;
-  let prefixedUrls = traceUrls.map(u => {
-    if (prefix && prefix !== "null") {
-      return prefix + "/" + u;
-    }
-    return u;
-  });
+function generateTraceURLString(tracePaths) {
+  if (!tracePaths || tracePaths.length === 0) return "";
 
   // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
   let matchRoutePathParams = false;
-
-  let urls = traceUrls.concat(prefixedUrls).map(u => {
-    if (isBlacklisted(u)) return;
-    if (!matchRoutePathParams && hasIDorUUID(u)) matchRoutePathParams = true;
-    /**
-     * NOTE: Send both the full path with the http protocol and port and the path name (everything after the port)
-     */
-    return [
-      btoa(u),
-      btoa(new URL(u).pathname),
-    ];
-  }).filter(Boolean).flatten();
+  const paths = tracePaths.map(path => {
+    if (!matchRoutePathParams && hasIDorUUID(path)) {
+      matchRoutePathParams = true;
+    }
+    return btoa(path);
+  });
 
   // return each base64 encoded url path with a common in between
   if (matchRoutePathParams) {
-    return urls.join(',') + `&matchRoutePathParams=${matchRoutePathParams}`;
+    return paths.join(',') + `&matchRoutePathParams=${matchRoutePathParams}`;
   }
-  return urls.join(',');
+  return paths.join(',');
 }
 
 /**
@@ -467,10 +468,15 @@ function generateTraceURLString(traceUrls) {
  * @returns {Boolean} - true if url path has ID or UUID
  */
 const UUID_V4_REGEX = new RegExp(
-      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i);
+      /[\/][A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i); //eslint-disable-line
 const PATH_ID_REGEX = new RegExp(/\/(\d+)/);
 function hasIDorUUID(url) {
-  const path = new URL(url).pathname;
+  let path;
+  if (url.includes("http://") || url.includes("https://")) {
+    path = new URL(url).pathname;
+  } else {
+    path = url;
+  }
   return PATH_ID_REGEX.test(path) || UUID_V4_REGEX.test(path);
 }
 
@@ -553,6 +559,12 @@ function loadingBadge(tab) {
   updateTabBadge(tab, "↻", CONTRAST_GREEN);
 }
 
+// Return a 128bit hash as a unsigned hex:
+// https://github.com/karanlyons/murmurHash3.js
+function murmur(string) {
+  return murmurHash3.x86.hash128(string);
+}
+
 export {
   fetchTeamserver,
   getAuthorizationHeader,
@@ -579,6 +591,9 @@ export {
   changeElementVisibility,
   hideElementAfterTimeout,
   loadingBadge,
+  isHTTP,
+  isEmptyObject,
+  murmur,
 }
 
 

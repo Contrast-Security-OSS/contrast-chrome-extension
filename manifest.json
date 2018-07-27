@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Contrast Extension",
-  "description": "Allows the user to get information from TeamServer conveniently in a Chrome extension",
+  "description": "Allows the user to get information from Contrast conveniently in a Chrome extension",
   "version": "1.0",
   "browser_action": {
     "default_icon": "icon.png",
@@ -30,8 +30,7 @@
     "128": "img/contrast128.png"
   },
   "web_accessible_resources": [
-    "img/*.png",
-    "test/*"
+    "img/*.png"
   ],
   "permissions": [
     "webRequest",

@@ -1,8 +1,8 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
 chrome,
 document,
 ContrastForm,
-retrieveApplicationFromStorage,
 TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
 TEAMSERVER_ACCOUNT_PATH_SUFFIX,
@@ -13,7 +13,7 @@ CONTRAST_SERVICE_KEY,
 CONTRAST_API_KEY,
 CONTRAST_ORG_UUID,
 TEAMSERVER_URL,
-EVALUATE_XHR,
+LOADING_DONE,
 MutationObserver,
 TEAMSERVER_API_PATH_SUFFIX,
 */
@@ -28,13 +28,7 @@ if (window.performance.navigation.type === 1) {
 }
 
 window.addEventListener("load", function() {
-  retrieveApplicationFromStorage({ url: window.location.href })
-  .then(application => {
-    if (application) {
-      chrome.runtime.sendMessage({ action: EVALUATE_XHR, application });
-    }
-  })
-  .catch(() => new Error("Error getting application from storage"));
+  chrome.runtime.sendMessage({ action: LOADING_DONE });
 
   setTimeout(function() {
     window.CONTRAST__REFRESHED = false;
@@ -55,7 +49,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   else if (request.action === HIGHLIGHT_VULNERABLE_FORMS) {
-    sendResponse(ContrastForm.highlightForms(request.traceUrls));
+    sendResponse(ContrastForm.highlightForms(request.formActions));
   }
 
   else if (request.url !== undefined && request.action === "INITIALIZE") {

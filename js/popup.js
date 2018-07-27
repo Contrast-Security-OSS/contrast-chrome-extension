@@ -1,14 +1,16 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
 chrome,
 document,
 */
 
-import { getStorageVulnsAndRender } from './vulnerabilityMethods.js';
+import { getStorageVulnsAndRender } from './popupMethods.js';
 import {
   STORED_APPS_KEY,
   getStoredCredentials,
   isCredentialed,
   getHostFromUrl,
+  isEmptyObject,
 } from './util.js'
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,14 +18,20 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]) return;
 
-      const url  = new URL(tabs[0].url);
-      const host = getHostFromUrl(url);
+      const tab   = tabs[0];
+      const url   = new URL(tab.url);
+      const host  = getHostFromUrl(url);
+      const store = result[STORED_APPS_KEY];
+      const app   = store ? store.filter(a => a[host])[0] : store;
 
-      if (!!result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]) {
+      // console.log("app", app);
+      // console.log("isContrastTeamserver(tab.url)", isContrastTeamserver(tab.url));
+
+      if (app && !isEmptyObject(app)) {
         getStoredCredentials()
         .then(items => {
           if (isCredentialed(items)) {
-            getStorageVulnsAndRender(items);
+            getStorageVulnsAndRender(items, app);
           } else {
             throw new Error("Not Credentialed")
           }

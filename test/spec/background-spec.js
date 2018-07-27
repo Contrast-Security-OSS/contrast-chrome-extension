@@ -5,7 +5,18 @@ const testData   = require("../testData")
 const sinon      = require("sinon");
 const chai       = require("chai");
 const fetch      = require('node-fetch');
+const storageMock = require('../mocks/storageMock.js');
 const { assert, expect } = chai;
+
+const jsdom      = require("jsdom");
+const { JSDOM }  = jsdom;
+global.window = (new JSDOM(
+  `<!DOCTYPE html><html><head></head><body></body></html>`
+)).window;
+global.window.localStorage = storageMock;
+global.document = global.window.document;
+
+
 const util       = require('../../lib/util.js');
 const background = require('../../lib/background.js');
 const ApplicationModel = require('../../lib/models/Application.js');

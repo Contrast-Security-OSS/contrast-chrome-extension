@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   STORED_APPS_KEY,
   setElementText,
@@ -13,7 +14,7 @@ import TableRow from './PopupTableRow.js'
 
 export default function ApplicationTable(url) {
   this.table = document.getElementById('application-table');
-  this.url = url;
+  this.url   = url;
 }
 
 ApplicationTable.RIGHT_ARROW = ' ▶';
@@ -64,7 +65,6 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
   if (document.getElementsByTagName('tr').length < 2) {
     getOrgApplications()
     .then(json => {
-      console.log(json);
       if (!json) {
         throw new Error("Error getting applications");
       }
@@ -156,7 +156,6 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
   this._changeTableVisibility(true);
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
-    console.log("before sethost", this);
     tr.setHost(getHostFromUrl(this.url));
     tr.createConnectButton();
   } else {

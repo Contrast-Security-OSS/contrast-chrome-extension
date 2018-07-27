@@ -1,3 +1,4 @@
+/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
 chrome,
 document,
@@ -45,7 +46,6 @@ ContrastForm._extractActionsFromForm = function(forms) {
 */
 ContrastForm.collectFormActions = function(sendResponse) {
   chrome.storage.local.get(STORED_APPS_KEY, (result) => {
-
     if (chrome.runtime.lastError) return;
     if (!result || !result[STORED_APPS_KEY]) return;
 
@@ -55,29 +55,30 @@ ContrastForm.collectFormActions = function(sendResponse) {
 
     if (!application) return;
 
-    // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefined
-    if (window.CONTRAST__REFRESHED === false) {
-      const actions = this._scrapeDOMForForms();
-      if (!!actions) {
-        ContrastForm.MESSAGE_SENT = true;
-        this._sendFormActionsToBackground(actions, sendResponse);
-        return;
-      }
-    }
+    // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefine
+    // if (window.CONTRAST__REFRESHED === false) {
+      console.log("window.CONTRAST__REFRESHED === false, scraping for forms");
+      const actions = this._scrapeDOMForForms() || [];
+      this.MESSAGE_SENT = true;
+      console.log("sending forms", actions);
+      this._sendFormActionsToBackground(actions, sendResponse);
+      return;
+    // }
 
     // MutationObserver watches for changes in DOM elements
     // takes a callback reporting on mutations observed
-    if (!ContrastForm.MESSAGE_SENT) {
-      const obs = new MutationObserver((mutations, observer) => {
-        this._collectMutatedForms(mutations, observer, sendResponse);
-      });
-      obs.observe(document.body, {
-        subtree: true,
-        attributes: true,
-        attributeOldValue: true,
-        childList: true,
-      });
-    }
+    // else if (!this.MESSAGE_SENT) {
+    //   console.log("using mutation observer");
+    //   const obs = new MutationObserver((mutations, observer) => {
+    //     this._collectMutatedForms(mutations, observer, sendResponse);
+    //   });
+    //   obs.observe(document.body, {
+    //     subtree: true,
+    //     attributes: true,
+    //     attributeOldValue: true,
+    //     childList: true,
+    //   });
+    // }
   });
 }
 
