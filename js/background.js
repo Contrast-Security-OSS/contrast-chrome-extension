@@ -20,6 +20,7 @@ import {
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	LOADING_DONE,
+	DELETE_TRACE,
 	APPLICATION_CONNECTED,
 	APPLICATION_DISCONNECTED,
 	getStoredCredentials,
@@ -112,27 +113,39 @@ function _handleWebRequest(request) {
  * NOTE: This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	chrome.tabs.query({ active: true }, (tabs) => {
-		if (!tabs || tabs.length === 0) return;
-		const tab = tabs[0];
-		if (!tab.active) return;
 
-		if (request.action !== TRACES_REQUEST && request.action !== LOADING_DONE) {
-			if (!TAB_CLOSED) {
-				console.log("setting loading badge in onMessage");
-				loadingBadge(tab);
-				TAB_CLOSED = false;
-			}
-		}
+	// NOTE: REMOVED TAB QUERY
 
-		if (tab && !isBlacklisted(tab.url)) {
-			_handleRuntimeOnMessage(request, sendResponse, tab);
-		} else if (request.action === APPLICATION_DISCONNECTED) {
-			_handleRuntimeOnMessage(request, sendResponse, tab);
-		} else {
-			removeLoadingBadge(tab);
+	const { tab } = request;
+	if (!tab || !tab.active) {
+		console.log("No Tab");
+		sendResponse("Tab not active");
+		return;
+	};
+
+	if (request.action !== TRACES_REQUEST
+			&& request.action !== LOADING_DONE
+			&& request.action !== DELETE_TRACE) {
+		if (!TAB_CLOSED) {
+			console.log("setting loading badge in onMessage");
+			loadingBadge(tab);
+			TAB_CLOSED = false;
 		}
-	});
+	}
+
+	if (tab && !isBlacklisted(tab.url)) {
+		_handleRuntimeOnMessage(request, sendResponse, tab);
+	}
+
+	// NOTE: applications are disconnected from Contrast and Contrast is Blacklisted
+	else if (request.action === APPLICATION_DISCONNECTED) {
+		_handleRuntimeOnMessage(request, sendResponse, tab);
+	}
+
+	else {
+		removeLoadingBadge(tab);
+		sendResponse(null);
+	}
 
 	return true; // NOTE: Keep this, see note at top of function.
 });
@@ -146,28 +159,43 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @return {void}
  */
 async function _handleRuntimeOnMessage(request, sendResponse, tab) {
-	if (request.action === TRACES_REQUEST) {
-		console.log("Handling traces request message");
-		const tabPath				= VulnerableTab.buildTabPath(tab.url);
-		const vulnerableTab = new VulnerableTab(tabPath, request.application.name)
-		const storedTabs		= await vulnerableTab.getStoredTab();
-		sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
-		removeLoadingBadge(tab);
-	}
+	switch(request.action) {
+		case TRACES_REQUEST:
+			console.log("Handling traces request message");
+			const tabPath				= VulnerableTab.buildTabPath(tab.url);
+			const vulnerableTab = new VulnerableTab(tabPath, request.application.name)
+			const storedTabs		= await vulnerableTab.getStoredTab();
+			sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
+			removeLoadingBadge(tab);
+			break;
 
-	else if (request.action === APPLICATION_CONNECTED) {
-		XHRDomains.addDomainsToStorage(request.data.domains);
-	}
+		case APPLICATION_CONNECTED:
+			XHRDomains.addDomainsToStorage(request.data.domains);
+			break;
 
-	else if (request.action === APPLICATION_DISCONNECTED) {
-		XHRDomains.removeDomainsFromStorage(request.data.domains);
-	}
+		case APPLICATION_DISCONNECTED:
+			XHRDomains.removeDomainsFromStorage(request.data.domains);
+			break;
 
-	else if (request.action === LOADING_DONE) {
-		window.PAGE_FINISHED_LOADING = true;
-	}
+		case LOADING_DONE:
+			window.PAGE_FINISHED_LOADING = true;
+			break;
 
-	return request;
+		case DELETE_TRACE:
+			const { application, traceUuid } = request;
+			const path 			= VulnerableTab.buildTabPath(tab.url);
+			const vulnTab 	= new VulnerableTab(path, application.name);
+			const storedTab = await vulnTab.getStoredTab();
+			const storedTabTraces = storedTab[vulnTab.vulnTabId];
+			const filteredTraces 	= storedTabTraces.filter(t => t !== traceUuid);
+			vulnTab.setTraceIDs(filteredTraces);
+			vulnTab.storeTab();
+			break;
+
+		default:
+			console.log("Default Case in _handleRuntimeOnMessage, request action was", request.action);
+			return request;
+		}
 }
 
 async function _queueActions(tab, tabUpdated) {

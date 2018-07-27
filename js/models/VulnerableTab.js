@@ -39,14 +39,18 @@ VulnerableTab.prototype.storeTab = function() {
 
 VulnerableTab.prototype.getApplicationTabs = function() {
   return new Promise((resolve) => {
-    chrome.storage.local.get(this.appNameHash, (appTabs) => resolve(appTabs));
+    chrome.storage.local.get(this.appNameHash, (appTabs) => {
+      if (!appTabs[this.appNameHash]) {
+        appTabs[this.appNameHash] = {};
+      }
+      resolve(appTabs)
+    });
   });
 }
 
 VulnerableTab.prototype.getStoredTab = function() {
   return new Promise((resolve) => {
     chrome.storage.local.get(this.appNameHash, (storedTabs) => {
-      console.log("STORED TABS", storedTabs);
       if (storedTabs && storedTabs[this.appNameHash]) {
         resolve(storedTabs[this.appNameHash]);
       } else {

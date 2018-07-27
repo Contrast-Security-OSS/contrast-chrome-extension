@@ -60,6 +60,7 @@ export const LISTENING_ON_DOMAIN = ["<all_urls>"];
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
+export const DELETE_TRACE        = "contrast__remove_storedTrace";
 export const STORED_APPS_KEY     = "contrast__APPS";
 export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
@@ -119,16 +120,21 @@ String.prototype.titleize = function() {
 
 // --------- HELPER FUNCTIONS -------------
 
-function fetchTeamserver(url, params, authHeader, apiKey) {
-  const requestUrl   = url + params;
+function fetchTeamserver(url, params, authHeader, apiKey, method = 'GET') {
+  const requestUrl   = method === 'GET' ? url + params : url;
   const fetchOptions = {
-    method: "GET",
+    method,
     headers: new Headers({
       "Authorization": authHeader,
       "API-Key": apiKey,
       "Accept": "application/json",
     }),
   };
+  if (method !== 'GET') {
+    fetchOptions.body = JSON.stringify(params);
+    fetchOptions.headers.append('Content-Type', 'application/json');
+  }
+  console.log("FETCHOPTIONS", fetchOptions, url);
   return (
     fetch(requestUrl, fetchOptions)
     .then(response => {
@@ -168,6 +174,13 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
   throw new Error("an argument to getApplicationsUrl was undefined");
+}
+
+function deleteApplicationTracesUrl(teamserverUrl, orgUuid, appId, traceUuids) {
+  if (teamserverUrl && orgUuid && appId) {
+    return teamserverUrl + "/ng/" + orgUuid + "/traces/" + appId;
+  }
+  throw new Error("An argument to deleteApplicationTraces was undefined");
 }
 
 /**
@@ -271,6 +284,26 @@ function getOrgApplications() {
     );
 
     return fetchTeamserver(url, "", authHeader, items[CONTRAST_API_KEY]);
+  });
+}
+
+/**
+ * deleteApplicationTraces - description
+ *
+ * @returns {type}  description
+ */
+function deleteApplicationTraces(traces, appId) {
+  return getStoredCredentials()
+  .then(items => {
+    const url = deleteApplicationTracesUrl(
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId
+    );
+    const authHeader = getAuthorizationHeader(
+      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+    );
+
+    return fetchTeamserver(
+      url, { traces }, authHeader, items[CONTRAST_API_KEY], 'DELETE');
   });
 }
 
@@ -408,11 +441,11 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
           }
         })
       } catch (e) {
-        throw new Error("Error updating badge")
+        throw new Error("Error updating badge0", e);
       }
     })
   } catch (e) {
-    throw new Error("Error updating badge")
+    throw new Error("Error updating badge1", e);
   }
 }
 
@@ -579,6 +612,7 @@ export {
   getOrganizationVulnerabilityIds,
   getVulnerabilityShort,
   getOrgApplications,
+  deleteApplicationTraces,
   isCredentialed,
   deDupeArray,
   getHostFromUrl,
@@ -598,13 +632,3 @@ export {
   isEmptyObject,
   murmur,
 }
-
-
-[
-"/123",
-"/1",
-"/products/12",
-"/products/13/new",
-"/products/test/no",
-"/products/show/a71b2dee-5357-4e7f-adfe-3c616a414eaf",
-]
