@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Contrast Extension",
-  "description": "Allows the user to get information from TeamServer conveniently in a Chrome extension",
+  "description": "Allows the user to get information from Contrast conveniently in a Chrome extension",
   "version": "1.0",
   "browser_action": {
     "default_icon": "icon.png",
@@ -18,8 +18,14 @@
         "https://*/*"
       ],
       "js": [
+<<<<<<< HEAD
         "js/helpers/helpers.js",
         "js/content-script.js"
+=======
+        "js/content-scripts/content-utils.js",
+        "js/content-scripts/ContrastForms.js",
+        "js/content-scripts/content-script.js"
+>>>>>>> e98e14f1de314d5a3c195d7cc18855d5ac1640a1
       ]
     }
   ],
@@ -29,9 +35,13 @@
     "128": "img/contrast128.png"
   },
   "web_accessible_resources": [
+<<<<<<< HEAD
     "img/*.png",
     "test/*",
     "data/*"
+=======
+    "img/*.png"
+>>>>>>> e98e14f1de314d5a3c195d7cc18855d5ac1640a1
   ],
   "permissions": [
     "webRequest",

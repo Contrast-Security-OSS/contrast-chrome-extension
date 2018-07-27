@@ -1,3 +1,6 @@
+const ApplicationModel = require('../lib/models/Application.js');
+const Application = ApplicationModel.default;
+
 const returnShortTraceData = {
   success: true,
   messages: [
@@ -17,6 +20,17 @@ const returnShortTraceData = {
   },
   links: []
 }
+
+const application = new Application("http://localhost:8080/WebGoat", {
+  app_id: "webgoat-id-123", name: "webgoat"
+})
+
+const traceUrls = [
+  "http://localhost:8080/WebGoat/trace1",
+  "http://localhost:8080/WebGoat/trace2",
+  "http://localhost:8080/WebGoat/trace3",
+  "http://localhost:8080/WebGoat/trace4",
+]
 
 const returnShortTraceDataLowSeverity = {
   success: true,
@@ -49,6 +63,14 @@ const returnVulnerabilityIdData = {
     "7HC2-TYLR-VATF-Z2ZO",
     "252W-P884-GB4B-TJF7"
   ]
+}
+
+const returnVulnerabilityIdNoData = {
+  success: true,
+  messages: [
+    "Vulnerabilities UUIDs loaded successfully"
+  ],
+  traces: [],
 }
 
 const returnFilterTraceData = {
@@ -242,9 +264,67 @@ const returnFilterTraceData = {
   }
 }
 
+const organizationApps = [
+  {
+    "name": "bhima",
+    "app_id": "c05a5016-6440-40ad-b91f-33610515d130"
+  },
+  {
+    "name": "cloudcmd",
+    "app_id": "fe177fe8-73f3-4ec9-8e27-43892f62f0b3"
+  },
+  {
+    "name": "contrast",
+    "app_id": "ab832755-e062-4564-832c-63fba8a02c7e"
+  },
+  {
+    "name": "DimitriMikadze",
+    "app_id": "e7d23295-0d02-4e59-8ab5-392d79f8669c"
+  },
+  {
+    "name": "juice-shop",
+    "app_id": "d1829729-83b5-4050-bff2-71bc4bfb2571"
+  },
+  {
+    "name": "juice-shop-angular",
+    "app_id": "f51a3a32-fbfb-4a7f-9d4a-9b0537ef573f"
+  },
+  {
+    "name": "LegismeApi",
+    "app_id": "a51c4303-7a6d-4578-9dde-d89a37fae50c"
+  },
+  {
+    "name": "openmct",
+    "app_id": "46e84cbf-77f7-4450-aaad-6d1b5cf55a27"
+  },
+  {
+    "name": "pokedex-go",
+    "app_id": "da5d96c3-d9c3-43d3-9659-77e73dd447b3"
+  },
+  {
+    "name": "test-project",
+    "app_id": "426b042f-0f54-4324-bddb-09e5a9746e94"
+  },
+  {
+    "name": "webgoat-server",
+    "app_id": "d834de81-3069-499a-9ddc-eeb30375fdbf"
+  },
+  {
+    "name": "WebGoatDocker",
+    "app_id": "db3dd379-fb83-4f9b-89cf-9f7867541581"
+  }
+];
+
+const url = "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/ddac16d8-e915-47b1-a8c9-0c142ab17beb/ids?urls=aHR0cDovL2xvY2FsaG9zdDozMDAwL3VzZXJzL3NpZ25pbg==,L3VzZXJzL3NpZ25pbg==,Y2hyb21lLWV4dGVuc2lvbjovL3BjampubGZjZmFmaG9taWJvaG5lbGdjam5ibmxob3BuL2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4=,L2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4="
+
 module.exports = {
+  url,
+  traceUrls,
   returnShortTraceData,
   returnShortTraceDataLowSeverity,
   returnVulnerabilityIdData,
   returnFilterTraceData,
+  application,
+  organizationApps,
+  returnVulnerabilityIdNoData,
 }
