@@ -202,6 +202,8 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			return request;
 		}
 	}
+	return request;
+}
 
 async function _queueActions(tab, tabUpdated) {
 

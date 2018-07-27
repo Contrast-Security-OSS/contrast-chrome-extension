@@ -2,6 +2,7 @@
 import {
   deDupeArray,
   murmur,
+  isEmptyObject,
 } from '../util.js';
 
 function VulnerableTabError(message, vulnTabId, vulnTabUrl) {
