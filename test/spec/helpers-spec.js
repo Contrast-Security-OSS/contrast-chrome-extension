@@ -71,13 +71,9 @@ let {
   processTeamserverUrl,
   setElementDisplay,
   setElementText,
-<<<<<<< HEAD:test/spec/helpers-spec.js
-} = Helpers.Helpers;
-=======
   changeElementVisibility,
   hideElementAfterTimeout,
 } = util;
->>>>>>> e98e14f1de314d5a3c195d7cc18855d5ac1640a1:test/spec/util-spec.js
 
 describe("testing utility functions and constants", function() {
   const authHeader = "Y29udHJhc3RfYWRtaW46ZGVtbw=="
