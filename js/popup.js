@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         getStoredCredentials()
         .then(items => {
           if (isCredentialed(items)) {
-            getStorageVulnsAndRender(items, app);
+            getStorageVulnsAndRender(items, app, tab);
           } else {
             throw new Error("Not Credentialed")
           }

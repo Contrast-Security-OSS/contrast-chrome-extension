@@ -17,12 +17,12 @@ import {
   SEVERITY_MEDIUM_ICON_PATH,
   SEVERITY_HIGH_ICON_PATH,
   SEVERITY_CRITICAL_ICON_PATH,
-  DELETE_TRACE,
+  // DELETE_TRACE,
   TRACES_REQUEST,
   getVulnerabilityTeamserverUrl,
   setElementDisplay,
   getVulnerabilityShort,
-  deleteApplicationTraces,
+  // deleteApplicationTraces,
   updateTabBadge,
 } from './util.js';
 
@@ -78,7 +78,6 @@ function getShortVulnerabilities(traces) {
  * @return {void}                 a new list item
  */
 function renderListItem(trace, teamserverUrl, orgUuid, application) {
-
   if (!trace) return;
 
   let ul = document.getElementById('vulnerabilities-found-on-page-list');
@@ -128,63 +127,63 @@ function renderListItem(trace, teamserverUrl, orgUuid, application) {
   }
   li.appendChild(anchor);
 
-  _addTrashIcon(li, trace, application);
+  // _addTrashIcon(li, trace, application);
 
   // append li last to load content smootly (is the way it works?)
   ul.appendChild(li);
 }
 
-function _addTrashIcon(li, trace, application) {
-  let trash = document.createElement('img');
-  trash.setAttribute('src', '../img/trash.svg');
-  trash.classList.add('trash-icon');
-  trash.onclick = function() {
-    deleteApplicationTraces([trace.uuid], trace.app_id)
-    .then(json => {
-      if (json && json.success) {
-        li.remove();
-        _updateTabBadge(application, trace.uuid);
-      } else {
-        console.log("ERROR deleting trace", json);
-      }
-    })
-    .catch(error => {
-      console.log("ERROR deleting trace", error);
-    })
-  }
-  li.appendChild(trash);
-}
+// function _addTrashIcon(li, trace, application) {
+//   let trash = document.createElement('img');
+//   trash.setAttribute('src', '../img/trash.svg');
+//   trash.classList.add('trash-icon');
+//   trash.onclick = function() {
+//     deleteApplicationTraces([trace.uuid], trace.app_id)
+//     .then(json => {
+//       if (json && json.success) {
+//         li.remove();
+//         _updateTabBadge(application, trace.uuid);
+//       } else {
+//         console.log("ERROR deleting trace", json);
+//       }
+//     })
+//     .catch(error => {
+//       console.log("ERROR deleting trace", error);
+//     })
+//   }
+//   li.appendChild(trash);
+// }
 
-function _updateTabBadge(application, traceUuid) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs || tabs.length === 0) return;
-    const tab = tabs[0];
-
-    chrome.runtime.sendMessage({
-      action: DELETE_TRACE,
-      tab,
-      application,
-      traceUuid
-    });
-
-    chrome.browserAction.getBadgeText({ tabId: tab.id }, (currentBadgeText) => {
-      console.log("CURRENT BADGE TEXT", currentBadgeText);
-      const currentBadgeValue = parseInt(currentBadgeText, 10);
-
-      console.log("CURRENT BADGE VALUE", currentBadgeValue);
-      if (!currentBadgeValue) return;
-
-      if ((currentBadgeValue - 1) === 0) {
-        const noVulnsFound = document.getElementById("no-vulnerabilities-found");
-        const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
-        setElementDisplay(noVulnsFound, "block");
-        setElementDisplay(vulnsOnPage, "none");
-      }
-
-      updateTabBadge(tab, (currentBadgeValue - 1).toString(), CONTRAST_RED);
-    });
-  });
-}
+// function _updateTabBadge(application, traceUuid) {
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     if (!tabs || tabs.length === 0) return;
+//     const tab = tabs[0];
+//
+//     chrome.runtime.sendMessage({
+//       action: DELETE_TRACE,
+//       tab,
+//       application,
+//       traceUuid
+//     });
+//
+//     chrome.browserAction.getBadgeText({ tabId: tab.id }, (currentBadgeText) => {
+//       console.log("CURRENT BADGE TEXT", currentBadgeText);
+//       const currentBadgeValue = parseInt(currentBadgeText, 10);
+//
+//       console.log("CURRENT BADGE VALUE", currentBadgeValue);
+//       if (!currentBadgeValue) return;
+//
+//       if ((currentBadgeValue - 1) === 0) {
+//         const noVulnsFound = document.getElementById("no-vulnerabilities-found");
+//         const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
+//         setElementDisplay(noVulnsFound, "block");
+//         setElementDisplay(vulnsOnPage, "none");
+//       }
+//
+//       updateTabBadge(tab, (currentBadgeValue - 1).toString(), CONTRAST_RED);
+//     });
+//   });
+// }
 
 /**
  * getStorageVulnsAndRender - gets stored traces from background, renders the vulnerability section of the popup and sends the vulnerabilities to populateVulnerabilitySection for rendering into a list
