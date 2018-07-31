@@ -17,7 +17,7 @@ import {
   SEVERITY_MEDIUM_ICON_PATH,
   SEVERITY_HIGH_ICON_PATH,
   SEVERITY_CRITICAL_ICON_PATH,
-  DELETE_TRACE,
+  // DELETE_TRACE,
   TRACES_REQUEST,
   getVulnerabilityTeamserverUrl,
   setElementDisplay,
@@ -78,7 +78,6 @@ function getShortVulnerabilities(traces) {
  * @return {void}                 a new list item
  */
 function renderListItem(trace, teamserverUrl, orgUuid, application) {
-
   if (!trace) return;
 
   let ul = document.getElementById('vulnerabilities-found-on-page-list');
