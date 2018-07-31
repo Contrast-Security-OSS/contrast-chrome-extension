@@ -86,7 +86,7 @@ function _handleWebRequest(request) {
 		!isBlacklisted(url),								// no blacklisted urls, see utils
 		!window.XHR_REQUESTS.includes(requestURL),	// no dupes
 	];
-
+	console.log(window.PAGE_FINISHED_LOADING && QUEUE.executionCount > 0 && conditions.every(Boolean), request);
 	// evaluate new XHR requests immediately
 	if (window.PAGE_FINISHED_LOADING && QUEUE.executionCount > 0 && conditions.every(Boolean)) {
 		console.log("request", QUEUE);

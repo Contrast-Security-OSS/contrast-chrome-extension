@@ -22,7 +22,7 @@ import {
   getVulnerabilityTeamserverUrl,
   setElementDisplay,
   getVulnerabilityShort,
-  deleteApplicationTraces,
+  // deleteApplicationTraces,
   updateTabBadge,
 } from './util.js';
 
@@ -128,32 +128,32 @@ function renderListItem(trace, teamserverUrl, orgUuid, application) {
   }
   li.appendChild(anchor);
 
-  _addTrashIcon(li, trace, application);
+  // _addTrashIcon(li, trace, application);
 
   // append li last to load content smootly (is the way it works?)
   ul.appendChild(li);
 }
 
-function _addTrashIcon(li, trace, application) {
-  let trash = document.createElement('img');
-  trash.setAttribute('src', '../img/trash.svg');
-  trash.classList.add('trash-icon');
-  trash.onclick = function() {
-    deleteApplicationTraces([trace.uuid], trace.app_id)
-    .then(json => {
-      if (json && json.success) {
-        li.remove();
-        _updateTabBadge(application, trace.uuid);
-      } else {
-        console.log("ERROR deleting trace", json);
-      }
-    })
-    .catch(error => {
-      console.log("ERROR deleting trace", error);
-    })
-  }
-  li.appendChild(trash);
-}
+// function _addTrashIcon(li, trace, application) {
+//   let trash = document.createElement('img');
+//   trash.setAttribute('src', '../img/trash.svg');
+//   trash.classList.add('trash-icon');
+//   trash.onclick = function() {
+//     deleteApplicationTraces([trace.uuid], trace.app_id)
+//     .then(json => {
+//       if (json && json.success) {
+//         li.remove();
+//         _updateTabBadge(application, trace.uuid);
+//       } else {
+//         console.log("ERROR deleting trace", json);
+//       }
+//     })
+//     .catch(error => {
+//       console.log("ERROR deleting trace", error);
+//     })
+//   }
+//   li.appendChild(trash);
+// }
 
 function _updateTabBadge(application, traceUuid) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

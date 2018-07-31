@@ -60,7 +60,7 @@ export const LISTENING_ON_DOMAIN = ["<all_urls>"];
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
-export const DELETE_TRACE        = "contrast__remove_storedTrace";
+// export const DELETE_TRACE        = "contrast__remove_storedTrace";
 export const STORED_APPS_KEY     = "contrast__APPS";
 export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
@@ -175,12 +175,12 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
   throw new Error("an argument to getApplicationsUrl was undefined");
 }
 
-function deleteApplicationTracesUrl(teamserverUrl, orgUuid, appId, traceUuids) {
-  if (teamserverUrl && orgUuid && appId) {
-    return teamserverUrl + "/ng/" + orgUuid + "/traces/" + appId;
-  }
-  throw new Error("An argument to deleteApplicationTraces was undefined");
-}
+// function deleteApplicationTracesUrl(teamserverUrl, orgUuid, appId, traceUuids) {
+//   if (teamserverUrl && orgUuid && appId) {
+//     return teamserverUrl + "/ng/" + orgUuid + "/traces/" + appId;
+//   }
+//   throw new Error("An argument to deleteApplicationTraces was undefined");
+// }
 
 /**
  * getVulnerabilityTeamserverUrl - open new tab in contrast showing vulnerability
@@ -291,20 +291,20 @@ function getOrgApplications() {
  *
  * @returns {type}  description
  */
-function deleteApplicationTraces(traces, appId) {
-  return getStoredCredentials()
-  .then(items => {
-    const url = deleteApplicationTracesUrl(
-      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId
-    );
-    const authHeader = getAuthorizationHeader(
-      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
-    );
-
-    return fetchTeamserver(
-      url, { traces }, authHeader, items[CONTRAST_API_KEY], 'DELETE');
-  });
-}
+// function deleteApplicationTraces(traces, appId) {
+//   return getStoredCredentials()
+//   .then(items => {
+//     const url = deleteApplicationTracesUrl(
+//       items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId
+//     );
+//     const authHeader = getAuthorizationHeader(
+//       items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
+//     );
+//
+//     return fetchTeamserver(
+//       url, { traces }, authHeader, items[CONTRAST_API_KEY], 'DELETE');
+//   });
+// }
 
 // ---------  OTHER HELPER FUNCTIONS -------------
 
@@ -611,7 +611,7 @@ export {
   getOrganizationVulnerabilityIds,
   getVulnerabilityShort,
   getOrgApplications,
-  deleteApplicationTraces,
+  // deleteApplicationTraces,
   isCredentialed,
   deDupeArray,
   getHostFromUrl,
