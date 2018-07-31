@@ -20,7 +20,7 @@ import {
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	LOADING_DONE,
-	DELETE_TRACE,
+	// DELETE_TRACE,
 	APPLICATION_CONNECTED,
 	APPLICATION_DISCONNECTED,
 	getStoredCredentials,
@@ -123,10 +123,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		sendResponse("Tab not active");
 		return false;
 	}
-
+	// && request.action !== DELETE_TRACE
 	if (request.action !== TRACES_REQUEST
-			&& request.action !== LOADING_DONE
-			&& request.action !== DELETE_TRACE) {
+			&& request.action !== LOADING_DONE) {
 		if (!TAB_CLOSED) {
 			console.log("setting loading badge in onMessage");
 			loadingBadge(tab);
@@ -185,17 +184,17 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			break;
 		}
 
-		case DELETE_TRACE: {
-			const { application, traceUuid } = request;
-			const path 			= VulnerableTab.buildTabPath(tab.url);
-			const vulnTab 	= new VulnerableTab(path, application.name);
-			const storedTab = await vulnTab.getStoredTab();
-			const storedTabTraces = storedTab[vulnTab.vulnTabId];
-			const filteredTraces 	= storedTabTraces.filter(t => t !== traceUuid);
-			vulnTab.setTraceIDs(filteredTraces);
-			vulnTab.storeTab();
-			break;
-		}
+		// case DELETE_TRACE: {
+		// 	const { application, traceUuid } = request;
+		// 	const path 			= VulnerableTab.buildTabPath(tab.url);
+		// 	const vulnTab 	= new VulnerableTab(path, application.name);
+		// 	const storedTab = await vulnTab.getStoredTab();
+		// 	const storedTabTraces = storedTab[vulnTab.vulnTabId];
+		// 	const filteredTraces 	= storedTabTraces.filter(t => t !== traceUuid);
+		// 	vulnTab.setTraceIDs(filteredTraces);
+		// 	vulnTab.storeTab();
+		// 	break;
+		// }
 
 		default: {
 			console.log("Default Case in _handleRuntimeOnMessage, request action was", request.action);

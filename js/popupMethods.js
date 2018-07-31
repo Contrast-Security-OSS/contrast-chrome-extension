@@ -155,36 +155,36 @@ function renderListItem(trace, teamserverUrl, orgUuid, application) {
 //   li.appendChild(trash);
 // }
 
-function _updateTabBadge(application, traceUuid) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs || tabs.length === 0) return;
-    const tab = tabs[0];
-
-    chrome.runtime.sendMessage({
-      action: DELETE_TRACE,
-      tab,
-      application,
-      traceUuid
-    });
-
-    chrome.browserAction.getBadgeText({ tabId: tab.id }, (currentBadgeText) => {
-      console.log("CURRENT BADGE TEXT", currentBadgeText);
-      const currentBadgeValue = parseInt(currentBadgeText, 10);
-
-      console.log("CURRENT BADGE VALUE", currentBadgeValue);
-      if (!currentBadgeValue) return;
-
-      if ((currentBadgeValue - 1) === 0) {
-        const noVulnsFound = document.getElementById("no-vulnerabilities-found");
-        const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
-        setElementDisplay(noVulnsFound, "block");
-        setElementDisplay(vulnsOnPage, "none");
-      }
-
-      updateTabBadge(tab, (currentBadgeValue - 1).toString(), CONTRAST_RED);
-    });
-  });
-}
+// function _updateTabBadge(application, traceUuid) {
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     if (!tabs || tabs.length === 0) return;
+//     const tab = tabs[0];
+//
+//     chrome.runtime.sendMessage({
+//       action: DELETE_TRACE,
+//       tab,
+//       application,
+//       traceUuid
+//     });
+//
+//     chrome.browserAction.getBadgeText({ tabId: tab.id }, (currentBadgeText) => {
+//       console.log("CURRENT BADGE TEXT", currentBadgeText);
+//       const currentBadgeValue = parseInt(currentBadgeText, 10);
+//
+//       console.log("CURRENT BADGE VALUE", currentBadgeValue);
+//       if (!currentBadgeValue) return;
+//
+//       if ((currentBadgeValue - 1) === 0) {
+//         const noVulnsFound = document.getElementById("no-vulnerabilities-found");
+//         const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
+//         setElementDisplay(noVulnsFound, "block");
+//         setElementDisplay(vulnsOnPage, "none");
+//       }
+//
+//       updateTabBadge(tab, (currentBadgeValue - 1).toString(), CONTRAST_RED);
+//     });
+//   });
+// }
 
 /**
  * getStorageVulnsAndRender - gets stored traces from background, renders the vulnerability section of the popup and sends the vulnerabilities to populateVulnerabilitySection for rendering into a list
