@@ -55,13 +55,20 @@ const CONTRAST_YELLOW          = "#FFD300";
 const CONTRAST_CONFIGURE_TEXT  = "*";
 
 // chrome storage and message event keys
-const LISTENING_ON_DOMAIN = "<all_urls>";
+const LISTENING_ON_DOMAIN = ["<all_urls>"];
 const GATHER_FORMS_ACTION = "contrast__gatherForms";
+const GATHER_SCRIPTS      = 'contrast__gather_scripts';
 const STORED_TRACES_KEY   = "contrast__traces";
 const TRACES_REQUEST      = "contrast__getStoredTraces";
+const DELETE_TRACE        = "contrast__remove_storedTrace";
 const STORED_APPS_KEY     = "contrast__APPS";
 const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
+const APPLICATION_CONNECTED    = 'contrast__application__connected';
+const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
+const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
+const CONTRAST__STORED_APP_LIBS = 'contrast__stored_libraries';
+const CONTRAST_WAPPALIZE        = 'contrast__wappalzye';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [

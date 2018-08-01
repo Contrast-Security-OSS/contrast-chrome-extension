@@ -58,6 +58,7 @@ export const CONTRAST_CONFIGURE_TEXT  = "*";
 // chrome storage and message event keys
 export const LISTENING_ON_DOMAIN = ["<all_urls>"];
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
+export const GATHER_SCRIPTS      = 'contrast__gather_scripts';
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const DELETE_TRACE        = "contrast__remove_storedTrace";
@@ -67,6 +68,9 @@ export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
 export const APPLICATION_CONNECTED    = 'contrast__application__connected';
 export const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
 export const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
+export const CONTRAST__STORED_APP_LIBS = 'contrast__stored_libraries';
+export const CONTRAST_WAPPALIZE        = 'contrast__wappalzye';
+export const WAPPALYZER_SERVICE        = 'http://localhost:5003';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -117,6 +121,8 @@ String.prototype.titleize = function() {
     return captured.charAt(0).toUpperCase() + captured.substr(1).toLowerCase();
   });
 }
+
+export const capitalize = (s) => s[0].toUpperCase() + s.substr(1);
 
 // --------- HELPER FUNCTIONS -------------
 
@@ -340,7 +346,10 @@ function deDupeArray(array) {
 }
 
 function isEmptyObject(obj) {
-  return Object.keys(obj).length === 0 && obj.constructor === Object;
+  for (let key in obj) {
+    return false;
+  }
+  return true;
 }
 
 /**

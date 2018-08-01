@@ -23,6 +23,7 @@ import {
 	DELETE_TRACE,
 	APPLICATION_CONNECTED,
 	APPLICATION_DISCONNECTED,
+	CONTRAST_WAPPALIZE,
 	getStoredCredentials,
 	isCredentialed,
 	isBlacklisted,
@@ -30,6 +31,10 @@ import {
 	removeLoadingBadge,
 	loadingBadge,
 } from './util.js';
+
+import {
+	wappalzye,
+} from './libraries.js';
 
 import Application from './models/Application.js';
 import Vulnerability from './models/Vulnerability.js';
@@ -114,7 +119,7 @@ function _handleWebRequest(request) {
  * NOTE: This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-
+	console.log("message received in background", request);
 	// NOTE: REMOVED TAB QUERY
 
 	const { tab } = request;
@@ -194,6 +199,13 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			const filteredTraces 	= storedTabTraces.filter(t => t !== traceUuid);
 			vulnTab.setTraceIDs(filteredTraces);
 			vulnTab.storeTab();
+			break;
+		}
+
+		case CONTRAST_WAPPALIZE: {
+			const wappalyzedLibraries = await wappalzye(tab);
+			console.log("WAPPALYZED LIBS", wappalyzedLibraries);
+			sendResponse(wappalyzedLibraries);
 			break;
 		}
 

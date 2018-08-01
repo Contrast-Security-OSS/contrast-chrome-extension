@@ -12,10 +12,12 @@ CONTRAST_USERNAME,
 CONTRAST_SERVICE_KEY,
 CONTRAST_API_KEY,
 CONTRAST_ORG_UUID,
+GATHER_SCRIPTS,
 TEAMSERVER_URL,
 LOADING_DONE,
 MutationObserver,
 TEAMSERVER_API_PATH_SUFFIX,
+CONTRAST_WAPPALIZE,
 */
 "use strict";
 
@@ -38,6 +40,8 @@ window.addEventListener("load", function() {
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("chrome content script message received", request);
+
   if (request.action === GATHER_FORMS_ACTION) {
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
@@ -54,6 +58,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   else if (request.url !== undefined && request.action === "INITIALIZE") {
     _initializeContrast(request, sendResponse);
+  }
+
+  else if (request.action === "GET_LIB_VERSION" && request.library) {
+    const library    = request.library.parsedLibName.replace('-', '_');
+    console.log(library);
+    const libElement = document.getElementById(`__script_res_${library}`);
+    let extractedLibraryVersion;
+    try {
+      console.log("libElement", libElement);
+      extractedLibraryVersion = libElement.innerText;
+    } catch (e) {
+      sendResponse(null);
+    }
+    if (extractedLibraryVersion) {
+      let versionArray = extractedLibraryVersion.split('_');
+      sendResponse(versionArray[versionArray.length - 1]);
+    } else {
+      sendResponse(null)
+    }
+  }
+
+  else if (request.action === GATHER_SCRIPTS) {
+    console.log("gather scripts action");
+    _collectScripts(request.tab)
+    .then(sharedLibraries => sendResponse(sharedLibraries))
+    .catch(error => {
+      console.log("Error sending shared libraries", error);
+    })
   }
 
   // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
@@ -86,3 +118,143 @@ function _initializeContrast(request, sendResponse) {
     sendResponse("INITIALIZED");
   });
 }
+
+
+
+
+function _getLibraryVulnerabilities() {
+  const retireJSURL = "https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json"
+  const fetchOptions = {
+    method: "GET",
+  }
+	return fetch(retireJSURL, fetchOptions)
+	.then(response => {
+    if (response.ok && response.status === 200) {
+      return response.json();
+    }
+    return null;
+  })
+	.catch(new Error("Error getting js lib vulnerabilities"))
+}
+
+async function _collectScripts(tab) {
+  console.log("COLLECTING SCRIPTS");
+  const vulnerableLibraries = await _getLibraryVulnerabilities();
+  if (!vulnerableLibraries) return null;
+
+  const wapplibraries = await wappalzye(tab);
+
+  console.log("LIBRARY vulnerabilities", vulnerableLibraries, wapplibraries);
+
+  const docScripts = [].slice.call(document.scripts).map(s => {
+    let srcArray = s.src.split("/");
+    return srcArray[srcArray.length - 1];
+  });
+
+  const sharedLibraries = _compareAppAndVulnerableLibraries(
+    docScripts, wapplibraries, vulnerableLibraries);
+  console.log("sharedLibraries", sharedLibraries);
+
+  if (!sharedLibraries || sharedLibraries.length === 0) {
+    return null;
+  }
+  return { sharedLibraries };
+}
+
+function _compareAppAndVulnerableLibraries(
+  docScripts, wapplibraries, vulnerableLibraries) {
+  wapplibraries = wapplibraries.map(wL => {
+    let name = wL.name.toLowerCase();
+    wL.jsFileName      = name;
+    wL.parsedLibName   = name;
+    wL.parsedLibNameJS = name + ".js";
+    return wL;
+  });
+  let filteredDocScripts = docScripts.map(s => {
+    if (s && s[0] && (/[a-z]/.test(s[0]))) {
+      let jsFileName      = s;
+      let parsedLibName   = _getLibNameFromJSFile(s);
+      let parsedLibNameJS = parsedLibName + ".js";
+      return { jsFileName, parsedLibName, parsedLibNameJS };
+    }
+    return false;
+  }).filter(Boolean);
+  console.log("DOCUMENT SCRIPTS AFTER FILTER", filteredDocScripts);
+  return _findCommonLibraries(vulnerableLibraries, filteredDocScripts, wapplibraries);
+}
+
+function _findCommonLibraries(vulnerableLibraries, documentScripts, wapplibraries) {
+  let sharedLibraries = [];
+  for (let key in vulnerableLibraries) {
+    if (Object.prototype.hasOwnProperty.call(vulnerableLibraries, key)) {
+      let vulnLib      = vulnerableLibraries[key];
+      let vulnLibNames = [];
+      vulnLibNames.push(key);
+
+      if (vulnLib.bowername) {
+        let bowernames = vulnLib.bowername.map(name => name.toLowerCase());
+        vulnLibNames = vulnLibNames.concat(bowernames);
+      }
+
+      let sharedWappLibs = wapplibraries.filter(wL => {
+        wL.name = wL.name.toLowerCase();
+        return (
+          vulnLibNames.includes(wL.parsedLibName)
+          || vulnLibNames.includes(wL.parsedLibNameJS)
+        );
+      });
+      let sharedScriptLibs = documentScripts.filter(script  => {
+        return (
+          vulnLibNames.includes(script.jsFileName)
+          || vulnLibNames.includes(script.parsedLibName)
+          || vulnLibNames.includes(script.parsedLibNameJS)
+        );
+      })
+      let shared = sharedWappLibs.concat(sharedScriptLibs);
+      if (shared[0]) {
+        let duplicate = sharedLibraries.find(script => {
+          return shared[0].parsedLibName === script.parsedLibName;
+        });
+        if (!duplicate) {
+          const library           = shared[0];
+          const extractors        = vulnLib.extractors;
+          library.name            = key;
+          library.extractors      = extractors;
+          library.vulnerabilities = vulnLib.vulnerabilities;
+          sharedLibraries.push(library);
+        }
+      }
+    }
+  }
+  console.log("SHARED LIBRARIES", sharedLibraries);
+  return sharedLibraries;
+}
+
+function _getLibNameFromJSFile(jsFileName) {
+  jsFileName = jsFileName.split(".js")[0];
+  jsFileName = jsFileName.split(".min")[0];
+  jsFileName = jsFileName.split("-min")[0];
+  jsFileName = jsFileName.split("_min")[0];
+  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/) ? jsFileName.match(/([a-zA-Z]+\W)+/)[0] : jsFileName;
+  jsFileName = (/\W/).test(jsFileName[jsFileName.length - 1]) ? jsFileName.substr(0, jsFileName.length - 1) : jsFileName;
+  return jsFileName;
+}
+
+const wappalzye = (tab) => {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: CONTRAST_WAPPALIZE, tab }, (response) => {
+      resolve(response);
+    })
+  });
+}
+
+//
+//
+// function _isScriptInBowername(bowernames, scripts) {
+//   for (let i = 0, len = bowernames.length; i < len; i++) {
+//     if (scripts.includes(bowernames[i])) {
+//       return true
+//     }
+//   }
+//   return false
+// }

@@ -16,12 +16,9 @@
     "node-fetch": "^2.1.2",
     "nyc": "^12.0.2",
     "sinon": "^5.0.10",
-    "sinon-chrome": "^2.3.2"
-  },
-  "dependencies": {
+    "sinon-chrome": "^2.3.2",
     "downloadjs": "^1.4.7",
     "install": "^0.11.0",
-    "js-untar": "^2.0.0",
-    "npm": "^6.1.0"
-  }
+    "js-untar": "^2.0.0"
+  },
 }

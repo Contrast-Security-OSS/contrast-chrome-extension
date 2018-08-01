@@ -6,11 +6,12 @@
   Helpers,
 */
 import {
-	getStoredApplicationLibraries,
+	getApplicationLibraries,
+	addNewApplicationLibraries,
 } from './libraries.js';
 
 import {
-  renderVulnerableLibraries
+  renderVulnerableLibraries,
 } from './libraries/showLibraries.js'
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect";
@@ -91,6 +92,7 @@ function addButtonTabListeners() {
   });
 
   libsTab.addEventListener('click', function() {
+		console.log("libs tab listener");
     const libsSection  = document.getElementById('libraries-section');
     const vulnsSection = document.getElementById('vulnerabilities-section');
     vulnsSection.classList.remove('visible');
@@ -99,47 +101,31 @@ function addButtonTabListeners() {
     libsSection.classList.add('visible');
     libsSection.classList.remove('hidden');
 
-    // setLoadingElement(true);
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (!tabs || tabs.length === 0) return;
-      const tab = tabs[0];
-      retrieveApplicationFromStorage(tab)
-      .then(application => {
-        if (!application) throw new Error("No Application");
-
-        const appKey = "APP_LIBS__ID_" + Object.keys(application)[0];
-        chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
-          const libraries = result[CONTRAST__STORED_APP_LIBS][appKey].libraries;
-          renderVulnerableLibraries(libraries);
-        })
-      })
-      .catch(Error)
-    })
+		addListenerToRefreshButton();
+    renderVulnerableLibraries();
   });
 }
 
-const refreshLibsButton = document.getElementById('refresh-libs-btn');
-refreshLibsButton.addEventListener('click', function() {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs || tabs.length === 0) return;
-    const tab = tabs[0];
-    retrieveApplicationFromStorage(tab)
-    .then(application => {
-      console.log("application", application);
-      if (application) {
-        getStoredApplicationLibraries(application, tab)
-        .then(libraries => {
-          console.log("libraries", libraries);
-          renderVulnerableLibraries(libraries);
-        })
-        .catch(Error);
-      } else {
-        throw new Error("No Application");
-      }
-    })
-    .catch(Error);
-  });
-});
-
-
-// getStoredApplicationLibraries(application, tab);
+function addListenerToRefreshButton() {
+	const refreshLibsButton = document.getElementById('refresh-libs-btn');
+	refreshLibsButton.addEventListener('click', function() {
+	  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+	    if (!tabs || tabs.length === 0) return;
+	    const tab = tabs[0];
+	    getApplicationLibraries(tab)
+			.then(libs => {
+				console.log("GOT APPLICATION LIBS", libs);
+				if (libs && libs.length > 0) {
+					addNewApplicationLibraries(libs, tab)
+					.then(newLibs => {
+						console.log("NEW LIBS STORED", newLibs);
+						renderVulnerableLibraries();
+					})
+				}
+			})
+			.catch(error => {
+				console.log("erorr refreshing app libs", error);
+			})
+	  });
+	});
+}

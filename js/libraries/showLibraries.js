@@ -1,6 +1,4 @@
-import { Helpers } from '../helpers/helpers-module.js';
-
-const {
+import {
   SEVERITY,
   SEVERITY_LOW,
   SEVERITY_LOW_ICON_PATH,
@@ -8,10 +6,51 @@ const {
   SEVERITY_MEDIUM_ICON_PATH,
   SEVERITY_HIGH,
   SEVERITY_HIGH_ICON_PATH,
-} = Helpers;
+  CONTRAST__STORED_APP_LIBS,
+  isEmptyObject,
+  capitalize,
+} from '../util.js';
 
-export function renderVulnerableLibraries(libraries) {
-  console.log(libraries);
+import Application from '../models/Application.js';
+
+const versionTypes = {
+  atOrAbove: ">=",
+  atOrBelow: "<=",
+  below: "<",
+  above: ">",
+}
+
+const getLibrariesFromStorage = () => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
+      if (!tabs || tabs.length === 0) {
+        reject(new Error("Couldn't get tabs"));
+        return;
+      }
+      const tab = tabs[0];
+      const application = await Application.retrieveApplicationFromStorage(tab);
+      if (!application) {
+        reject(new Error("Couldn't get application."));
+      }
+
+      const appKey = "APP_LIBS__ID_" + application.domain;
+
+      chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
+        if (isEmptyObject(result)) {
+          resolve(null);
+        } else {
+          const libraries = result[CONTRAST__STORED_APP_LIBS][appKey];
+          console.log("GOT LIBRARIES IN getLibrariesFromStorage", libraries);
+          resolve(libraries);
+        }
+      });
+    });
+  });
+}
+
+const renderVulnerableLibraries = async() => {
+  let libraries = await getLibrariesFromStorage();
+
   if (!libraries || libraries.length === 0) return;
 
   document.getElementById('libs-not-configured').style.display = "none";
@@ -21,61 +60,100 @@ export function renderVulnerableLibraries(libraries) {
   const ul = document.getElementById('libs-vulnerabilities-found-on-page-list');
 
   libraries = libraries.sort((a, b) => {
+    if (!a.severity && !!b.severity) {
+      return a < b;
+    } else if (!!a.severity && !b.severity) {
+      return b < a;
+    } else if (!a.severity && !b.severity) {
+      return a == b;
+    }
     return SEVERITY[a.severity.titleize()] < SEVERITY[b.severity.titleize()];
   });
 
+  console.log("LIBRARIES AFTER SORT", libraries);
+
   for (let i = 0, len = libraries.length; i < len; i++) {
     let lib = libraries[i];
-    let { name, version, severity, title, link } = lib;
-
-    console.log(name, version, severity, title, link);
-
-    console.log(ul);
-
-    let li = document.createElement('li');
-    li.classList.add('list-group-item');
-    li.classList.add('no-border');
-    li.classList.add('vulnerability-li');
-
-    let img = document.createElement('img');
-
-    switch (severity.toLowerCase()) {
-      case SEVERITY_LOW.toLowerCase():
-        img.setAttribute("src", SEVERITY_LOW_ICON_PATH);
-        li.classList.add("vuln-4");
-        break;
-      case SEVERITY_MEDIUM.toLowerCase():
-        img.setAttribute("src", SEVERITY_MEDIUM_ICON_PATH);
-        li.classList.add("vuln-3");
-        break;
-      case SEVERITY_HIGH.toLowerCase():
-        img.setAttribute("src", SEVERITY_HIGH_ICON_PATH);
-        li.classList.add("vuln-2");
-        break;
-      default:
-        break;
+    console.log("LIB", lib);
+    if (lib.vulnerabilitiesCount > 1) {
+      for (let j = 0; j < lib.vulnerabilitiesCount; j++) {
+        let versions = lib.vulnerabilities[j].versions;
+        let keys = Object.keys(versions);
+        let vals = Object.values(versions);
+        let version = [];
+        for (let k = 0, kLen = keys.length; k < kLen; k++) {
+          version.push(
+            `${versionTypes[keys[k]]} ${vals[k]}`);
+        }
+        if (version.length > 1) {
+          version = version.join(" and ");
+        } else {
+          version = version[0];
+        }
+        lib.vulnerabilities[j].version = version;
+        _createVulnerabilityListItem(ul, lib.name, lib.vulnerabilities[j]);
+      }
+    } else {
+      _createVulnerabilityListItem(ul, lib.name, lib);
     }
-    li.appendChild(img);
-
-    let titleSpan = document.createElement('span');
-    titleSpan.classList.add('vulnerability-rule-name');
-    titleSpan.innerText = " " + name + " " + version + "\n";
-    titleSpan.style.weight = 'bold';
-
-    let anchor = document.createElement('a');
-    anchor.classList.add('vulnerability-rule-name');
-    anchor.innerText = title;
-    anchor.onclick = function() {
-      chrome.tabs.create({
-        url: link,
-        active: false
-      });
-    }
-    li.appendChild(titleSpan);
-    li.appendChild(anchor);
-
-    // append li last to load content smootly (is the way it works?)
-    ul.appendChild(li);
   }
   container.style.display = "block";
+}
+
+const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
+  let { name, version, severity, title, link } = vulnObj;
+  if (!name) name = libName;
+             name = name.titleize();
+
+  let li = document.createElement('li');
+  li.classList.add('list-group-item');
+  li.classList.add('no-border');
+  li.classList.add('vulnerability-li');
+
+  let img = document.createElement('img');
+
+  switch (severity.toLowerCase()) {
+    case SEVERITY_LOW.toLowerCase(): {
+      img.setAttribute("src", SEVERITY_LOW_ICON_PATH);
+      li.classList.add("vuln-4");
+      break;
+    }
+    case SEVERITY_MEDIUM.toLowerCase(): {
+      img.setAttribute("src", SEVERITY_MEDIUM_ICON_PATH);
+      li.classList.add("vuln-3");
+      break;
+    }
+    case SEVERITY_HIGH.toLowerCase(): {
+      img.setAttribute("src", SEVERITY_HIGH_ICON_PATH);
+      li.classList.add("vuln-2");
+      break;
+    }
+    default:
+      break;
+  }
+  li.appendChild(img);
+
+  let titleSpan = document.createElement('span');
+  titleSpan.classList.add('vulnerability-rule-name');
+  titleSpan.innerText = " " + name + " " + version + "\n";
+  titleSpan.style.weight = 'bold';
+
+  let anchor = document.createElement('a');
+  anchor.classList.add('vulnerability-rule-name');
+  console.log("TITLE", title);
+  anchor.innerText = capitalize(title.trim()) + ".";
+  anchor.onclick = function() {
+    chrome.tabs.create({
+      url: link,
+      active: false
+    });
+  }
+  li.appendChild(titleSpan);
+  li.appendChild(anchor);
+
+  ul.appendChild(li);
+}
+
+export {
+  renderVulnerableLibraries,
 }
