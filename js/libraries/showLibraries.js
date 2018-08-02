@@ -23,14 +23,14 @@ const versionTypes = {
 const getLibrariesFromStorage = (tab, application) => {
   return new Promise((resolve, reject) => {
     const appKey = "APP_LIBS__ID_" + application.domain;
-    console.log("APPKEY", appKey);
+    // console.log("APPKEY", appKey);
     chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
-      console.log("GOT STORED LIBS RESULT", result);
+      // console.log("GOT STORED LIBS RESULT", result);
       if (isEmptyObject(result)) {
         resolve(null);
       } else {
         const libraries = result[CONTRAST__STORED_APP_LIBS][appKey];
-        console.log("GOT LIBRARIES IN getLibrariesFromStorage", libraries);
+        // console.log("GOT LIBRARIES IN getLibrariesFromStorage", libraries);
         resolve(libraries);
       }
     });
@@ -78,11 +78,11 @@ const renderVulnerableLibraries = async(tab, application) => {
     return SEVERITY[a.severity.titleize()] < SEVERITY[b.severity.titleize()];
   });
 
-  console.log("LIBRARIES AFTER SORT", libraries);
+  // console.log("LIBRARIES AFTER SORT", libraries);
 
   for (let i = 0, len = libraries.length; i < len; i++) {
     let lib = libraries[i];
-    console.log("LIB", lib);
+    // console.log("LIB", lib);
     if (lib.vulnerabilitiesCount > 1) {
       for (let j = 0; j < lib.vulnerabilitiesCount; j++) {
         let versions = lib.vulnerabilities[j].versions;
@@ -148,7 +148,7 @@ const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
 
   let anchor = document.createElement('a');
   anchor.classList.add('vulnerability-rule-name');
-  console.log("TITLE", title);
+  // console.log("TITLE", title);
   anchor.innerText = capitalize(title.trim()) + ".";
   anchor.onclick = function() {
     chrome.tabs.create({

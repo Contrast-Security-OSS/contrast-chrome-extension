@@ -46,15 +46,15 @@ button.btn-contrast-plugin:hover, button.buttonTab:hover {
 button.buttonTab {
   width: 50%;
   margin: 0;
+  border: 2px solid transparent;
   border-radius: 0;
   outline: none;
-  border: none;
-  border: 2px solid #3cc3b2;
 }
 
-button.buttonTab:focus, button.buttonTab:active {
-  background-color: #3cc3b2 !important;
+button.buttonTab:focus, button.buttonTab:active, .unfocued-but-still-showing {
+  border: 2px solid #3cc3b2;
   border-color: #3cc3b2;
+  background-color: #3cc3b2 !important;
   color: #fff;
   outline: none;
 }
@@ -263,3 +263,37 @@ div.tippy-content {
   display: block;
   margin: 10px auto;
 }
+
+
+#libs-loading {
+  margin: 0 auto;
+  margin-bottom: 20px;
+  border: 10px solid linear-gradient(#3cc3b2, #f3f3f3);
+  /* border-top: 10px solid #3cc3b2; */
+  /* background-color: linear-gradient(#3cc3b2, #f3f3f3); */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: bounce 2s linear infinite;
+}
+
+@keyframes bounce {
+  0% { transform: scale(1.0); }
+  50% { transform: scale(1.5); }
+  100% { transform: scale(1.0); }
+}
+
+#libs-loading img {
+  width: 100%;
+  height: auto;
+}
+
+#found-libs-message {
+  color: #65C0B2;
+  text-align: center;
+}
+
+/* @keyframes loadingSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} */

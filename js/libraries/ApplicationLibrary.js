@@ -91,7 +91,10 @@ class ApplicationLibrary {
         console.log("UPDATING LIBS");
         const deDupedNewLibs = this._dedupeLibs(currentLibs, libsToAdd);
         console.log("DEDEUPTED LIBS", deDupedNewLibs);
-        if (deDupedNewLibs.length === 0) return null;
+        if (deDupedNewLibs.length === 0) {
+          resolve(null);
+          return;
+        };
 
         const newLibs = currentLibs.concat(deDupedNewLibs);
         libraries[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID] = newLibs;
