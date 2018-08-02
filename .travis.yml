@@ -4,7 +4,7 @@ language: node_js
 node_js:
 - '8'
 before_install:
-- npm install
 - npm install -g mocha eslint
+- npm install
 script:
 - npm run bab && eslint js/
