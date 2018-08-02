@@ -1,4 +1,4 @@
 .DS_Store
 .nyc_output
-node_modules
+node_modules/
 tests_output

@@ -138,11 +138,9 @@ function _addTrashIcon(li, trace, application) {
         li.remove();
         _updateTabBadge(application, trace.uuid);
       } else {
-        console.log("ERROR deleting trace", json);
       }
     })
     .catch(error => {
-      console.log("ERROR deleting trace", error);
     })
   }
   li.appendChild(trash);
@@ -161,10 +159,8 @@ function _updateTabBadge(application, traceUuid) {
     });
 
     chrome.browserAction.getBadgeText({ tabId: tab.id }, (currentBadgeText) => {
-      console.log("CURRENT BADGE TEXT", currentBadgeText);
       const currentBadgeValue = parseInt(currentBadgeText, 10);
 
-      console.log("CURRENT BADGE VALUE", currentBadgeValue);
       if (!currentBadgeValue) return;
 
       if ((currentBadgeValue - 1) === 0) {

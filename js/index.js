@@ -108,7 +108,6 @@ function addButtonTabListeners() {
 		LIBS_ACTIVE  = true;
 		vulnsTab.classList.remove('unfocued-but-still-showing');
 
-		// console.log("libs tab listener", libsTab, document.activeElement);
     const libsSection  = document.getElementById('libraries-section');
     const vulnsSection = document.getElementById('vulnerabilities-section');
     vulnsSection.classList.remove('visible');
@@ -150,16 +149,12 @@ function addListenerToRefreshButton() {
 			const appLib = new ApplicationLibrary(tab, app);
 	    const libs 	 = await appLib.getApplicationLibraries();
 			if (!libs || libs.length === 0) {
-				console.log("No Libs to Add.");
 				_renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
 				_hideLoadingElement(refreshLibsButton, loadingElement)
 				return;
 			}
-			console.log("GOT APPLICATION LIBS", libs);
 			const addedLibs = await appLib.addNewApplicationLibraries(libs);
-			console.log("ADDED NEW LIBS", addedLibs);
 			if (addedLibs && addedLibs.length > 0) {
-				console.log("Newly Added Libs", addedLibs);
 				renderVulnerableLibraries(tab, app);
 				_renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
 				_hideLoadingElement(refreshLibsButton, loadingElement);

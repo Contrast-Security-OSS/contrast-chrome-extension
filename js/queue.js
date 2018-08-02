@@ -67,11 +67,9 @@ class Queue {
   //   this.application    = null;
   //   this.tabUrl         = "";
   //   this.executionCount = 0;
-	// 	console.log("Queue Reset");
   // }
 
 	_highLightVulnerableForms(formTraces) {
-		console.log("In queue, highlighting forms");
 		const highlightActions = formTraces.map(ft => {
 			if (ft.traces && ft.traces.length > 0) {
 				return ft.action;
@@ -87,7 +85,6 @@ class Queue {
 	}
 
   async executeQueue(resetXHRRequests) {
-    console.log("executing queue", this);
     // NOTE: At start loading badge still true
 
     // If tab URL is blacklisted, don't process anything
@@ -110,14 +107,11 @@ class Queue {
       throw new Error("Queue not ready to execute!", conditions);
     }
 
-    console.log("In queue, removing vulnerabilities");
   	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab); //eslint-disable-line
 
 		// NOTE: In order to highlight vulnerable forms, form actions must be evaluated separately
-		console.log("In queue, evaluating forms");
 		const formTraces = await this._evaluateForms();
 
-		console.log("FORM TRACES", formTraces);
 
 		if (formTraces && formTraces.length > 0) {
 			this._highLightVulnerableForms(formTraces);
@@ -127,7 +121,6 @@ class Queue {
         traceUrls = traceUrls.filter(tu => !isBlacklisted(tu));
         traceUrls = traceUrls.map(trace => (new URL(trace)).pathname);
 
-		console.log("evaluating urls from page in queue");
 
     Vulnerability.evaluateVulnerabilities(
       this.isCredentialed,    // if credentialed already
