@@ -16,7 +16,9 @@ class ApplicationLibrary {
   }
 
   _setCurrentLibs(libraries) {
-    this.libraries = libraries;
+    if (libraries && Array.isArray(libraries)) {
+      this.libraries = libraries;
+    }
   }
 
   getApplicationLibraries() {
@@ -144,7 +146,7 @@ class ApplicationLibrary {
 
      // if current libs contains the new libs return false and don't add the new lib
      console.log("filteredCurrentLisb", filteredCurrentLisb, filteredCurrentLisb[0], !filteredCurrentLisb[0]);
-     return !filteredCurrentLisb[0];
+     return !!filteredCurrentLisb[0];
    });
  }
 
