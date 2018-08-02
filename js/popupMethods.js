@@ -1,6 +1,5 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
-tippy
 */
 import {
   CONTRAST_RED,
@@ -42,12 +41,6 @@ function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, applicatio
     getShortVulnerabilities(traces)
     .then(sortedTraces => {
       sortedTraces.map(trace => renderListItem(trace, teamserverUrl, orgUuid, application));
-
-      // tooltips, call here to only call once per popup render
-      tippy('.trash-icon', {
-        html: '#tooltipTemplate',
-      });
-
     })
     .catch(new Error("Error rendering sorted traces into list items."));
   }
