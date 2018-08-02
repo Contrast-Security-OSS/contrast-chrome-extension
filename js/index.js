@@ -5,14 +5,13 @@
   URL,
   Helpers,
 */
-import {
-	getApplicationLibraries,
-	addNewApplicationLibraries,
-} from './libraries.js';
 
 import {
   renderVulnerableLibraries,
 } from './libraries/showLibraries.js'
+
+import Application from './models/Application.js';
+import ApplicationLibrary from './libraries/ApplicationLibrary.js';
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected. You may need to reload the page.";
@@ -109,23 +108,23 @@ function addButtonTabListeners() {
 function addListenerToRefreshButton() {
 	const refreshLibsButton = document.getElementById('refresh-libs-btn');
 	refreshLibsButton.addEventListener('click', function() {
-	  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+	  chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
 	    if (!tabs || tabs.length === 0) return;
-	    const tab = tabs[0];
-	    getApplicationLibraries(tab)
-			.then(libs => {
-				console.log("GOT APPLICATION LIBS", libs);
-				if (libs && libs.length > 0) {
-					addNewApplicationLibraries(libs, tab)
-					.then(newLibs => {
-						console.log("NEW LIBS STORED", newLibs);
-						renderVulnerableLibraries();
-					})
-				}
-			})
-			.catch(error => {
-				console.log("erorr refreshing app libs", error);
-			})
+	    const tab 	 = tabs[0];
+			const app 	 = await Application.retrieveApplicationFromStorage(tab);
+			const appLib = new ApplicationLibrary(tab, app);
+	    const libs 	 = await appLib.getApplicationLibraries();
+			if (!libs || libs.length === 0) {
+				console.log("No Libs to Add.");
+				return;
+			}
+			console.log("GOT APPLICATION LIBS", libs);
+			const addedLibs = await appLib.addNewApplicationLibraries(libs);
+			console.log("ADDED NEW LIBS", addedLibs);
+			if (addedLibs && addedLibs.length > 0) {
+				console.log("Newly Added Libs", addedLibs);
+				renderVulnerableLibraries(tab, app);
+			}
 	  });
 	});
 }

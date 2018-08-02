@@ -34,7 +34,7 @@ import {
 
 import {
 	wappalzye,
-} from './libraries.js';
+} from './libraries/wappalyzer.js';
 
 import Application from './models/Application.js';
 import Vulnerability from './models/Vulnerability.js';

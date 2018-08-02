@@ -20,36 +20,44 @@ const versionTypes = {
   above: ">",
 }
 
-const getLibrariesFromStorage = () => {
+const getLibrariesFromStorage = (tab, application) => {
   return new Promise((resolve, reject) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
-      if (!tabs || tabs.length === 0) {
-        reject(new Error("Couldn't get tabs"));
-        return;
+    const appKey = "APP_LIBS__ID_" + application.domain;
+    console.log("APPKEY", appKey);
+    chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
+      console.log("GOT STORED LIBS RESULT", result);
+      if (isEmptyObject(result)) {
+        resolve(null);
+      } else {
+        const libraries = result[CONTRAST__STORED_APP_LIBS][appKey];
+        console.log("GOT LIBRARIES IN getLibrariesFromStorage", libraries);
+        resolve(libraries);
       }
-      const tab = tabs[0];
-      const application = await Application.retrieveApplicationFromStorage(tab);
-      if (!application) {
-        reject(new Error("Couldn't get application."));
-      }
-
-      const appKey = "APP_LIBS__ID_" + application.domain;
-
-      chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
-        if (isEmptyObject(result)) {
-          resolve(null);
-        } else {
-          const libraries = result[CONTRAST__STORED_APP_LIBS][appKey];
-          console.log("GOT LIBRARIES IN getLibrariesFromStorage", libraries);
-          resolve(libraries);
-        }
-      });
     });
   });
 }
 
-const renderVulnerableLibraries = async() => {
-  let libraries = await getLibrariesFromStorage();
+const _getTabAndApplication = () => {
+  return new Promise(resolve => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
+      const tab = tabs[0];
+      if (!tab) {
+        reject(null);
+        return;
+      }
+      const application = await Application.retrieveApplicationFromStorage(tab);
+      resolve({ tab, application });
+    });
+  });
+}
+
+const renderVulnerableLibraries = async(tab, application) => {
+  if (!tab || !application) {
+    const tabAndApp = await _getTabAndApplication();
+    tab = tabAndApp.tab;
+    application = tabAndApp.application;
+  }
+  let libraries = await getLibrariesFromStorage(tab, application);
 
   if (!libraries || libraries.length === 0) return;
 
