@@ -1,9 +1,8 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
-  chrome,
-  document,
-  URL,
-  Helpers,
+chrome,
+document,
+URL,
 */
 
 import {
@@ -13,14 +12,6 @@ import {
 import Application from './models/Application.js';
 import ApplicationLibrary from './libraries/ApplicationLibrary.js';
 
-const CONNECT_BUTTON_TEXT     = "Click to Connect";
-const CONNECT_SUCCESS_MESSAGE = "Successfully connected. You may need to reload the page.";
-const CONNECT_FAILURE_MESSAGE = "Error Connecting. Try refreshing the page.";
-const DISCONNECT_SUCCESS_MESSAGE = "Successfully disconnected. You may need to reload the page.";
-const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting";
-const DISCONNECT_BUTTON_TEXT     = "Disconnect";
-
-const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin";
 import {
   getStoredCredentials,
   isCredentialed,
@@ -32,10 +23,10 @@ import Config from './models/Config.js';
 // import { Application } from './models/application';
 
 /**
- * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
- *
- * @return {void}
- */
+* indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
+*
+* @return {void}
+*/
 function indexFunction() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
@@ -66,8 +57,8 @@ function indexFunction() {
 }
 
 /**
- * Run when popup loads
- */
+* Run when popup loads
+*/
 document.addEventListener('DOMContentLoaded', indexFunction, false);
 document.addEventListener('DOMContentLoaded', addButtonTabListeners, false);
 
@@ -79,12 +70,12 @@ function addButtonTabListeners() {
   const vulnsTab = document.getElementById('vulns-tab');
   const libsTab  = document.getElementById('libs-tab');
   vulnsTab.addEventListener('click', function() {
-		if (VULNS_ACTIVE) {
-			return;
-		}
-		LIBS_ACTIVE  = false;
-		VULNS_ACTIVE = true;
-		libsTab.classList.remove('unfocued-but-still-showing');
+    if (VULNS_ACTIVE) {
+      return;
+    }
+    LIBS_ACTIVE  = false;
+    VULNS_ACTIVE = true;
+    libsTab.classList.remove('unfocued-but-still-showing');
 
     const libsSection  = document.getElementById('libraries-section');
     const vulnsSection = document.getElementById('vulnerabilities-section');
@@ -101,12 +92,12 @@ function addButtonTabListeners() {
   });
 
   libsTab.addEventListener('click', function() {
-		if (LIBS_ACTIVE) {
-			return;
-		}
-		VULNS_ACTIVE = false;
-		LIBS_ACTIVE  = true;
-		vulnsTab.classList.remove('unfocued-but-still-showing');
+    if (LIBS_ACTIVE) {
+      return;
+    }
+    VULNS_ACTIVE = false;
+    LIBS_ACTIVE  = true;
+    vulnsTab.classList.remove('unfocued-but-still-showing');
 
     const libsSection  = document.getElementById('libraries-section');
     const vulnsSection = document.getElementById('vulnerabilities-section');
@@ -116,81 +107,81 @@ function addButtonTabListeners() {
     libsSection.classList.add('visible');
     libsSection.classList.remove('hidden');
 
-		addListenerToRefreshButton();
+    addListenerToRefreshButton();
     renderVulnerableLibraries();
   });
 
-	vulnsTab.addEventListener('blur', function(event) {
-		if (VULNS_ACTIVE) {
-			vulnsTab.classList.add('unfocued-but-still-showing');
-		} else {
-			vulnsTab.classList.remove('unfocued-but-still-showing');
-		}
-	});
+  vulnsTab.addEventListener('blur', function() {
+    if (VULNS_ACTIVE) {
+      vulnsTab.classList.add('unfocued-but-still-showing');
+    } else {
+      vulnsTab.classList.remove('unfocued-but-still-showing');
+    }
+  });
 
-	libsTab.addEventListener('blur', function(event) {
-		if (LIBS_ACTIVE) {
-			libsTab.classList.add('unfocued-but-still-showing');
-		} else {
-			libsTab.classList.remove('unfocued-but-still-showing');
-		}
-	});
+  libsTab.addEventListener('blur', function() {
+    if (LIBS_ACTIVE) {
+      libsTab.classList.add('unfocued-but-still-showing');
+    } else {
+      libsTab.classList.remove('unfocued-but-still-showing');
+    }
+  });
 }
 
 function addListenerToRefreshButton() {
-	const refreshLibsButton = document.getElementById('refresh-libs-btn');
-	const loadingElement		= document.getElementById('libs-loading');
-	refreshLibsButton.addEventListener('click', function() {
-		_renderLoadingElement(refreshLibsButton, loadingElement);
-	  chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
-	    if (!tabs || tabs.length === 0) return;
-	    const tab 	 = tabs[0];
-			const app 	 = await Application.retrieveApplicationFromStorage(tab);
-			const appLib = new ApplicationLibrary(tab, app);
-	    const libs 	 = await appLib.getApplicationLibraries();
-			if (!libs || libs.length === 0) {
-				_renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-				_hideLoadingElement(refreshLibsButton, loadingElement)
-				return;
-			}
-			const addedLibs = await appLib.addNewApplicationLibraries(libs);
-			if (addedLibs && addedLibs.length > 0) {
-				renderVulnerableLibraries(tab, app);
-				_renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
-				_hideLoadingElement(refreshLibsButton, loadingElement);
-			} else {
-				_renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-				_hideLoadingElement(refreshLibsButton, loadingElement);
-			}
-	  });
-	});
+  const refreshLibsButton = document.getElementById('refresh-libs-btn');
+  const loadingElement		= document.getElementById('libs-loading');
+  refreshLibsButton.addEventListener('click', function() {
+    _renderLoadingElement(refreshLibsButton, loadingElement);
+    chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
+      if (!tabs || tabs.length === 0) return;
+      const tab 	 = tabs[0];
+      const app 	 = await Application.retrieveApplicationFromStorage(tab);
+      const appLib = new ApplicationLibrary(tab, app);
+      const libs 	 = await appLib.getApplicationLibraries();
+      if (!libs || libs.length === 0) {
+        _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+        _hideLoadingElement(refreshLibsButton, loadingElement)
+        return;
+      }
+      const addedLibs = await appLib.addNewApplicationLibraries(libs);
+      if (addedLibs && addedLibs.length > 0) {
+        renderVulnerableLibraries(tab, app);
+        _renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
+        _hideLoadingElement(refreshLibsButton, loadingElement);
+      } else {
+        _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+        _hideLoadingElement(refreshLibsButton, loadingElement);
+      }
+    });
+  });
 }
 
 function _renderFoundVulnerableLibraries(message) {
-	const libMessage = document.getElementById('found-libs-message');
-	libMessage.innerText = message;
-	libMessage.classList.add('visible');
-	libMessage.classList.remove('hidden');
+  const libMessage = document.getElementById('found-libs-message');
+  libMessage.innerText = message;
+  libMessage.classList.add('visible');
+  libMessage.classList.remove('hidden');
 
-	setTimeout(() => {
-		libMessage.innerText = '';
-		libMessage.classList.remove('visible');
-		libMessage.classList.add('hidden');
-	}, 3000);
+  setTimeout(() => {
+    libMessage.innerText = '';
+    libMessage.classList.remove('visible');
+    libMessage.classList.add('hidden');
+  }, 3000);
 }
 
 function _hideLoadingElement(refreshLibsButton, loadingElement) {
-	refreshLibsButton.classList.remove('hidden');
-	refreshLibsButton.classList.add('visible');
+  refreshLibsButton.classList.remove('hidden');
+  refreshLibsButton.classList.add('visible');
 
-	loadingElement.classList.add('hidden');
-	loadingElement.classList.remove('visible');
+  loadingElement.classList.add('hidden');
+  loadingElement.classList.remove('visible');
 }
 
 function _renderLoadingElement(refreshLibsButton, loadingElement) {
-	refreshLibsButton.classList.add('hidden');
-	refreshLibsButton.classList.remove('visible');
+  refreshLibsButton.classList.add('hidden');
+  refreshLibsButton.classList.remove('visible');
 
-	loadingElement.classList.remove('hidden');
-	loadingElement.classList.add('visible');
+  loadingElement.classList.remove('hidden');
+  loadingElement.classList.add('visible');
 }

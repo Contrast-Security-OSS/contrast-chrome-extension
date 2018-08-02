@@ -2,7 +2,6 @@
 /*global
 */
 import {
-  CONTRAST_RED,
   CONTRAST_ORG_UUID,
   TEAMSERVER_URL,
   SEVERITY_NOTE,
@@ -16,13 +15,10 @@ import {
   SEVERITY_MEDIUM_ICON_PATH,
   SEVERITY_HIGH_ICON_PATH,
   SEVERITY_CRITICAL_ICON_PATH,
-  DELETE_TRACE,
   TRACES_REQUEST,
   getVulnerabilityTeamserverUrl,
   setElementDisplay,
   getVulnerabilityShort,
-  deleteApplicationTraces,
-  updateTabBadge,
 } from './util.js';
 
 
@@ -44,12 +40,6 @@ function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, applicatio
     })
     .catch(new Error("Error rendering sorted traces into list items."));
   }
-  // else {
-  //   const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
-  //   const noVulnsFound = document.getElementById("no-vulnerabilities-found");
-  //   setElementDisplay(noVulnsFound, "block");
-  //   setElementDisplay(vulnsOnPage, "none");
-  // }
 }
 
 function getShortVulnerabilities(traces) {
@@ -70,7 +60,7 @@ function getShortVulnerabilities(traces) {
  * @param  {String} orgUuid       The uuid of our org
  * @return {void}                 a new list item
  */
-function renderListItem(trace, teamserverUrl, orgUuid, application) {
+function renderListItem(trace, teamserverUrl, orgUuid) {
 
   if (!trace) return;
 
@@ -121,58 +111,8 @@ function renderListItem(trace, teamserverUrl, orgUuid, application) {
   }
   li.appendChild(anchor);
 
-  _addTrashIcon(li, trace, application);
-
   // append li last to load content smootly (is the way it works?)
   ul.appendChild(li);
-}
-
-function _addTrashIcon(li, trace, application) {
-  let trash = document.createElement('img');
-  trash.setAttribute('src', '../img/trash.svg');
-  trash.classList.add('trash-icon');
-  trash.onclick = function() {
-    deleteApplicationTraces([trace.uuid], trace.app_id)
-    .then(json => {
-      if (json && json.success) {
-        li.remove();
-        _updateTabBadge(application, trace.uuid);
-      } else {
-      }
-    })
-    .catch(error => {
-    })
-  }
-  li.appendChild(trash);
-}
-
-function _updateTabBadge(application, traceUuid) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs || tabs.length === 0) return;
-    const tab = tabs[0];
-
-    chrome.runtime.sendMessage({
-      action: DELETE_TRACE,
-      tab,
-      application,
-      traceUuid
-    });
-
-    chrome.browserAction.getBadgeText({ tabId: tab.id }, (currentBadgeText) => {
-      const currentBadgeValue = parseInt(currentBadgeText, 10);
-
-      if (!currentBadgeValue) return;
-
-      if ((currentBadgeValue - 1) === 0) {
-        const noVulnsFound = document.getElementById("no-vulnerabilities-found");
-        const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
-        setElementDisplay(noVulnsFound, "block");
-        setElementDisplay(vulnsOnPage, "none");
-      }
-
-      updateTabBadge(tab, (currentBadgeValue - 1).toString(), CONTRAST_RED);
-    });
-  });
 }
 
 /**

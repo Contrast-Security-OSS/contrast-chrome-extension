@@ -163,13 +163,6 @@ label {
   cursor: pointer;
 }
 
-/* TRASH ICON ON POPUP FOR REMOVING VULNERABILITIES */
-.trash-icon {
-  right: 5px;
-  float: right;
-  cursor: pointer;
-}
-
 #vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
   padding: 0px;
 }

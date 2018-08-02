@@ -4,7 +4,7 @@ const testData = require("../testData")
 const sinon    = require("sinon");
 const chai     = require("chai");
 const { assert, expect } = chai;
-const Helpers  = require('../../lib/helpers/helpers-module.js');
+const Helpers  = require('../../lib/util.js');
 const {
   CONTRAST_USERNAME,
   CONTRAST_SERVICE_KEY,
@@ -12,7 +12,7 @@ const {
   CONTRAST_ORG_UUID,
   TEAMSERVER_URL,
   processTeamserverUrl,
-} = Helpers.Helpers;
+} = Helpers;
 
 const { JSDOM } = jsdom;
 

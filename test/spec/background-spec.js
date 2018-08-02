@@ -36,10 +36,6 @@ const {
   LOADING_DONE,
 } = background;
 
-const {
-  TRACES_REQUEST,
-} = Helpers.Helpers;
-
 describe('tests for background methods', function() {
   beforeEach(function() {
     global.fetch = fetch;

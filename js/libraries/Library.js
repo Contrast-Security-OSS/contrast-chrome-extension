@@ -39,85 +39,85 @@ class Library {
           } else {
             this._setLibraryVersion(
               this._getVersionFromFileName(library.jsFileName));
-            console.log("Resolving1", library);
-            resolve(library)
-          }
-          console.log("Resolving2", library);
-          resolve(library);
+              console.log("Resolving1", library);
+              resolve(library)
+            }
+            console.log("Resolving2", library);
+            resolve(library);
+          })
         })
+        .catch(error => {
+          console.log("Error in _extractLibraryVersion", error);
+          reject(error);
+        });
       })
-      .catch(error => {
-        console.log("Error in _extractLibraryVersion", error);
-        reject(error);
-      });
-    })
-  }
-
-  _getVersionFromFileName(jsFileName) {
-    const version = jsFileName.match(/\b\d+(?:\.\d+)*\b/);
-    if (version) {
-      return version[0];
     }
-    return null;
-  }
 
-  _executeExtractionScript() {
-    return new Promise((resolve) => {
-      const { extractor, library, tab } = this;
-      const details = {
-        code: this._generateScriptTags({ extractor, library })
-      };
-      chrome.tabs.executeScript(tab.id, details, (result) => {
-        resolve(!!result);
-      });
-    })
-  }
-
-
-  /**
-   * NOTE: THIS IS NUTS
-   * Necessary for executing a script on the webpage directly since
-   * content scripts run in an isolated world
-   * chrome.tabs.executeScript injects into content-script, not the page
-   *
-   * _generateScriptTags - Get the library version by running an extractor
-   * function provided by Retire.js on the webpage, create an element which holds that value
-   *
-   * @param  {Object} request request from content script
-   * @return {String}        	script executed on webpage
-   */
-  _generateScriptTags() {
-    console.log("EXTRACTOR AND LIBS", this.extractor, this.library);
-    const { extractor } = this;
-    if (!this.library.parsedLibName || !extractor) {
+    _getVersionFromFileName(jsFileName) {
+      const version = jsFileName.match(/\b\d+(?:\.\d+)*\b/);
+      if (version) {
+        return version[0];
+      }
       return null;
     }
-  	const library = this.library.parsedLibName.replace('-', '_');
-  	const script  = `
-  	try {
-  		var _c_res${library} = ${extractor};
-  		var __docRes${library} = document.getElementById('__script_res_${library}');
-  		__docRes${library}.innerText = _c_res${library};
-  	} catch (e) {
-      console.log(e)
-    }`
 
-  	return (
-  		`try {
-  			var script${library} = document.createElement('script');
-  			var scriptRes${library} = document.createElement('span');
-        script${library}.innerHTML = \`${script}\`;
-        const elId_${library} = '__script_res_${library}'
-        const el_${library} = document.getElementById(elId_${library});
-        if (!el_${library}) {
-          scriptRes${library}.setAttribute('id', elId_${library});
-      		document.body.appendChild(scriptRes${library});
-      		document.body.appendChild(script${library});
-      		scriptRes${library}.style.display = 'none';
-        }
-  		} catch (e) {}`
-  	);
+    _executeExtractionScript() {
+      return new Promise((resolve) => {
+        const { extractor, library, tab } = this;
+        const details = {
+          code: this._generateScriptTags({ extractor, library })
+        };
+        chrome.tabs.executeScript(tab.id, details, (result) => {
+          resolve(!!result);
+        });
+      })
+    }
+
+
+    /**
+    * NOTE: THIS IS NUTS
+    * Necessary for executing a script on the webpage directly since
+    * content scripts run in an isolated world
+    * chrome.tabs.executeScript injects into content-script, not the page
+    *
+    * _generateScriptTags - Get the library version by running an extractor
+    * function provided by Retire.js on the webpage, create an element which holds that value
+    *
+    * @param  {Object} request request from content script
+    * @return {String}        	script executed on webpage
+    */
+    _generateScriptTags() {
+      console.log("EXTRACTOR AND LIBS", this.extractor, this.library);
+      const { extractor } = this;
+      if (!this.library.parsedLibName || !extractor) {
+        return null;
+      }
+      const library = this.library.parsedLibName.replace('-', '_');
+      const script  = `
+      try {
+        var _c_res${library} = ${extractor};
+        var __docRes${library} = document.getElementById('__script_res_${library}');
+        __docRes${library}.innerText = _c_res${library};
+      } catch (e) {
+        console.log(e)
+      }`
+
+      return (
+        `try {
+          var script${library} = document.createElement('script');
+          var scriptRes${library} = document.createElement('span');
+          script${library}.innerHTML = \`${script}\`;
+          const elId_${library} = '__script_res_${library}'
+          const el_${library} = document.getElementById(elId_${library});
+          if (!el_${library}) {
+            scriptRes${library}.setAttribute('id', elId_${library});
+            document.body.appendChild(scriptRes${library});
+            document.body.appendChild(script${library});
+            scriptRes${library}.style.display = 'none';
+          }
+        } catch (e) {}`
+      );
+    }
   }
-}
 
-export default Library;
+  export default Library;

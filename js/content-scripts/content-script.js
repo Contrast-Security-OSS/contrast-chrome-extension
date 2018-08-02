@@ -171,7 +171,7 @@ function _compareAppAndVulnerableLibraries(
     return wL;
   });
   let filteredDocScripts = docScripts.map(s => {
-    if (s && s[0] && (/[a-z]/.test(s[0]))) {
+    if (s && s[0] && ((/[a-z]/).test(s[0]))) {
       let jsFileName      = s;
       let parsedLibName   = _getLibNameFromJSFile(s);
       let parsedLibNameJS = parsedLibName + ".js";
@@ -240,7 +240,7 @@ function _getLibNameFromJSFile(jsFileName) {
   return jsFileName;
 }
 
-const wappalzye = (tab) => {
+function wappalzye(tab) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ action: CONTRAST_WAPPALIZE, tab }, (response) => {
       resolve(response);

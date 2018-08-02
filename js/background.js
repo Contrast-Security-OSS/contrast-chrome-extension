@@ -20,7 +20,6 @@ import {
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	LOADING_DONE,
-	DELETE_TRACE,
 	APPLICATION_CONNECTED,
 	APPLICATION_DISCONNECTED,
 	CONTRAST_WAPPALIZE,
@@ -126,8 +125,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 
 	if (request.action !== TRACES_REQUEST
-			&& request.action !== LOADING_DONE
-			&& request.action !== DELETE_TRACE) {
+			&& request.action !== LOADING_DONE) {
 		if (!TAB_CLOSED) {
 			loadingBadge(tab);
 			TAB_CLOSED = false;
@@ -181,18 +179,6 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 
 		case LOADING_DONE: {
 			window.PAGE_FINISHED_LOADING = true;
-			break;
-		}
-
-		case DELETE_TRACE: {
-			const { application, traceUuid } = request;
-			const path 			= VulnerableTab.buildTabPath(tab.url);
-			const vulnTab 	= new VulnerableTab(path, application.name);
-			const storedTab = await vulnTab.getStoredTab();
-			const storedTabTraces = storedTab[vulnTab.vulnTabId];
-			const filteredTraces 	= storedTabTraces.filter(t => t !== traceUuid);
-			vulnTab.setTraceIDs(filteredTraces);
-			vulnTab.storeTab();
 			break;
 		}
 

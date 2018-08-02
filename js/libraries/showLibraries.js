@@ -33,16 +33,17 @@ const getLibrariesFromStorage = (tab, application) => {
         // console.log("GOT LIBRARIES IN getLibrariesFromStorage", libraries);
         resolve(libraries);
       }
+      reject(new Error("result was", typeof result));
     });
   });
 }
 
 const _getTabAndApplication = () => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
       const tab = tabs[0];
       if (!tab) {
-        reject(null);
+        reject(new Error("Tab is null"));
         return;
       }
       const application = await Application.retrieveApplicationFromStorage(tab);
@@ -73,7 +74,7 @@ const renderVulnerableLibraries = async(tab, application) => {
     } else if (!!a.severity && !b.severity) {
       return b < a;
     } else if (!a.severity && !b.severity) {
-      return a == b;
+      return a === b;
     }
     return SEVERITY[a.severity.titleize()] < SEVERITY[b.severity.titleize()];
   });
