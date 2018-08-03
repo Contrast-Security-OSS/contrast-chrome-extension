@@ -31,18 +31,18 @@ class Library {
           action: this.GET_LIB_VERSION,
           library,
         }, (version) => {
-          console.log("VERSION RECEIVED", version);
+          // console.log("VERSION RECEIVED", version);
           if (version) {
             this._setLibraryVersion(version);
-            console.log("Resolving0", library);
+            // console.log("Resolving0", library);
             resolve(library)
           } else {
             this._setLibraryVersion(
               this._getVersionFromFileName(library.jsFileName));
-              console.log("Resolving1", library);
+              // console.log("Resolving1", library);
               resolve(library)
             }
-            console.log("Resolving2", library);
+            // console.log("Resolving2", library);
             resolve(library);
           })
         })
@@ -87,7 +87,7 @@ class Library {
     * @return {String}        	script executed on webpage
     */
     _generateScriptTags() {
-      console.log("EXTRACTOR AND LIBS", this.extractor, this.library);
+      // console.log("EXTRACTOR AND LIBS", this.extractor, this.library);
       const { extractor } = this;
       if (!this.library.parsedLibName || !extractor) {
         return null;

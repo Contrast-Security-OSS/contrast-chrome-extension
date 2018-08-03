@@ -3,6 +3,7 @@ class VulnerableApplicationLibrary {
     this.name = vulnerableLibrary.name || vulnerableLibrary.parsedLibName;
     this.vulnerabilities      = vulnerableLibrary.vulnerabilities;
     this.vulnerabilitiesCount = vulnerableLibrary.vulnerabilities.length;
+    this.version              = vulnerableLibrary.version;
   }
 
   lowConfidenceVulnerabilities() {
@@ -11,6 +12,7 @@ class VulnerableApplicationLibrary {
       confidenceIsCorrectLibrary: 'LOW',
       vulnerabilitiesCount: this.vulnerabilitiesCount,
       vulnerabilities: this.vulnerabilities.map(v => {
+        // console.log("V", v);
         let versions = {};
         v.atOrAbove ? versions.atOrAbove = v.atOrAbove : null;
         v.atOrBelow ? versions.atOrBelow = v.atOrBelow : null;
@@ -27,14 +29,16 @@ class VulnerableApplicationLibrary {
   }
 
   highConfidenceVulnerability() {
-    console.log("THIS VulnerableApplicationLibrary", this);
+    // console.log("THIS VulnerableApplicationLibrary", this);
     let vulnObj = this._isCorrectVersion(this.vulnerabilities, this.version);
+    if (!vulnObj) return vulnObj;
     return {
       name: this.name,
       severity: vulnObj.severity,
       title: vulnObj.identifiers.summary,
       link: vulnObj.info[0],
       confidenceIsCorrectLibrary: 'HIGH',
+      vulnerabilities: this.vulnerabilities,
       vulnerabilitiesCount: this.vulnerabilitiesCount,
     }
   }
@@ -57,7 +61,7 @@ class VulnerableApplicationLibrary {
       if (above) {
         above = this._parseVersionNumber(above);
       }
-
+      // console.log(below, atOrAbove, above, libVersion, vuln);
       if (this._hasVulnerableVersion(below, atOrAbove, above, libVersion)) {
         return vuln;
       }

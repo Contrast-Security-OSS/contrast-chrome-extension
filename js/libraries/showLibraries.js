@@ -69,6 +69,8 @@ const renderVulnerableLibraries = async(tab, application) => {
   const ul = document.getElementById('libs-vulnerabilities-found-on-page-list');
 
   libraries = libraries.sort((a, b) => {
+    if (!a) return b > a;
+    if (!b) return a > b;
     if (!a.severity && !!b.severity) {
       return a < b;
     } else if (!!a.severity && !b.severity) {
@@ -79,40 +81,58 @@ const renderVulnerableLibraries = async(tab, application) => {
     return SEVERITY[a.severity.titleize()] < SEVERITY[b.severity.titleize()];
   });
 
-  // console.log("LIBRARIES AFTER SORT", libraries);
-
   for (let i = 0, len = libraries.length; i < len; i++) {
     let lib = libraries[i];
-    // console.log("LIB", lib);
-    if (lib.vulnerabilitiesCount > 1) {
-      for (let j = 0; j < lib.vulnerabilitiesCount; j++) {
-        let versions = lib.vulnerabilities[j].versions;
-        let keys = Object.keys(versions);
-        let vals = Object.values(versions);
-        let version = [];
-        for (let k = 0, kLen = keys.length; k < kLen; k++) {
-          version.push(
-            `${versionTypes[keys[k]]} ${vals[k]}`);
-        }
-        if (version.length > 1) {
-          version = version.join(" and ");
-        } else {
-          version = version[0];
-        }
-        lib.vulnerabilities[j].version = version;
-        _createVulnerabilityListItem(ul, lib.name, lib.vulnerabilities[j]);
-      }
-    } else {
-      _createVulnerabilityListItem(ul, lib.name, lib);
+    if (!lib) continue;
+    for (let j = 0; j < lib.vulnerabilitiesCount; j++) {
+      if (!lib.vulnerabilities) continue;
+      let vulnObj     = lib.vulnerabilities[j];
+      vulnObj.version = _setVulnerabilityVersion(vulnObj);
+      _createVulnerabilityListItem(ul, lib.name, vulnObj);
     }
   }
   container.style.display = "block";
 }
 
+const _setVulnerabilityVersion = (vulnObj) => {
+  let versions = vulnObj.versions || vulnObj;
+  let version  = [];
+  try {
+    let keys = Object.keys(versions);
+    let vals = Object.values(versions);
+    for (let k = 0, kLen = keys.length; k < kLen; k++) {
+      if (versionTypes[keys[k]]) {
+        version.push(
+          `${versionTypes[keys[k]]} ${vals[k]}`);
+      }
+    }
+  } catch (e) {
+    console.log("Error adding version to vulnObj 2", e);
+  }
+
+  if (version.length > 1) {
+    version = version.join(" and ");
+  } else {
+    version = version[0];
+  }
+  return version;
+}
+
 const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
   let { name, version, severity, title, link } = vulnObj;
-  if (!name) name = libName;
-             name = name.titleize();
+  if (!name) {
+    name = libName;
+    name = name.titleize();
+  }
+
+  if (!title) {
+    title = vulnObj.identifiers;
+    if (title) {
+      title = title.summary;
+    } else {
+      title = libName;
+    }
+  }
 
   let li = document.createElement('li');
   li.classList.add('list-group-item');
@@ -149,7 +169,6 @@ const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
 
   let anchor = document.createElement('a');
   anchor.classList.add('vulnerability-rule-name');
-  // console.log("TITLE", title);
   anchor.innerText = capitalize(title.trim()) + ".";
   anchor.onclick = function() {
     chrome.tabs.create({
