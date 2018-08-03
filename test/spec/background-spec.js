@@ -4,9 +4,6 @@ global.chrome = chrome;
 const urlModule  = require('url');
 global.URL = urlModule.URL;
 
-const murmurHash3 = require('murmurHash3.js');
-global.murmurHash3 = murmurHash3;
-
 const testData   = require("../testData")
 const sinon      = require("sinon");
 const chai       = require("chai");
@@ -16,11 +13,11 @@ const { assert, expect } = chai;
 
 const jsdom      = require("jsdom");
 const { JSDOM }  = jsdom;
-global.window = (new JSDOM(
-  `<!DOCTYPE html><html><head></head><body></body></html>`
-)).window;
+global.window = new JSDOM(
+  `<!DOCTYPE html><html><head></head><body></body></html>`, { url: "http://localhost" }).window;
 global.window.localStorage = storageMock;
 global.document = global.window.document;
+
 
 const VulnerableTab = require('../../lib/models/VulnerableTab.js');
 
