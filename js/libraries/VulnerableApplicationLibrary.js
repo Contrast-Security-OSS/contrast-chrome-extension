@@ -12,7 +12,6 @@ class VulnerableApplicationLibrary {
       confidenceIsCorrectLibrary: 'LOW',
       vulnerabilitiesCount: this.vulnerabilitiesCount,
       vulnerabilities: this.vulnerabilities.map(v => {
-        // console.log("V", v);
         let versions = {};
         v.atOrAbove ? versions.atOrAbove = v.atOrAbove : null;
         v.atOrBelow ? versions.atOrBelow = v.atOrBelow : null;
@@ -29,7 +28,6 @@ class VulnerableApplicationLibrary {
   }
 
   highConfidenceVulnerability() {
-    // console.log("THIS VulnerableApplicationLibrary", this);
     let vulnObj = this._isCorrectVersion(this.vulnerabilities, this.version);
     if (!vulnObj) return vulnObj;
     return {
@@ -46,9 +44,6 @@ class VulnerableApplicationLibrary {
   _isCorrectVersion(vulnerabilityObjects, libVersion) {
     if (!vulnerabilityObjects || !libVersion) return false;
 
-    // console.log("####");
-    // console.log(vulnerabilityObjects, docScripts, libName);
-
     for (let i = 0, len = vulnerabilityObjects.length; i < len; i++) {
       let vuln = vulnerabilityObjects[i];
       let { below, atOrAbove, above } = vuln;
@@ -61,7 +56,6 @@ class VulnerableApplicationLibrary {
       if (above) {
         above = this._parseVersionNumber(above);
       }
-      // console.log(below, atOrAbove, above, libVersion, vuln);
       if (this._hasVulnerableVersion(below, atOrAbove, above, libVersion)) {
         return vuln;
       }
