@@ -7,3 +7,7 @@ else
   ln -s ../../scripts/pre_push.sh $GIT_DIR/hooks/pre-push
   chmod +x scripts/pre_push.sh
 fi
+
+cd wapp-service
+npm install
+node index.js &

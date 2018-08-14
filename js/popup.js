@@ -24,14 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const store = result[STORED_APPS_KEY];
       const app   = store ? store.filter(a => a[host])[0] : store;
 
-      // console.log("app", app);
-      // console.log("isContrastTeamserver(tab.url)", isContrastTeamserver(tab.url));
 
       if (app && !isEmptyObject(app)) {
         getStoredCredentials()
         .then(items => {
           if (isCredentialed(items)) {
-            getStorageVulnsAndRender(items, app);
+            getStorageVulnsAndRender(items, app, tab);
           } else {
             throw new Error("Not Credentialed")
           }

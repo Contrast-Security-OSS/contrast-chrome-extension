@@ -19,7 +19,7 @@ for file in $debugger_files; do
 done
 
 # search for localhost in utils file
-localhost_file=$(grep -lr 'localhost' js/util.js)
+localhost_file=$(grep -lr 'localhost' js/helpers/helpers.js)
 for file in $localhost_file; do
   echo "Removing localhost from $file"
   $(sed -i '/localhost/d' $file)

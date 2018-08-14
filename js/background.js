@@ -20,9 +20,9 @@ import {
 	TRACES_REQUEST,
 	GATHER_FORMS_ACTION,
 	LOADING_DONE,
-	DELETE_TRACE,
 	APPLICATION_CONNECTED,
 	APPLICATION_DISCONNECTED,
+	CONTRAST_WAPPALIZE,
 	getStoredCredentials,
 	isCredentialed,
 	isBlacklisted,
@@ -30,6 +30,10 @@ import {
 	removeLoadingBadge,
 	loadingBadge,
 } from './util.js';
+
+import {
+	wappalzye,
+} from './libraries/wappalyzer.js';
 
 import Application from './models/Application.js';
 import Vulnerability from './models/Vulnerability.js';
@@ -45,7 +49,6 @@ window.XHR_REQUESTS 				 = []; // use to not re-evaluate xhr requests
 window.PAGE_FINISHED_LOADING = false;
 
 function resetXHRRequests() {
-	console.log("RESETTING XHR REQUESTS from", window.XHR_REQUESTS);
 	window.XHR_REQUESTS = [];
 }
 
@@ -89,7 +92,6 @@ function _handleWebRequest(request) {
 
 	// evaluate new XHR requests immediately
 	if (window.PAGE_FINISHED_LOADING && QUEUE.executionCount > 0 && conditions.every(Boolean)) {
-		console.log("request", QUEUE);
 		window.XHR_REQUESTS.push(requestURL);
 		Vulnerability.evaluateSingleURL(requestURL, QUEUE.tab, QUEUE.application);
 	}
@@ -114,21 +116,17 @@ function _handleWebRequest(request) {
  * NOTE: This export function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response alocalhronously (this will keep the message channel open to the other end until sendResponse is called).
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-
 	// NOTE: REMOVED TAB QUERY
 
 	const { tab } = request;
 	if (!tab || !tab.active) {
-		console.log("No Tab");
 		sendResponse("Tab not active");
 		return false;
 	}
 
 	if (request.action !== TRACES_REQUEST
-			&& request.action !== LOADING_DONE
-			&& request.action !== DELETE_TRACE) {
+			&& request.action !== LOADING_DONE) {
 		if (!TAB_CLOSED) {
-			console.log("setting loading badge in onMessage");
 			loadingBadge(tab);
 			TAB_CLOSED = false;
 		}
@@ -161,7 +159,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 	switch (request.action) {
 		case TRACES_REQUEST: {
-			console.log("Handling traces request message");
 			const tabPath				= VulnerableTab.buildTabPath(tab.url);
 			const vulnerableTab = new VulnerableTab(tabPath, request.application.name)
 			const storedTabs		= await vulnerableTab.getStoredTab();
@@ -185,20 +182,13 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
 			break;
 		}
 
-		case DELETE_TRACE: {
-			const { application, traceUuid } = request;
-			const path 			= VulnerableTab.buildTabPath(tab.url);
-			const vulnTab 	= new VulnerableTab(path, application.name);
-			const storedTab = await vulnTab.getStoredTab();
-			const storedTabTraces = storedTab[vulnTab.vulnTabId];
-			const filteredTraces 	= storedTabTraces.filter(t => t !== traceUuid);
-			vulnTab.setTraceIDs(filteredTraces);
-			vulnTab.storeTab();
+		case CONTRAST_WAPPALIZE: {
+			const wappalyzedLibraries = await wappalzye(tab);
+			sendResponse(wappalyzedLibraries);
 			break;
 		}
 
 		default: {
-			console.log("Default Case in _handleRuntimeOnMessage, request action was", request.action);
 			return request;
 		}
 	}
@@ -255,7 +245,6 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
 		if (!tab || chrome.runtime.lastError) return;
 
-		console.log("tab activated");
 		_queueActions(tab, false);
 	});
 });
@@ -271,7 +260,6 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 	QUEUE = new Queue();
 
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
-		console.log("tab activated");
 		if (!tab) return;
 		_queueActions(tab, false);
 	});
@@ -292,15 +280,12 @@ chrome.tabs.onActivated.addListener(activeInfo => {
  * @return {void}
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	console.log("tab updated");
 	if (QUEUE) QUEUE.resetExecutionCount(); // execution count is used by onBeforeRequest
 	if (!_tabIsReady(changeInfo, tab)) {
-		console.log("Tab not ready after update");
 		return;
 	}
 	QUEUE = new Queue();
 	// QUEUE.resetQueue();
-	console.log("Queue after Reset", QUEUE);
 	_queueActions(tab, true);
 });
 
@@ -324,7 +309,6 @@ function _tabIsReady(changeInfo, tab) {
 		// GET STUCK ON LOADING if done for both "loading" and "complete"
 		// NOTE: UPDATEBADGE
 		if (!TAB_CLOSED) {
-			console.log("setting loading badge");
 			loadingBadge(tab);
 			TAB_CLOSED = false;
 		}
