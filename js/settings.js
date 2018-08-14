@@ -2,10 +2,12 @@
 /*global
   chrome,
   document,
-  getStoredCredentials,
-  processTeamserverUrl
 */
-"use strict";
+
+import {
+  getStoredCredentials,
+  processTeamserverUrl,
+} from './util.js';
 
 function setAttributeValue(element, value) {
   element.setAttribute("value", !value ? "" : value);

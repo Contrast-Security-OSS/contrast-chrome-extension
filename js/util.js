@@ -58,15 +58,18 @@ export const CONTRAST_CONFIGURE_TEXT  = "*";
 // chrome storage and message event keys
 export const LISTENING_ON_DOMAIN = ["<all_urls>"];
 export const GATHER_FORMS_ACTION = "contrast__gatherForms";
+export const GATHER_SCRIPTS      = 'contrast__gather_scripts';
 export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
-export const DELETE_TRACE        = "contrast__remove_storedTrace";
 export const STORED_APPS_KEY     = "contrast__APPS";
 export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
 export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
 export const APPLICATION_CONNECTED    = 'contrast__application__connected';
 export const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
 export const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
+export const CONTRAST__STORED_APP_LIBS = 'contrast__stored_libraries';
+export const CONTRAST_WAPPALIZE        = 'contrast__wappalzye';
+export const WAPPALYZER_SERVICE        = 'http://localhost:5003';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -117,6 +120,8 @@ String.prototype.titleize = function() {
     return captured.charAt(0).toUpperCase() + captured.substr(1).toLowerCase();
   });
 }
+
+export const capitalize = (s) => s[0].toUpperCase() + s.substr(1);
 
 // --------- HELPER FUNCTIONS -------------
 
@@ -173,13 +178,6 @@ function getApplicationsUrl(teamserverUrl, orgUuid) {
     return teamserverUrl + "/ng/" + orgUuid + "/applications/name"
   }
   throw new Error("an argument to getApplicationsUrl was undefined");
-}
-
-function deleteApplicationTracesUrl(teamserverUrl, orgUuid, appId, traceUuids) {
-  if (teamserverUrl && orgUuid && appId) {
-    return teamserverUrl + "/ng/" + orgUuid + "/traces/" + appId;
-  }
-  throw new Error("An argument to deleteApplicationTraces was undefined");
 }
 
 /**
@@ -286,25 +284,6 @@ function getOrgApplications() {
   });
 }
 
-/**
- * deleteApplicationTraces - description
- *
- * @returns {type}  description
- */
-function deleteApplicationTraces(traces, appId) {
-  return getStoredCredentials()
-  .then(items => {
-    const url = deleteApplicationTracesUrl(
-      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], appId
-    );
-    const authHeader = getAuthorizationHeader(
-      items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
-    );
-
-    return fetchTeamserver(
-      url, { traces }, authHeader, items[CONTRAST_API_KEY], 'DELETE');
-  });
-}
 
 // ---------  OTHER HELPER FUNCTIONS -------------
 
@@ -340,7 +319,10 @@ function deDupeArray(array) {
 }
 
 function isEmptyObject(obj) {
-  return Object.keys(obj).length === 0 && obj.constructor === Object;
+  for (let key in obj) { // eslint-disable-line guard-for-in
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -611,7 +593,6 @@ export {
   getOrganizationVulnerabilityIds,
   getVulnerabilityShort,
   getOrgApplications,
-  deleteApplicationTraces,
   isCredentialed,
   deDupeArray,
   getHostFromUrl,
