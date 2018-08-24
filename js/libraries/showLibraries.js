@@ -62,8 +62,8 @@ const renderVulnerableLibraries = async(tab, application) => {
 
   if (!libraries || libraries.length === 0) return;
 
-  document.getElementById('libs-not-configured').style.display = "none";
-  document.getElementById('libs-no-vulnerabilities-found').style.display = "none";
+  // document.getElementById('libs-not-configured').style.display = "none";
+  // document.getElementById('libs-no-vulnerabilities-found').style.display = "none";
 
   const container = document.getElementById('libs-vulnerabilities-found-on-page');
   const ul = document.getElementById('libs-vulnerabilities-found-on-page-list');
@@ -91,7 +91,9 @@ const renderVulnerableLibraries = async(tab, application) => {
       _createVulnerabilityListItem(ul, lib.name, vulnObj);
     }
   }
-  container.style.display = "block";
+
+  container.classList.remove('hidden');
+  container.classList.add('visible');
 }
 
 const _setVulnerabilityVersion = (vulnObj) => {

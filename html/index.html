@@ -15,10 +15,12 @@
 </head>
 
 <body>
-  <div class="tab-selector">
+  <!-- <div class="tab-selector">
     <button id="vulns-tab" class="btn buttonTab" autofocus type="button" name="button">Vulnerabilities</button>
     <button id="libs-tab" class="btn buttonTab" type="button" name="button">Libraries</button>
-  </div>
+  </div> -->
+
+
   <section id="vulnerabilities-section" class="panel panel-default visible">
     <div class="panel-heading container-fluid">
       <div class="row">
@@ -69,9 +71,26 @@
     </div>
 
     <div style="display: none;" id="vulnerabilities-found-on-page" class="panel-body">
-      <ul class="list-group" id="vulnerabilities-found-on-page-list">
-      </ul>
+      <div class="app-vulnerabilities-div">
+        <ul class="list-group" id="vulnerabilities-found-on-page-list">
+        </ul>
+      </div>
+      <div class="app-libraries-div">
+        <div class="hidden" id="libs-vulnerabilities-found-on-page" class="panel-body">
+          <ul class="list-group" id="libs-vulnerabilities-found-on-page-list">
+          </ul>
+        </div>
+
+        <h4 id="found-libs-message" class="hidden"></h4>
+        <div class="hidden" id="libs-loading">
+          <img src="/img/contrast128.png" alt="loading">
+        </div>
+      </div>
     </div>
+
+    <button class="btn btn-contrast-plugin btn-primary hidden" id="refresh-libs-btn">
+      Scan Libraries
+    </button>
 
     <div class="panel-footer container-fluid">
       <div class="row">
@@ -88,7 +107,7 @@
   <!-- end vulnerabilities section -->
 
   <!-- begin Libraries section -->
-  <section id="libraries-section" class="panel panel-default hidden">
+  <!-- <section id="libraries-section" class="panel panel-default hidden">
     <div class="panel-heading container-fluid">
       <div class="row">
         <div class="col-xs-2">
@@ -134,7 +153,7 @@
           </a>
         </div>
       </div>
-  </section>
+  </section> -->
 </body>
 
 </html>

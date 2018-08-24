@@ -94,27 +94,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true; // NOTE: Keep this
 });
 
+function _dataQuery(key) {
+  const dataAttr = 'data-contrast-scrape';
+  const keys = {
+    0: 'contrast-api-key',
+    1: 'contrast-organization-uuid',
+    2: 'contrast-contrast-url',
+    3: 'contrast-service-key',
+    4: 'contrast-username',
+  }
+  console.log("QUERY", `[${dataAttr}=${keys[key]}]`);
+  return document.querySelector(`[${dataAttr}=${keys[key]}]`).textContent;
+}
+
 function _initializeContrast(request, sendResponse) {
+
   const tsIndex   = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
-  const tsAccount = request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX);
+  // const tsAccount = request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX);
 
   const teamServerUrl = request.url.substring(
     0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
-  const orgUuid = request.url.substring(
-    tsIndex + TEAMSERVER_INDEX_PATH_SUFFIX.length, tsAccount);
+  // const orgUuid = request.url.substring(
+    // tsIndex + TEAMSERVER_INDEX_PATH_SUFFIX.length, tsAccount);
+  //
+  console.log("teamServerUrl", teamServerUrl);
 
-  const profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
-  const apiKey = document.getElementsByClassName('org-key').item(0).textContent;
-  const serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
+  const apiKey        = _dataQuery(0);
+  const orgUuid       = _dataQuery(1);
+  // const teamServerUrl = _dataQuery(2);
+  const serviceKey    = _dataQuery(3);
+  const profileEmail  = _dataQuery(4);
 
   const contrastObj = {
-    [CONTRAST_USERNAME]: profileEmail.trim(),
-    [CONTRAST_SERVICE_KEY]: serviceKey.trim(),
-    [CONTRAST_API_KEY]: apiKey.trim(),
-    [CONTRAST_ORG_UUID]: orgUuid.trim(),
+    [CONTRAST_USERNAME]: profileEmail,
+    [CONTRAST_SERVICE_KEY]: serviceKey,
+    [CONTRAST_API_KEY]: apiKey,
+    [CONTRAST_ORG_UUID]: orgUuid,
     [TEAMSERVER_URL]: teamServerUrl,
   };
-  console.log("setting contrast object", contrastObj);
   chrome.storage.local.set(contrastObj, () => {
     if (chrome.runtime.lastError) {
       throw new Error("Error setting configuration");
@@ -122,8 +139,6 @@ function _initializeContrast(request, sendResponse) {
     sendResponse(CONTRAST_INITIALIZED);
   });
 }
-
-
 
 
 function _getLibraryVulnerabilities() {
