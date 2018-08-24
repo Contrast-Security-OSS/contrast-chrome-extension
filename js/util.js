@@ -30,6 +30,22 @@ export const SEVERITY = {
   [SEVERITY_CRITICAL]: 4,
 };
 
+export const SEVERITY_BACKGROUND_COLORS = {
+  [SEVERITY_NOTE]: 'rgb(238, 238, 238)',
+  [SEVERITY_LOW]: 'rgb(220, 220, 220)',
+  [SEVERITY_MEDIUM]: 'rgb(247, 182, 0)',
+  [SEVERITY_HIGH]: 'rgb(247, 138, 49)',
+  [SEVERITY_CRITICAL]: 'rgb(230, 48, 37)',
+}
+
+export const SEVERITY_TEXT_COLORS = {
+  [SEVERITY_NOTE]: 'rgb(102, 102, 102)',
+  [SEVERITY_LOW]: 'rgb(41, 41, 41)',
+  [SEVERITY_MEDIUM]: 'white',
+  [SEVERITY_HIGH]: 'white',
+  [SEVERITY_CRITICAL]: 'white',
+}
+
 // Vulnerability Severity Icons
 export const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
 export const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
@@ -167,9 +183,10 @@ function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
   throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined");
 }
 
-function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
+function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid, appID) {
   if (teamserverUrl && orgUuid && traceUuid) {
-    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
+    return teamserverUrl + '/ng/' + orgUuid + '/traces/' + appID + '/trace/' + traceUuid;
+    // return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
   }
 
   throw new Error("an argument to getVulnerabilityShortUrl was undefined");
@@ -253,11 +270,11 @@ function getOrganizationVulnerabilityIds(urls, appId) {
  * @param  {String} traceUuid the uuid of the trace we're getting details about
  * @return {Promise<Object} A promise containing details about the trace
  */
-function getVulnerabilityShort(traceUuid) {
+function getVulnerabilityShort(traceUuid, appID) {
   return getStoredCredentials()
   .then(items => {
     const url = getVulnerabilityShortUrl(
-      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid, appID
     );
     const authHeader = getAuthorizationHeader(
       items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]

@@ -15,6 +15,8 @@ import {
   SEVERITY_MEDIUM_ICON_PATH,
   SEVERITY_HIGH_ICON_PATH,
   SEVERITY_CRITICAL_ICON_PATH,
+  SEVERITY_BACKGROUND_COLORS,
+  SEVERITY_TEXT_COLORS,
   TRACES_REQUEST,
   getVulnerabilityTeamserverUrl,
   setElementDisplay,
@@ -34,7 +36,7 @@ import {
 function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, application) {
   if (traces.length > 0) {
     // NOTE: Elements set to display show in getStorageVulnsAndRender
-    getShortVulnerabilities(traces)
+    getShortVulnerabilities(traces, application.id)
     .then(sortedTraces => {
       sortedTraces.map(trace => renderListItem(trace, teamserverUrl, orgUuid, application));
     })
@@ -42,8 +44,10 @@ function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, applicatio
   }
 }
 
-function getShortVulnerabilities(traces) {
-  return Promise.all(traces.map(t => getVulnerabilityShort(t)))
+// rule + from what + on which page
+
+function getShortVulnerabilities(traces, appID) {
+  return Promise.all(traces.map(t => getVulnerabilityShort(t, appID)))
   .then(shortTraces => {
     return shortTraces.map(t => t.trace).sort((a, b) => {
       return SEVERITY[b.severity] - SEVERITY[a.severity];
@@ -62,6 +66,8 @@ function getShortVulnerabilities(traces) {
  */
 function renderListItem(trace, teamserverUrl, orgUuid) {
 
+  console.log("TRACE", trace);
+
   if (!trace) return;
 
   let ul = document.getElementById('vulnerabilities-found-on-page-list');
@@ -69,40 +75,46 @@ function renderListItem(trace, teamserverUrl, orgUuid) {
   li.classList.add('no-border');
   li.classList.add('vulnerability-li');
 
-  let img = document.createElement('img');
+  // let img = document.createElement('img');
 
   switch (trace.severity) {
     case SEVERITY_NOTE:
-      img.setAttribute("src", SEVERITY_NOTE_ICON_PATH);
-      li.classList.add("vuln-5");
+      createBadge(SEVERITY_NOTE, li);
+      // img.setAttribute("src", SEVERITY_NOTE_ICON_PATH);
+      // li.classList.add("vuln-5");
       break;
     case SEVERITY_LOW:
-      img.setAttribute("src", SEVERITY_LOW_ICON_PATH);
-      li.classList.add("vuln-4");
+      createBadge(SEVERITY_LOW, li);
+      // img.setAttribute("src", SEVERITY_LOW_ICON_PATH);
+      // li.classList.add("vuln-4");
       break;
     case SEVERITY_MEDIUM:
-      img.setAttribute("src", SEVERITY_MEDIUM_ICON_PATH);
-      li.classList.add("vuln-3");
+      createBadge(SEVERITY_MEDIUM, li);
+      // img.setAttribute("src", SEVERITY_MEDIUM_ICON_PATH);
+      // li.classList.add("vuln-3");
       break;
     case SEVERITY_HIGH:
-      img.setAttribute("src", SEVERITY_HIGH_ICON_PATH);
-      li.classList.add("vuln-2");
+      createBadge(SEVERITY_HIGH, li);
+      // img.setAttribute("src", SEVERITY_HIGH_ICON_PATH);
+      // li.classList.add("vuln-2");
       break;
     case SEVERITY_CRITICAL:
-      img.setAttribute("src", SEVERITY_CRITICAL_ICON_PATH);
-      li.classList.add("vuln-1");
+      createBadge(SEVERITY_CRITICAL, li);
+      // img.setAttribute("src", SEVERITY_CRITICAL_ICON_PATH);
+      // li.classList.add("vuln-1");
       break;
     default:
       break;
   }
-  li.appendChild(img);
+  // li.appendChild(img);
 
   // Teamserver returns camelCase vs snake_case depending on endpoint
-  const ruleName = trace.ruleName || trace.rule_name;
+  // const ruleName = trace.ruleName || trace.rule_name;
 
   const anchor = document.createElement('a');
+  anchor.classList.add('vulnerability-link');
   anchor.classList.add('vulnerability-rule-name');
-  anchor.innerText = " " + ruleName.split('-').join(' ').titleize();
+  anchor.innerText = trace.title; //" " + ruleName.split('-').join(' ').titleize();
   anchor.onclick = function() {
     chrome.tabs.create({
       url: getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, trace.uuid),
@@ -138,6 +150,20 @@ function getStorageVulnsAndRender(items, application, tab) {
   });
 }
 
+const createBadge = (severity, li) => {
+  let parent = document.createElement('div');
+  parent.classList.add('parent-badge');
+
+  let child = document.createElement('div');
+  child.classList.add('child-badge');
+  child.innerText = severity;
+  child.style.color = SEVERITY_TEXT_COLORS[severity];
+
+  parent.style.backgroundColor = SEVERITY_BACKGROUND_COLORS[severity];
+
+  parent.appendChild(child);
+  li.appendChild(parent);
+}
 
 
 export {

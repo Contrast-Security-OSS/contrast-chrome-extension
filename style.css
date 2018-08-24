@@ -7,6 +7,7 @@ html {
 body {
   font-family: Lato, Helvetica, Neue, Arial, 'sans-serif';
   font-size: 14px;
+  min-width: 500px; /*  max width is 800px */
 }
 
 #settings-body {
@@ -72,13 +73,13 @@ button.buttonTab:hover {
 }
 
 #no-results {
-  width: 400px;
+  width: 500px;
   align-items: center;
   justify-content: space-between;
 }
 
 #vulnerabilities-section, #libraries-section {
-  width: 400px;
+  width: 500px;
   padding: 0px;
   align-items: center;
   justify-content: space-between;
@@ -100,19 +101,19 @@ div#configuration-problem {
 }
 
 #get-started-img {
-  width: 300px;
+  width: 500px;
   display: block;
   margin: 0 auto;
 }
 
 #get-started-description {
-  width: 300px;
+  width: 500px;
   display: block;
   margin: 0 auto;
 }
 
 img#header-logo {
-  width: 300px;
+  width: 500px;
 }
 
 form.settings-form input {
@@ -154,21 +155,33 @@ label {
   border: 0;
 }
 
-.vulnerability-li {
-  padding: 2px 15px;
-}
-
-.vulnerability-rule-name, .vulnerability-rule-name:hover {
-  color: black;
-  cursor: pointer;
-}
-
 #vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
   padding: 0px;
 }
 
 #vulnerabilities-found-on-page-list, #libs-vulnerabilities-found-on-page-list {
   margin-top: 10px;
+}
+
+.vulnerability-li {
+  padding: 3px 25px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+  overflow: hidden;
+}
+
+.vulnerability-rule-name, .vulnerability-link {
+  color: black;
+}
+
+.vulnerability-link:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.vulnerability-rule-name {
+  padding-left: 10px;
 }
 
 /* gear button in bottom right corner */
@@ -282,3 +295,26 @@ label {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 } */
+
+
+/* BADGES */
+
+.parent-badge {
+  display: inline-flex;
+  width: 73px;
+}
+
+.child-badge {
+  font-family: "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  display: flex;
+  flex-wrap: nowrap;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  width: 73px;
+  height: 20px;
+  border-radius: 2px;
+}

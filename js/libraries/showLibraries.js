@@ -7,6 +7,8 @@ import {
   SEVERITY_HIGH,
   SEVERITY_HIGH_ICON_PATH,
   CONTRAST__STORED_APP_LIBS,
+  SEVERITY_BACKGROUND_COLORS,
+  SEVERITY_TEXT_COLORS,
   isEmptyObject,
   capitalize,
 } from '../util.js';
@@ -81,19 +83,38 @@ const renderVulnerableLibraries = async(tab, application) => {
     return SEVERITY[a.severity.titleize()] < SEVERITY[b.severity.titleize()];
   });
 
+  let listItemTexts = [];
   for (let i = 0, len = libraries.length; i < len; i++) {
     let lib = libraries[i];
     if (!lib) continue;
     for (let j = 0; j < lib.vulnerabilitiesCount; j++) {
       if (!lib.vulnerabilities) continue;
       let vulnObj     = lib.vulnerabilities[j];
-      vulnObj.version = _setVulnerabilityVersion(vulnObj);
-      _createVulnerabilityListItem(ul, lib.name, vulnObj);
+          vulnObj.title = _vulnObjTitle(vulnObj);
+      // vulnObj.version = _setVulnerabilityVersion(vulnObj);
+      let name = vulnObj.name || lib.name;
+      if (!listItemTexts.includes(vulnObj.title + name)) {
+        _createVulnerabilityListItem(ul, lib.name, vulnObj);
+        listItemTexts.push(vulnObj.title + name);
+      }
     }
   }
 
   container.classList.remove('hidden');
   container.classList.add('visible');
+}
+
+const _vulnObjTitle = (vulnObj) => {
+  let title = vulnObj.title;
+  if (!title) {
+    title = vulnObj.identifiers;
+    if (title) {
+      return title.summary;
+    } else {
+      return libName;
+    }
+  }
+  return title;
 }
 
 const _setVulnerabilityVersion = (vulnObj) => {
@@ -102,7 +123,7 @@ const _setVulnerabilityVersion = (vulnObj) => {
   try {
     let keys = Object.keys(versions);
     let vals = Object.values(versions);
-    for (let k = 0, kLen = keys.length; k < kLen; k++) {
+    for (let k = keys.length, kLen = -1; k > kLen; k--) {
       if (versionTypes[keys[k]]) {
         version.push(
           `${versionTypes[keys[k]]} ${vals[k]}`);
@@ -120,6 +141,21 @@ const _setVulnerabilityVersion = (vulnObj) => {
   return version;
 }
 
+const createBadge = (severity, li) => {
+  let parent = document.createElement('div');
+  parent.classList.add('parent-badge');
+
+  let child = document.createElement('div');
+  child.classList.add('child-badge');
+  child.innerText = severity;
+  child.style.color = SEVERITY_TEXT_COLORS[severity];
+
+  parent.style.backgroundColor = SEVERITY_BACKGROUND_COLORS[severity];
+
+  parent.appendChild(child);
+  li.appendChild(parent);
+}
+
 const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
   let { name, version, severity, title, link } = vulnObj;
   if (!name) {
@@ -127,58 +163,41 @@ const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
     name = name.titleize();
   }
 
-  if (!title) {
-    title = vulnObj.identifiers;
-    if (title) {
-      title = title.summary;
-    } else {
-      title = libName;
-    }
-  }
-
   let li = document.createElement('li');
   li.classList.add('list-group-item');
   li.classList.add('no-border');
   li.classList.add('vulnerability-li');
 
-  let img = document.createElement('img');
-
   switch (severity.toLowerCase()) {
     case SEVERITY_LOW.toLowerCase(): {
-      img.setAttribute("src", SEVERITY_LOW_ICON_PATH);
-      li.classList.add("vuln-4");
+      createBadge(SEVERITY_LOW, li);
       break;
     }
     case SEVERITY_MEDIUM.toLowerCase(): {
-      img.setAttribute("src", SEVERITY_MEDIUM_ICON_PATH);
-      li.classList.add("vuln-3");
+      createBadge(SEVERITY_MEDIUM, li);
       break;
     }
     case SEVERITY_HIGH.toLowerCase(): {
-      img.setAttribute("src", SEVERITY_HIGH_ICON_PATH);
-      li.classList.add("vuln-2");
+      createBadge(SEVERITY_HIGH, li);
       break;
     }
     default:
       break;
   }
-  li.appendChild(img);
 
-  let titleSpan = document.createElement('span');
-  titleSpan.classList.add('vulnerability-rule-name');
-  titleSpan.innerText = " " + name + " " + version + "\n";
-  titleSpan.style.weight = 'bold';
+  name = name.replace('Jquery', 'JQuery');
+  // titleSpan.style.weight = 'bold';
 
   let anchor = document.createElement('a');
+  anchor.classList.add('vulnerability-link');
   anchor.classList.add('vulnerability-rule-name');
-  anchor.innerText = capitalize(title.trim()) + ".";
+  anchor.innerText = name + ":  " + capitalize(title.trim()); // + version
   anchor.onclick = function() {
     chrome.tabs.create({
       url: link,
       active: false
     });
   }
-  li.appendChild(titleSpan);
   li.appendChild(anchor);
 
   ul.appendChild(li);
