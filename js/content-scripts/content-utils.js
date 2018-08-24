@@ -68,6 +68,8 @@ const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
 const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
 const CONTRAST__STORED_APP_LIBS = 'contrast__stored_libraries';
 const CONTRAST_WAPPALIZE        = 'contrast__wappalzye';
+const CONTRAST_INITIALIZE        = 'contrast__initialize_user';
+const CONTRAST_INITIALIZED       = 'contrast__user_initialized';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [

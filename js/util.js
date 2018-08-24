@@ -63,13 +63,15 @@ export const STORED_TRACES_KEY   = "contrast__traces";
 export const TRACES_REQUEST      = "contrast__getStoredTraces";
 export const STORED_APPS_KEY     = "contrast__APPS";
 export const LOADING_DONE        = "contrast__LOADING_DONE_requests";
-export const HIGHLIGHT_VULNERABLE_FORMS = "contrast__highlight_vuln_forms";
-export const APPLICATION_CONNECTED    = 'contrast__application__connected';
-export const APPLICATION_DISCONNECTED = 'contrast__application__disconnected';
-export const CONNECTED_APP_DOMAINS    = 'contrast__connected_app_domains';
-export const CONTRAST__STORED_APP_LIBS = 'contrast__stored_libraries';
-export const CONTRAST_WAPPALIZE        = 'contrast__wappalzye';
-export const WAPPALYZER_SERVICE        = 'http://localhost:5003';
+export const HIGHLIGHT_VULNERABLE_FORMS = 'contrast__highlight_vuln_forms';
+export const APPLICATION_CONNECTED      = 'contrast__application__connected';
+export const APPLICATION_DISCONNECTED   = 'contrast__application__disconnected';
+export const CONNECTED_APP_DOMAINS      = 'contrast__connected_app_domains';
+export const CONTRAST_INITIALIZE        = 'contrast__initialize_user';
+export const CONTRAST_INITIALIZED       = 'contrast__user_initialized';
+export const CONTRAST__STORED_APP_LIBS  = 'contrast__stored_libraries';
+export const CONTRAST_WAPPALIZE         = 'contrast__wappalzye';
+export const WAPPALYZER_SERVICE         = 'http://localhost:5003';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [

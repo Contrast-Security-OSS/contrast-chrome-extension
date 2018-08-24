@@ -138,27 +138,27 @@ const returnFilterTraceData = {
     links: [
       {
         rel: "self",
-        href: "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/d834de81-3069-499a-9ddc-eeb30375fdbf/trace/7HC2-TYLR-VATF-Z2ZO",
+        href: "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/d834de81-3069-499a-9ddc-eeb30375fdbf/trace/7HC2-TYLR-VATF-Z2ZO",
         method: "GET"
       },
       {
         rel: "story",
-        href: "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/7HC2-TYLR-VATF-Z2ZO/story",
+        href: "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/7HC2-TYLR-VATF-Z2ZO/story",
         method: "GET"
       },
       {
         rel: "http-request",
-        href: "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/7HC2-TYLR-VATF-Z2ZO/httprequest",
+        href: "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/7HC2-TYLR-VATF-Z2ZO/httprequest",
         method: "GET"
       },
       {
         rel: "recommendation",
-        href: "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/7HC2-TYLR-VATF-Z2ZO/recommendation",
+        href: "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/7HC2-TYLR-VATF-Z2ZO/recommendation",
         method: "GET"
       },
       {
         rel: "add-note",
-        href: "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/applications/d834de81-3069-499a-9ddc-eeb30375fdbf/traces/7HC2-TYLR-VATF-Z2ZO/notes",
+        href: "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/applications/d834de81-3069-499a-9ddc-eeb30375fdbf/traces/7HC2-TYLR-VATF-Z2ZO/notes",
         method: "POST"
       }
     ],
@@ -315,7 +315,7 @@ const organizationApps = [
   }
 ];
 
-const url = "http://localhost:19090/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/ddac16d8-e915-47b1-a8c9-0c142ab17beb/ids?urls=aHR0cDovL2xvY2FsaG9zdDozMDAwL3VzZXJzL3NpZ25pbg==,L3VzZXJzL3NpZ25pbg==,Y2hyb21lLWV4dGVuc2lvbjovL3BjampubGZjZmFmaG9taWJvaG5lbGdjam5ibmxob3BuL2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4=,L2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4="
+const url = "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/ddac16d8-e915-47b1-a8c9-0c142ab17beb/ids?urls=aHR0cDovL2xvY2FsaG9zdDozMDAwL3VzZXJzL3NpZ25pbg==,L3VzZXJzL3NpZ25pbg==,Y2hyb21lLWV4dGVuc2lvbjovL3BjampubGZjZmFmaG9taWJvaG5lbGdjam5ibmxob3BuL2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4=,L2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4="
 
 module.exports = {
   url,

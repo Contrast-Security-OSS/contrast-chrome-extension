@@ -18,6 +18,8 @@ LOADING_DONE,
 MutationObserver,
 TEAMSERVER_API_PATH_SUFFIX,
 CONTRAST_WAPPALIZE,
+CONTRAST_INITIALIZE,
+CONTRAST_INITIALIZED,
 */
 "use strict";
 
@@ -56,7 +58,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse(ContrastForm.highlightForms(request.formActions));
   }
 
-  else if (request.url !== undefined && request.action === "INITIALIZE") {
+  else if (request.url !== undefined && request.action === CONTRAST_INITIALIZE) {
     _initializeContrast(request, sendResponse);
   }
 
@@ -105,17 +107,19 @@ function _initializeContrast(request, sendResponse) {
   const apiKey = document.getElementsByClassName('org-key').item(0).textContent;
   const serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
 
-  chrome.storage.local.set({
+  const contrastObj = {
     [CONTRAST_USERNAME]: profileEmail.trim(),
     [CONTRAST_SERVICE_KEY]: serviceKey.trim(),
     [CONTRAST_API_KEY]: apiKey.trim(),
     [CONTRAST_ORG_UUID]: orgUuid.trim(),
     [TEAMSERVER_URL]: teamServerUrl,
-  }, () => {
+  };
+  console.log("setting contrast object", contrastObj);
+  chrome.storage.local.set(contrastObj, () => {
     if (chrome.runtime.lastError) {
       throw new Error("Error setting configuration");
     }
-    sendResponse("INITIALIZED");
+    sendResponse(CONTRAST_INITIALIZED);
   });
 }
 

@@ -7,6 +7,8 @@ import {
   TEAMSERVER_ACCOUNT_PATH_SUFFIX,
   TEAMSERVER_PROFILE_PATH_SUFFIX,
   TEAMSERVER_INDEX_PATH_SUFFIX,
+  CONTRAST_INITIALIZE,
+  CONTRAST_INITIALIZED,
   setElementText,
   setElementDisplay,
   changeElementVisibility,
@@ -65,10 +67,10 @@ Config.prototype._renderConfigButton = function() {
     });
 
     // credentials are set by sending a message to content-script
-    chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: "INITIALIZE" }, (response) => {
+    chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: CONTRAST_INITIALIZE }, (response) => {
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
-
-      if (response === "INITIALIZED") {
+      console.log("contrast initialized response", response);
+      if (response === CONTRAST_INITIALIZED) {
         chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: '' });
 
         // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
