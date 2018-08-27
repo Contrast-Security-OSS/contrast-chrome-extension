@@ -42,7 +42,7 @@ class Library {
         });
       })
       .catch(error => {
-        console.log("Error in _extractLibraryVersion", error);
+        // console.log("Error in _extractLibraryVersion", error);
         reject(error);
       });
     })

@@ -37,7 +37,7 @@ class ApplicationLibrary {
             return (new Library(tab, lib).createVersionedLibrary());
           });
         } catch (e) {
-          console.log("Error mapping sharedLibraries", e);
+          // console.log("Error mapping sharedLibraries", e);
           return;
         }
         // console.log("LIBRARIES FROM SHARED", libraries);
@@ -58,7 +58,7 @@ class ApplicationLibrary {
           resolve(vulnerableApplicationLibs);
         })
         .catch(error => {
-          console.log("Error in promise.all libs", error);
+          // console.log("Error in promise.all libs", error);
         });
       });
     });
@@ -167,7 +167,7 @@ class ApplicationLibrary {
   async _setupApplicationLibraries() {
     const libs = await this.getApplicationLibraries();
     if (!libs || libs.length === 0) {
-      console.log("No Libs to Add.");
+      // console.log("No Libs to Add.");
       return null;
     }
 

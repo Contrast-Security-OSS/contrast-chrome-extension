@@ -64,23 +64,21 @@ const renderVulnerableLibraries = async(tab, application) => {
 
   if (!libraries || libraries.length === 0) return;
 
-  // document.getElementById('libs-not-configured').style.display = "none";
-  // document.getElementById('libs-no-vulnerabilities-found').style.display = "none";
-
   const container = document.getElementById('libs-vulnerabilities-found-on-page');
   const ul = document.getElementById('libs-vulnerabilities-found-on-page-list');
-
+  
   libraries = libraries.sort((a, b) => {
-    if (!a) return b > a;
-    if (!b) return a > b;
-    if (!a.severity && !!b.severity) {
-      return a < b;
-    } else if (!!a.severity && !b.severity) {
-      return b < a;
+    // if (!a) return 1;
+    // if (!b) return -1;
+    console.log("b a severity", b, a);
+    if (!a.severity && b.severity) {
+      return 1;
+    } else if (a.severity && !b.severity) {
+      return -1;
     } else if (!a.severity && !b.severity) {
-      return a === b;
+      return 0;
     }
-    return SEVERITY[a.severity.titleize()] < SEVERITY[b.severity.titleize()];
+    return SEVERITY[b.severity.titleize()] - SEVERITY[a.severity.titleize()];
   });
 
   let listItemTexts = [];
@@ -130,7 +128,7 @@ const _setVulnerabilityVersion = (vulnObj) => {
       }
     }
   } catch (e) {
-    console.log("Error adding version to vulnObj 2", e);
+    // console.log("Error adding version to vulnObj 2", e);
   }
 
   if (version.length > 1) {

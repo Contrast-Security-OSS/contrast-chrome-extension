@@ -23,15 +23,18 @@
 
   <section id="vulnerabilities-section" class="panel panel-default visible">
     <div class="panel-heading container-fluid">
-      <div class="row">
+      <div class="flex-row">
         <div class="col-xs-2">
           <img src="../icon.png" alt="" class="logo-icon">
         </div>
-        <div class="col-xs-10">
+        <div class="col-xs-6" id="header-text">
           <h4 class="discovered-vulnerabilities-h">
             <strong>Contrast</strong>
           </h4>
           <h4 class="no-margin">Discovered Vulnerabilities</h4>
+        </div>
+        <div class="col-xs-4" id="scan-libs-container">
+          <span id="scan-libs-text">Scan Libraries</span>
         </div>
       </div>
     </div>
@@ -88,10 +91,6 @@
       </div>
     </div>
 
-    <button class="btn btn-contrast-plugin btn-primary hidden" id="refresh-libs-btn">
-      Scan Libraries
-    </button>
-
     <div class="panel-footer container-fluid">
       <div class="row">
         <div class="col-xs-10 color-gray" id="user-email">
@@ -139,7 +138,7 @@
     <div class="hidden" id="libs-loading">
       <img src="/img/contrast128.png" alt="loading">
     </div>
-    <button class="btn btn-contrast-plugin btn-primary" id="refresh-libs-btn">
+    <button class="btn btn-contrast-plugin btn-primary" id="scan-libs-text">
       Scan Libraries
     </button>
 

@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', showRefreshButton, false);
 // }
 
 function showRefreshButton() {
-  const refreshLibsButton = document.getElementById('refresh-libs-btn');
+  const refreshLibsButton = document.getElementById('scan-libs-text');
   const loadingElement		= document.getElementById('libs-loading');
 
   chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
@@ -154,19 +154,24 @@ function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
       const tab 	 = tabs[0];
       const app 	 = await Application.retrieveApplicationFromStorage(tab);
       const appLib = new ApplicationLibrary(tab, app);
-      const libs 	 = await appLib.getApplicationLibraries();
-      if (!libs || libs.length === 0) {
-        _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-        _hideLoadingElement(refreshLibsButton, loadingElement)
-        return;
-      }
-      const addedLibs = await appLib.addNewApplicationLibraries(libs);
-      if (addedLibs && addedLibs.length > 0) {
-        renderVulnerableLibraries(tab, app);
-        _renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
-        _hideLoadingElement(refreshLibsButton, loadingElement);
-      } else {
-        _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+      try {
+        const libs = await appLib.getApplicationLibraries();
+        if (!libs || libs.length === 0) {
+          _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+          _hideLoadingElement(refreshLibsButton, loadingElement)
+          return;
+        }
+        const addedLibs = await appLib.addNewApplicationLibraries(libs);
+        if (addedLibs && addedLibs.length > 0) {
+          renderVulnerableLibraries(tab, app);
+          _renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
+          _hideLoadingElement(refreshLibsButton, loadingElement);
+        } else {
+          _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+          _hideLoadingElement(refreshLibsButton, loadingElement);
+        }
+      } catch (e) {
+        _renderFoundVulnerableLibraries("Error collecting libraries.");
         _hideLoadingElement(refreshLibsButton, loadingElement);
       }
     });
