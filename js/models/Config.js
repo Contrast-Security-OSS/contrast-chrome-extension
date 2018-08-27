@@ -123,7 +123,7 @@ Config.prototype.renderContrastUsername = function(credentials) {
 Config.prototype.setGearIcon = function() {
   // configure button opens up settings page in new tab
   const configureGearIcon = document.getElementsByClassName('configure-gear')[0];
-  configureGearIcon.addEventListener('click', (e) => {
+  configureGearIcon.addEventListener('click', () => {
     chrome.tabs.create({ url: this._chromeExtensionSettingsUrl() })
   }, false);
 }

@@ -5,7 +5,6 @@ document,
 ContrastForm,
 TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
-TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 GATHER_FORMS_ACTION,
 HIGHLIGHT_VULNERABLE_FORMS,
 CONTRAST_USERNAME,
@@ -81,8 +80,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   else if (request.action === GATHER_SCRIPTS) {
     _collectScripts(request.tab)
     .then(sharedLibraries => sendResponse(sharedLibraries))
-    .catch(error => {
-    })
+    .catch(error => { error });
   }
 
   // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).

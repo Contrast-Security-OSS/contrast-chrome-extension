@@ -7,7 +7,6 @@ import {
   changeElementVisibility,
   hideElementAfterTimeout,
   APPLICATION_CONNECTED,
-  APPLICATION_DISCONNECTED,
 } from '../util.js'
 
 import Application from './Application.js';

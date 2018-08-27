@@ -12,13 +12,6 @@ import {
 
 import Application from '../models/Application.js';
 
-const versionTypes = {
-  atOrAbove: ">=",
-  atOrBelow: "<=",
-  below: "<",
-  above: ">",
-}
-
 const getLibrariesFromStorage = (tab, application) => {
   return new Promise((resolve, reject) => {
     const appKey = "APP_LIBS__ID_" + application.domain;
@@ -97,36 +90,44 @@ const _vulnObjTitle = (vulnObj) => {
   let title = vulnObj.title;
   if (!title) {
     title = vulnObj.identifiers;
-    if (title) {
+    if (typeof title !== 'string') {
       return title.summary;
-    } else {
-      return libName;
     }
+    return title;
   }
   return title;
 }
 
-const _setVulnerabilityVersion = (vulnObj) => {
-  let versions = vulnObj.versions || vulnObj;
-  let version  = [];
-  try {
-    let keys = Object.keys(versions);
-    let vals = Object.values(versions);
-    for (let k = keys.length, kLen = -1; k > kLen; k--) {
-      if (versionTypes[keys[k]]) {
-        version.push(
-          `${versionTypes[keys[k]]} ${vals[k]}`);
-      }
-    }
-  } catch (e) { e }
-
-  if (version.length > 1) {
-    version = version.join(" and ");
-  } else {
-    version = version[0];
-  }
-  return version;
-}
+// NOTE: Leave for now, not sure if version should be included
+//
+// const versionTypes = {
+//   atOrAbove: ">=",
+//   atOrBelow: "<=",
+//   below: "<",
+//   above: ">",
+// }
+//
+// const _setVulnerabilityVersion = (vulnObj) => {
+//   let versions = vulnObj.versions || vulnObj;
+//   let version  = [];
+//   try {
+//     let keys = Object.keys(versions);
+//     let vals = Object.values(versions);
+//     for (let k = keys.length, kLen = -1; k > kLen; k--) {
+//       if (versionTypes[keys[k]]) {
+//         version.push(
+//           `${versionTypes[keys[k]]} ${vals[k]}`);
+//       }
+//     }
+//   } catch (e) { e }
+//
+//   if (version.length > 1) {
+//     version = version.join(" and ");
+//   } else {
+//     version = version[0];
+//   }
+//   return version;
+// }
 
 const createBadge = (severity, li) => {
   let parent = document.createElement('div');
@@ -144,7 +145,7 @@ const createBadge = (severity, li) => {
 }
 
 const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
-  let { name, version, severity, title, link } = vulnObj;
+  let { name, severity, title, link } = vulnObj;
   if (!name) {
     name = libName;
     name = name.titleize();

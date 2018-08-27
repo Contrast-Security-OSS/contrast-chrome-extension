@@ -118,7 +118,7 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
     // create a row for each application
     applications.forEach(app => this.createAppTableRow(app));
   })
-  .catch(error => {
+  .catch(() => {
     throw new Error("Error getting applications");
   });
 }

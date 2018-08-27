@@ -52,8 +52,7 @@ class ApplicationLibrary {
           }).filter(Boolean);
           resolve(vulnerableApplicationLibs);
         })
-        .catch(error => {
-        });
+        .catch(error => { error });
       });
     });
   }
