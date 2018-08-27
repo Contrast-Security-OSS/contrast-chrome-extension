@@ -10,11 +10,6 @@ import {
   SEVERITY_HIGH,
   SEVERITY_CRITICAL,
   SEVERITY,
-  SEVERITY_NOTE_ICON_PATH,
-  SEVERITY_LOW_ICON_PATH,
-  SEVERITY_MEDIUM_ICON_PATH,
-  SEVERITY_HIGH_ICON_PATH,
-  SEVERITY_CRITICAL_ICON_PATH,
   SEVERITY_BACKGROUND_COLORS,
   SEVERITY_TEXT_COLORS,
   TRACES_REQUEST,
@@ -73,38 +68,25 @@ function renderListItem(trace, teamserverUrl, orgUuid) {
   li.classList.add('no-border');
   li.classList.add('vulnerability-li');
 
-  // let img = document.createElement('img');
-
   switch (trace.severity) {
     case SEVERITY_NOTE:
       createBadge(SEVERITY_NOTE, li);
-      // img.setAttribute("src", SEVERITY_NOTE_ICON_PATH);
-      // li.classList.add("vuln-5");
       break;
     case SEVERITY_LOW:
       createBadge(SEVERITY_LOW, li);
-      // img.setAttribute("src", SEVERITY_LOW_ICON_PATH);
-      // li.classList.add("vuln-4");
       break;
     case SEVERITY_MEDIUM:
       createBadge(SEVERITY_MEDIUM, li);
-      // img.setAttribute("src", SEVERITY_MEDIUM_ICON_PATH);
-      // li.classList.add("vuln-3");
       break;
     case SEVERITY_HIGH:
       createBadge(SEVERITY_HIGH, li);
-      // img.setAttribute("src", SEVERITY_HIGH_ICON_PATH);
-      // li.classList.add("vuln-2");
       break;
     case SEVERITY_CRITICAL:
       createBadge(SEVERITY_CRITICAL, li);
-      // img.setAttribute("src", SEVERITY_CRITICAL_ICON_PATH);
-      // li.classList.add("vuln-1");
       break;
     default:
       break;
   }
-  // li.appendChild(img);
 
   // Teamserver returns camelCase vs snake_case depending on endpoint
   // const ruleName = trace.ruleName || trace.rule_name;

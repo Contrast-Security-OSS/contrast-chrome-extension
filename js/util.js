@@ -46,13 +46,6 @@ export const SEVERITY_TEXT_COLORS = {
   [SEVERITY_CRITICAL]: 'white',
 }
 
-// Vulnerability Severity Icons
-export const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
-export const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
-export const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
-export const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
-export const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
-
 export const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
 export const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
 export const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
