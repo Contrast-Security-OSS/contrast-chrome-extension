@@ -81,7 +81,7 @@ describe("testing utility functions and constants", function() {
       "Accept": "application/json"
     },
   }
-  let teamserverUrl, orgUuid, traceUuid, urls, credentials, fetchSpy, tab;
+  let teamserverUrl, orgUuid, appID, traceUuid, urls, credentials, fetchSpy, tab;
 
   beforeEach(function() {
     setGlobals();
@@ -96,6 +96,7 @@ describe("testing utility functions and constants", function() {
     };
     orgUuid = "i-am-an-org-uuid-123";
     teamserverUrl = "localhost:19080";
+    appID = 'app-id-123'
     traceUuid = "7HC2-TYLR-VATF-Z2ZO"; // webgoat sql injection url
     urls = [
       "http://localhost:8080/WebGoat/SqlInjection/attack5a",
@@ -154,8 +155,8 @@ describe("testing utility functions and constants", function() {
   });
 
   it('returns the TS url for trace short info', function() {
-    const url = getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid);
-    const expectedURL = teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
+    const url = getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid, appID);
+    const expectedURL = teamserverUrl + '/ng/' + orgUuid + '/traces/' + appID + '/trace/' + traceUuid;
     assert.equal(url, expectedURL);
   });
 
