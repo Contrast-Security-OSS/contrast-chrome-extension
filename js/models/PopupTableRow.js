@@ -16,7 +16,7 @@ import ConnectedDomain from './ConnectedDomain.js'
 const CONNECT_BUTTON_TEXT     = "Click to Connect";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected. You may need to reload the page.";
 const CONNECT_FAILURE_MESSAGE = "Error connecting. Try refreshing the page.";
-const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected";
+// const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected";
 const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting";
 const DISCONNECT_BUTTON_TEXT     = "Disconnect";
 
@@ -103,17 +103,23 @@ TableRow.prototype._showMessage = function(result, connect) {
   if (result && connect) {
     this._successConnect(message);
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+    hideElementAfterTimeout(message);
   } else if (!result && connect) {
     this._failConnect(message);
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-  } else if (result && !connect) {
-    this._successDisonnect(message);
-    message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-  } else {
+    hideElementAfterTimeout(message);
+  }
+  // else if (result && !connect) {
+  //   this._successDisonnect(message);
+  //   message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+  // }
+  else if (!result && !connect) {
     this._failDisonnect(message);
     message.setAttribute('style', `color: ${CONTRAST_RED}`);
+    hideElementAfterTimeout(message);
+  } else {
+    changeElementVisibility(message);
   }
-  hideElementAfterTimeout(message);
 }
 
 TableRow.prototype._handleConnectError = function(error) {
@@ -140,16 +146,16 @@ TableRow.prototype._failConnect = function(message) {
   message.setAttribute('style', `color: ${CONTRAST_RED}`);
 }
 
-TableRow.prototype._successDisonnect = function(message) {
-  setElementText(message, DISCONNECT_SUCCESS_MESSAGE);
-  message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-  chrome.runtime.sendMessage({
-    action: APPLICATION_DISCONNECTED,
-    data: {
-      domains: this._addHTTProtocol(this.host),
-    },
-  });
-}
+// TableRow.prototype._successDisonnect = function(message) {
+//   setElementText(message, DISCONNECT_SUCCESS_MESSAGE);
+//   message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+//   chrome.runtime.sendMessage({
+//     action: APPLICATION_DISCONNECTED,
+//     data: {
+//       domains: this._addHTTProtocol(this.host),
+//     },
+//   });
+// }
 
 TableRow.prototype._failDisonnect = function(message) {
   setElementText(message, DISCONNECT_FAILURE_MESSAGE);
