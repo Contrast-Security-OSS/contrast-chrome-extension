@@ -37,6 +37,7 @@ function indexFunction() {
     .then(credentials => {
       const credentialed = isCredentialed(credentials);
       const config = new Config(tab, url, credentialed);
+      config.setGearIcon();
       if (!credentialed) {
         config.getUserConfiguration();
       } else if (credentialed && config._isTeamserverAccountPage()) {
@@ -50,7 +51,6 @@ function indexFunction() {
         table.renderActivityFeed();
         config.renderContrastUsername(credentials);
       }
-      config.setGearIcon();
     })
     .catch(error => new Error(error));
   });

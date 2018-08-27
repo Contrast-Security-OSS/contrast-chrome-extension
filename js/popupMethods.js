@@ -66,8 +66,6 @@ function getShortVulnerabilities(traces, appID) {
  */
 function renderListItem(trace, teamserverUrl, orgUuid) {
 
-  console.log("TRACE", trace);
-
   if (!trace) return;
 
   let ul = document.getElementById('vulnerabilities-found-on-page-list');

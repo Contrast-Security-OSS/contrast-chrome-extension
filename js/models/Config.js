@@ -115,16 +115,16 @@ Config.prototype.renderContrastUsername = function(credentials) {
   setElementText(userEmail, `User: ${credentials[CONTRAST_USERNAME]}`);
   setElementDisplay(userEmail, "block");
   userEmail.addEventListener('click', () => {
-    const contrastIndex = credentials.teamserver_url.indexOf("/Contrast/api");
+    const contrastIndex = credentials.teamserver_url.indexOf("/api");
     const teamserverUrl = credentials.teamserver_url.substring(0, contrastIndex);
     chrome.tabs.create({ url: teamserverUrl });
   }, false);
 }
 
 Config.prototype.setGearIcon = function() {
-  //configure button opens up settings page in new tab
-  const configureGearIcon = document.getElementById('configure-gear');
-  configureGearIcon.addEventListener('click', () => {
+  // configure button opens up settings page in new tab
+  const configureGearIcon = document.getElementsByClassName('configure-gear')[0];
+  configureGearIcon.addEventListener('click', (e) => {
     chrome.tabs.create({ url: this._chromeExtensionSettingsUrl() })
   }, false);
 }
