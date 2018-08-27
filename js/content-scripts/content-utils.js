@@ -538,14 +538,12 @@ function retrieveApplicationFromStorage(tab) {
       const application = result[STORED_APPS_KEY].filter(app => {
         return app.host === host;
       })[0];
-      // application = result[STORED_APPS_KEY].filter(app => app[host])[0];
 
       if (!application) {
         if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
             updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
           } catch (e) {
-            console.log(e);
             reject(new Error("Error updating tab badge"))
           }
         } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {

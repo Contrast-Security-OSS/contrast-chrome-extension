@@ -29,7 +29,6 @@ class ApplicationLibrary {
           reject(new Error("No Response to GATHER_SCRIPTS"));
           return;
         }
-        // console.log("RESPONSE", response);
         const { sharedLibraries } = response;
         let libraries;
         try {
@@ -37,13 +36,10 @@ class ApplicationLibrary {
             return (new Library(tab, lib).createVersionedLibrary());
           });
         } catch (e) {
-          // console.log("Error mapping sharedLibraries", e);
           return;
         }
-        // console.log("LIBRARIES FROM SHARED", libraries);
         Promise.all(libraries) // eslint-disable-line consistent-return
         .then(libResult => {
-          // console.log("LIB RESULT", libResult);
           const vulnerableApplicationLibs = libResult.map(l => {
             let vAL = new VulnerableApplicationLibrary(l);
 
@@ -54,11 +50,9 @@ class ApplicationLibrary {
             // not confident version is in app
             return vAL.lowConfidenceVulnerabilities();
           }).filter(Boolean);
-          // console.log("VULNERABLE APP LIBS", vulnerableApplicationLibs);
           resolve(vulnerableApplicationLibs);
         })
         .catch(error => {
-          // console.log("Error in promise.all libs", error);
         });
       });
     });
@@ -66,23 +60,14 @@ class ApplicationLibrary {
 
   addNewApplicationLibraries(libsToAdd) {
     return new Promise(async(resolve) => {
-      // console.log("ADDING NEW APPLICATION LIBS", libsToAdd);
       const { STORED_APP_LIBS_ID } = this;
       const libraries = await this._getStoredApplicationLibraries();
-      // console.log("LIBS FROM STORAGE", libraries);
-
-      // console.log("Libraries from _getStoredApplicationLibraries", libraries);
-
-      // console.log("PREVIOUS STORED LIBS", libraries);
-      // console.log(libraries[CONTRAST__STORED_APP_LIBS]);
-      // console.log("APPLICATION ID", STORED_APP_LIBS_ID);
 
       const currentLibs = libraries[CONTRAST__STORED_APP_LIBS] ? libraries[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID] : null;
 
       this._setCurrentLibs(currentLibs);
 
       if (!libraries || isEmptyObject(libraries)) {
-        // console.log("LIBS EMPTY, INIT");
         libraries[CONTRAST__STORED_APP_LIBS] = {};
         libraries[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID] = libsToAdd;
       }
@@ -91,14 +76,11 @@ class ApplicationLibrary {
                || !currentLibs
                || !Array.isArray(currentLibs)) {
 
-        // console.log("LIBS NO CURRENT, 2nd", libraries[CONTRAST__STORED_APP_LIBS]);
         libraries[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID] = libsToAdd;
       }
 
       else {
-        // console.log("UPDATING LIBS");
         const deDupedNewLibs = this._dedupeLibs(libsToAdd);
-        // console.log("DEDEUPTED LIBS", deDupedNewLibs);
         if (deDupedNewLibs.length === 0) {
           resolve(null);
           return;
@@ -107,10 +89,8 @@ class ApplicationLibrary {
         const newLibs = currentLibs.concat(deDupedNewLibs);
         libraries[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID] = newLibs;
       }
-      // console.log("SETTING NEW LIBS", libraries);
       chrome.storage.local.set(libraries, function() {
         chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, function(stored) {
-          // console.log("NEW STORED LIBS", stored);
           resolve(stored[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID]);
         });
       });
@@ -120,7 +100,6 @@ class ApplicationLibrary {
   _getStoredApplicationLibraries() {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (stored) => {
-        // console.log("application libraries in storage", stored);
         if (!stored || isEmptyObject(stored)) {
           resolve({});
         } else {
@@ -132,8 +111,6 @@ class ApplicationLibrary {
   }
 
   _dedupeLibs(newLibs) {
-   // console.log("NEWLIBS", newLibs);
-   // console.log("CURRENT LIBRARIES", this.libraries);
    return newLibs.filter(nL => { // filter out libs that are in storage already
      let filteredCurrentLibs = this.libraries.filter(cL => {
        if (cL.name === nL.name && nL.vulnerabilitiesCount > 1) {
@@ -150,7 +127,6 @@ class ApplicationLibrary {
      })
 
      // if current libs contains the new libs return false and don't add the new lib
-     // console.log("FILTERED LIBS", filteredCurrentLibs, !!filteredCurrentLibs[0], !filteredCurrentLibs[0]);
      return !filteredCurrentLibs[0];
    });
  }
@@ -167,7 +143,6 @@ class ApplicationLibrary {
   async _setupApplicationLibraries() {
     const libs = await this.getApplicationLibraries();
     if (!libs || libs.length === 0) {
-      // console.log("No Libs to Add.");
       return null;
     }
 

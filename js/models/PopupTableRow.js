@@ -109,10 +109,6 @@ TableRow.prototype._showMessage = function(result, connect) {
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
     hideElementAfterTimeout(message);
   }
-  // else if (result && !connect) {
-  //   this._successDisonnect(message);
-  //   message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-  // }
   else if (!result && !connect) {
     this._failDisonnect(message);
     message.setAttribute('style', `color: ${CONTRAST_RED}`);
@@ -145,17 +141,6 @@ TableRow.prototype._failConnect = function(message) {
   setElementText(message, CONNECT_FAILURE_MESSAGE);
   message.setAttribute('style', `color: ${CONTRAST_RED}`);
 }
-
-// TableRow.prototype._successDisonnect = function(message) {
-//   setElementText(message, DISCONNECT_SUCCESS_MESSAGE);
-//   message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-//   chrome.runtime.sendMessage({
-//     action: APPLICATION_DISCONNECTED,
-//     data: {
-//       domains: this._addHTTProtocol(this.host),
-//     },
-//   });
-// }
 
 TableRow.prototype._failDisonnect = function(message) {
   setElementText(message, DISCONNECT_FAILURE_MESSAGE);

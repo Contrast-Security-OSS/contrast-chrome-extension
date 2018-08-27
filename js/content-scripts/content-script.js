@@ -42,7 +42,6 @@ window.addEventListener("load", function() {
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("chrome content script message received", request);
 
   if (request.action === GATHER_FORMS_ACTION) {
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
@@ -64,11 +63,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   else if (request.action === "GET_LIB_VERSION" && request.library) {
     const library    = request.library.parsedLibName.replace('-', '_');
-    // console.log(library);
     const libElement = document.getElementById(`__script_res_${library}`);
     let extractedLibraryVersion;
     try {
-      // console.log("libElement", libElement);
       extractedLibraryVersion = libElement.innerText;
     } catch (e) {
       sendResponse(null);
@@ -82,11 +79,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   else if (request.action === GATHER_SCRIPTS) {
-    // console.log("gather scripts action");
     _collectScripts(request.tab)
     .then(sharedLibraries => sendResponse(sharedLibraries))
     .catch(error => {
-      console.log("Error sending shared libraries", error);
     })
   }
 
@@ -103,21 +98,14 @@ function _dataQuery(key) {
     3: 'contrast-service-key',
     4: 'contrast-username',
   }
-  // console.log("QUERY", `[${dataAttr}=${keys[key]}]`);
   return document.querySelector(`[${dataAttr}=${keys[key]}]`).textContent;
 }
 
 function _initializeContrast(request, sendResponse) {
 
-  const tsIndex   = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
-  // const tsAccount = request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX);
-
+  const tsIndex = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
   const teamServerUrl = request.url.substring(
     0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
-  // const orgUuid = request.url.substring(
-    // tsIndex + TEAMSERVER_INDEX_PATH_SUFFIX.length, tsAccount);
-  //
-  // console.log("teamServerUrl", teamServerUrl);
 
   const apiKey        = _dataQuery(0);
   const orgUuid       = _dataQuery(1);
@@ -157,13 +145,10 @@ function _getLibraryVulnerabilities() {
 }
 
 async function _collectScripts(tab) {
-  // console.log("COLLECTING SCRIPTS");
   const vulnerableLibraries = await _getLibraryVulnerabilities();
   if (!vulnerableLibraries) return null;
 
   const wapplibraries = await wappalzye(tab);
-
-  // console.log("LIBRARY vulnerabilities", vulnerableLibraries, wapplibraries);
 
   const docScripts = [].slice.call(document.scripts).map(s => {
     let srcArray = s.src.split("/");
@@ -172,7 +157,6 @@ async function _collectScripts(tab) {
 
   const sharedLibraries = _compareAppAndVulnerableLibraries(
     docScripts, wapplibraries, vulnerableLibraries);
-  // console.log("sharedLibraries", sharedLibraries);
 
   if (!sharedLibraries || sharedLibraries.length === 0) {
     return null;
@@ -198,7 +182,6 @@ function _compareAppAndVulnerableLibraries(
     }
     return false;
   }).filter(Boolean);
-  // console.log("DOCUMENT SCRIPTS AFTER FILTER", filteredDocScripts);
   return _findCommonLibraries(vulnerableLibraries, filteredDocScripts, wapplibraries);
 }
 
@@ -245,7 +228,6 @@ function _findCommonLibraries(vulnerableLibraries, documentScripts, wapplibrarie
       }
     }
   }
-  // console.log("SHARED LIBRARIES", sharedLibraries);
   return sharedLibraries;
 }
 
@@ -266,14 +248,3 @@ function wappalzye(tab) {
     })
   });
 }
-
-//
-//
-// function _isScriptInBowername(bowernames, scripts) {
-//   for (let i = 0, len = bowernames.length; i < len; i++) {
-//     if (scripts.includes(bowernames[i])) {
-//       return true
-//     }
-//   }
-//   return false
-// }

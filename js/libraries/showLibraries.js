@@ -25,14 +25,11 @@ const versionTypes = {
 const getLibrariesFromStorage = (tab, application) => {
   return new Promise((resolve, reject) => {
     const appKey = "APP_LIBS__ID_" + application.domain;
-    // console.log("APPKEY", appKey);
     chrome.storage.local.get(CONTRAST__STORED_APP_LIBS, (result) => {
-      // console.log("GOT STORED LIBS RESULT", result);
       if (isEmptyObject(result)) {
         resolve(null);
       } else {
         const libraries = result[CONTRAST__STORED_APP_LIBS][appKey];
-        // console.log("GOT LIBRARIES IN getLibrariesFromStorage", libraries);
         resolve(libraries);
       }
       reject(new Error("result was", typeof result));
@@ -66,11 +63,8 @@ const renderVulnerableLibraries = async(tab, application) => {
 
   const container = document.getElementById('libs-vulnerabilities-found-on-page');
   const ul = document.getElementById('libs-vulnerabilities-found-on-page-list');
-  
+
   libraries = libraries.sort((a, b) => {
-    // if (!a) return 1;
-    // if (!b) return -1;
-    console.log("b a severity", b, a);
     if (!a.severity && b.severity) {
       return 1;
     } else if (a.severity && !b.severity) {
@@ -127,9 +121,7 @@ const _setVulnerabilityVersion = (vulnObj) => {
           `${versionTypes[keys[k]]} ${vals[k]}`);
       }
     }
-  } catch (e) {
-    // console.log("Error adding version to vulnObj 2", e);
-  }
+  } catch (e) { e }
 
   if (version.length > 1) {
     version = version.join(" and ");
@@ -184,7 +176,6 @@ const _createVulnerabilityListItem = (ul, libName, vulnObj) => {
   }
 
   name = name.replace('Jquery', 'JQuery');
-  // titleSpan.style.weight = 'bold';
 
   let anchor = document.createElement('a');
   anchor.classList.add('vulnerability-link');

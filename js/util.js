@@ -418,15 +418,6 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
         if (chrome.runtime.lastError) null;
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
-
-          // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
-          // try {
-          //   if (parseInt(badge, 10) > parseInt(text, 10)) {
-          //     return;
-          //   }
-          // } catch (e) {
-          //   return;
-          // }
           if (chrome.runtime.lastError) null;
           if (tab.id >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });

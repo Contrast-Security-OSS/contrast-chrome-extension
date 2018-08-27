@@ -18,8 +18,6 @@ import {
   getVulnerabilityShort,
 } from './util.js';
 
-
-
 /**
  * populateVulnerabilitySection - Get details about each trace from teamserver and then render each of them as a list item in the extension popup
  *
@@ -38,8 +36,6 @@ function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, applicatio
     .catch(new Error("Error rendering sorted traces into list items."));
   }
 }
-
-// rule + from what + on which page
 
 function getShortVulnerabilities(traces, appID) {
   return Promise.all(traces.map(t => getVulnerabilityShort(t, appID)))
