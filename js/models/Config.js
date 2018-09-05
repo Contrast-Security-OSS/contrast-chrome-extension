@@ -111,7 +111,7 @@ Config.prototype._isTeamserverAccountPage = function() {
 
 Config.prototype.renderContrastUsername = function(credentials) {
   const userEmail = document.getElementById('user-email');
-  setElementText(userEmail, `User: ${credentials[CONTRAST_USERNAME]}`);
+  setElementText(userEmail, credentials[CONTRAST_USERNAME]);
   setElementDisplay(userEmail, "block");
   userEmail.addEventListener('click', () => {
     const contrastIndex = credentials.teamserver_url.indexOf("/api");
