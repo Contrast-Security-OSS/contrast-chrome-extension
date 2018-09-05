@@ -69,7 +69,6 @@ Config.prototype._renderConfigButton = function() {
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: CONTRAST_INITIALIZE }, (response) => {
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
-      console.log("contrast initialized response", response);
       if (response === CONTRAST_INITIALIZED) {
         chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: '' });
 
@@ -115,15 +114,15 @@ Config.prototype.renderContrastUsername = function(credentials) {
   setElementText(userEmail, `User: ${credentials[CONTRAST_USERNAME]}`);
   setElementDisplay(userEmail, "block");
   userEmail.addEventListener('click', () => {
-    const contrastIndex = credentials.teamserver_url.indexOf("/Contrast/api");
+    const contrastIndex = credentials.teamserver_url.indexOf("/api");
     const teamserverUrl = credentials.teamserver_url.substring(0, contrastIndex);
     chrome.tabs.create({ url: teamserverUrl });
   }, false);
 }
 
 Config.prototype.setGearIcon = function() {
-  //configure button opens up settings page in new tab
-  const configureGearIcon = document.getElementById('configure-gear');
+  // configure button opens up settings page in new tab
+  const configureGearIcon = document.getElementsByClassName('configure-gear')[0];
   configureGearIcon.addEventListener('click', () => {
     chrome.tabs.create({ url: this._chromeExtensionSettingsUrl() })
   }, false);

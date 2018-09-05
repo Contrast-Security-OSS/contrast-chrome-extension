@@ -30,12 +30,21 @@ export const SEVERITY = {
   [SEVERITY_CRITICAL]: 4,
 };
 
-// Vulnerability Severity Icons
-export const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
-export const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
-export const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
-export const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
-export const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
+export const SEVERITY_BACKGROUND_COLORS = {
+  [SEVERITY_NOTE]: 'rgb(238, 238, 238)',
+  [SEVERITY_LOW]: 'rgb(220, 220, 220)',
+  [SEVERITY_MEDIUM]: 'rgb(247, 182, 0)',
+  [SEVERITY_HIGH]: 'rgb(247, 138, 49)',
+  [SEVERITY_CRITICAL]: 'rgb(230, 48, 37)',
+}
+
+export const SEVERITY_TEXT_COLORS = {
+  [SEVERITY_NOTE]: 'rgb(102, 102, 102)',
+  [SEVERITY_LOW]: 'rgb(41, 41, 41)',
+  [SEVERITY_MEDIUM]: 'white',
+  [SEVERITY_HIGH]: 'white',
+  [SEVERITY_CRITICAL]: 'white',
+}
 
 export const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
 export const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
@@ -71,7 +80,7 @@ export const CONTRAST_INITIALIZE        = 'contrast__initialize_user';
 export const CONTRAST_INITIALIZED       = 'contrast__user_initialized';
 export const CONTRAST__STORED_APP_LIBS  = 'contrast__stored_libraries';
 export const CONTRAST_WAPPALIZE         = 'contrast__wappalzye';
-export const WAPPALYZER_SERVICE         = 'http://localhost:5003';
+export const WAPPALYZER_SERVICE         = 'http://localhost:5203';
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [
@@ -167,9 +176,10 @@ function getOrganizationVulnerabilitiesIdsUrl(teamserverUrl, orgUuid, appId) {
   throw new Error("an argument to getOrganizationVulnerabilitiesIdsUrl was undefined");
 }
 
-function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid) {
+function getVulnerabilityShortUrl(teamserverUrl, orgUuid, traceUuid, appID) {
   if (teamserverUrl && orgUuid && traceUuid) {
-    return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
+    return teamserverUrl + '/ng/' + orgUuid + '/traces/' + appID + '/trace/' + traceUuid;
+    // return teamserverUrl + '/ng/' + orgUuid + '/orgtraces/' + traceUuid + "/short";
   }
 
   throw new Error("an argument to getVulnerabilityShortUrl was undefined");
@@ -253,11 +263,11 @@ function getOrganizationVulnerabilityIds(urls, appId) {
  * @param  {String} traceUuid the uuid of the trace we're getting details about
  * @return {Promise<Object} A promise containing details about the trace
  */
-function getVulnerabilityShort(traceUuid) {
+function getVulnerabilityShort(traceUuid, appID) {
   return getStoredCredentials()
   .then(items => {
     const url = getVulnerabilityShortUrl(
-      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid
+      items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], traceUuid, appID
     );
     const authHeader = getAuthorizationHeader(
       items[CONTRAST_USERNAME], items[CONTRAST_SERVICE_KEY]
@@ -408,15 +418,6 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
         if (chrome.runtime.lastError) null;
         chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
-
-          // NOTE: This is kind of a bandaid, need to figure out why 0 is being set after vulnerabilities have been found.
-          // try {
-          //   if (parseInt(badge, 10) > parseInt(text, 10)) {
-          //     return;
-          //   }
-          // } catch (e) {
-          //   return;
-          // }
           if (chrome.runtime.lastError) null;
           if (tab.id >= 0 && !chrome.runtime.lastError) {
             chrome.browserAction.setBadgeBackgroundColor({ color });

@@ -5,7 +5,6 @@ document,
 ContrastForm,
 TEAMSERVER_INDEX_PATH_SUFFIX,
 TEAMSERVER_API_PATH_SUFFIX,
-TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 GATHER_FORMS_ACTION,
 HIGHLIGHT_VULNERABLE_FORMS,
 CONTRAST_USERNAME,
@@ -42,7 +41,6 @@ window.addEventListener("load", function() {
 
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("chrome content script message received", request);
 
   if (request.action === GATHER_FORMS_ACTION) {
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
@@ -64,11 +62,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   else if (request.action === "GET_LIB_VERSION" && request.library) {
     const library    = request.library.parsedLibName.replace('-', '_');
-    console.log(library);
     const libElement = document.getElementById(`__script_res_${library}`);
     let extractedLibraryVersion;
     try {
-      console.log("libElement", libElement);
       extractedLibraryVersion = libElement.innerText;
     } catch (e) {
       sendResponse(null);
@@ -82,39 +78,46 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   else if (request.action === GATHER_SCRIPTS) {
-    console.log("gather scripts action");
     _collectScripts(request.tab)
     .then(sharedLibraries => sendResponse(sharedLibraries))
-    .catch(error => {
-      console.log("Error sending shared libraries", error);
-    })
+    .catch(error => { error });
   }
 
   // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
   return true; // NOTE: Keep this
 });
 
-function _initializeContrast(request, sendResponse) {
-  const tsIndex   = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
-  const tsAccount = request.url.indexOf(TEAMSERVER_ACCOUNT_PATH_SUFFIX);
+function _dataQuery(key) {
+  const dataAttr = 'data-contrast-scrape';
+  const keys = {
+    0: 'contrast-api-key',
+    1: 'contrast-organization-uuid',
+    2: 'contrast-contrast-url',
+    3: 'contrast-service-key',
+    4: 'contrast-username',
+  }
+  return document.querySelector(`[${dataAttr}=${keys[key]}]`).textContent;
+}
 
+function _initializeContrast(request, sendResponse) {
+
+  const tsIndex = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
   const teamServerUrl = request.url.substring(
     0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
-  const orgUuid = request.url.substring(
-    tsIndex + TEAMSERVER_INDEX_PATH_SUFFIX.length, tsAccount);
 
-  const profileEmail = document.getElementsByClassName('profile-email').item(0).textContent;
-  const apiKey = document.getElementsByClassName('org-key').item(0).textContent;
-  const serviceKey = document.getElementsByClassName('org-key').item(1).textContent;
+  const apiKey        = _dataQuery(0);
+  const orgUuid       = _dataQuery(1);
+  // const teamServerUrl = _dataQuery(2);
+  const serviceKey    = _dataQuery(3);
+  const profileEmail  = _dataQuery(4);
 
   const contrastObj = {
-    [CONTRAST_USERNAME]: profileEmail.trim(),
-    [CONTRAST_SERVICE_KEY]: serviceKey.trim(),
-    [CONTRAST_API_KEY]: apiKey.trim(),
-    [CONTRAST_ORG_UUID]: orgUuid.trim(),
+    [CONTRAST_USERNAME]: profileEmail,
+    [CONTRAST_SERVICE_KEY]: serviceKey,
+    [CONTRAST_API_KEY]: apiKey,
+    [CONTRAST_ORG_UUID]: orgUuid,
     [TEAMSERVER_URL]: teamServerUrl,
   };
-  console.log("setting contrast object", contrastObj);
   chrome.storage.local.set(contrastObj, () => {
     if (chrome.runtime.lastError) {
       throw new Error("Error setting configuration");
@@ -122,8 +125,6 @@ function _initializeContrast(request, sendResponse) {
     sendResponse(CONTRAST_INITIALIZED);
   });
 }
-
-
 
 
 function _getLibraryVulnerabilities() {
@@ -142,13 +143,10 @@ function _getLibraryVulnerabilities() {
 }
 
 async function _collectScripts(tab) {
-  console.log("COLLECTING SCRIPTS");
   const vulnerableLibraries = await _getLibraryVulnerabilities();
   if (!vulnerableLibraries) return null;
 
   const wapplibraries = await wappalzye(tab);
-
-  console.log("LIBRARY vulnerabilities", vulnerableLibraries, wapplibraries);
 
   const docScripts = [].slice.call(document.scripts).map(s => {
     let srcArray = s.src.split("/");
@@ -157,7 +155,6 @@ async function _collectScripts(tab) {
 
   const sharedLibraries = _compareAppAndVulnerableLibraries(
     docScripts, wapplibraries, vulnerableLibraries);
-  console.log("sharedLibraries", sharedLibraries);
 
   if (!sharedLibraries || sharedLibraries.length === 0) {
     return null;
@@ -183,7 +180,6 @@ function _compareAppAndVulnerableLibraries(
     }
     return false;
   }).filter(Boolean);
-  console.log("DOCUMENT SCRIPTS AFTER FILTER", filteredDocScripts);
   return _findCommonLibraries(vulnerableLibraries, filteredDocScripts, wapplibraries);
 }
 
@@ -230,7 +226,6 @@ function _findCommonLibraries(vulnerableLibraries, documentScripts, wapplibrarie
       }
     }
   }
-  console.log("SHARED LIBRARIES", sharedLibraries);
   return sharedLibraries;
 }
 
@@ -251,14 +246,3 @@ function wappalzye(tab) {
     })
   });
 }
-
-//
-//
-// function _isScriptInBowername(bowernames, scripts) {
-//   for (let i = 0, len = bowernames.length; i < len; i++) {
-//     if (scripts.includes(bowernames[i])) {
-//       return true
-//     }
-//   }
-//   return false
-// }

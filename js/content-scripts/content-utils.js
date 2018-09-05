@@ -29,13 +29,6 @@ const SEVERITY = {
   [SEVERITY_CRITICAL]: 4,
 };
 
-// Vulnerability Severity Icons
-const SEVERITY_NOTE_ICON_PATH     = "../img/note.png";
-const SEVERITY_LOW_ICON_PATH      = "../img/low.png";
-const SEVERITY_MEDIUM_ICON_PATH   = "../img/medium.png";
-const SEVERITY_HIGH_ICON_PATH     = "../img/high.png";
-const SEVERITY_CRITICAL_ICON_PATH = "../img/critical.png";
-
 const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
 const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
 const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";
@@ -545,14 +538,12 @@ function retrieveApplicationFromStorage(tab) {
       const application = result[STORED_APPS_KEY].filter(app => {
         return app.host === host;
       })[0];
-      // application = result[STORED_APPS_KEY].filter(app => app[host])[0];
 
       if (!application) {
         if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
             updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
           } catch (e) {
-            console.log(e);
             reject(new Error("Error updating tab badge"))
           }
         } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {

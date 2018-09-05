@@ -1,4 +1,3 @@
-/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   STORED_APPS_KEY,
   setElementText,
@@ -7,10 +6,10 @@ import {
   getOrgApplications,
   getHostFromUrl,
   isContrastTeamserver,
-} from '../util.js'
+} from '../util.js';
 
 import Application from './Application.js';
-import TableRow from './PopupTableRow.js'
+import TableRow from './PopupTableRow.js';
 
 export default function ApplicationTable(url) {
   this.table = document.getElementById('application-table');
@@ -119,8 +118,7 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
     // create a row for each application
     applications.forEach(app => this.createAppTableRow(app));
   })
-  .catch(error => {
-    console.log(error);
+  .catch(() => {
     throw new Error("Error getting applications");
   });
 }
