@@ -1,9 +1,11 @@
-/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 /*global
 chrome,
 document,
 */
 
+import {
+  renderVulnerableLibraries,
+} from './libraries/showLibraries.js'
 import { getStorageVulnsAndRender } from './popupMethods.js';
 import {
   STORED_APPS_KEY,
@@ -30,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(items => {
           if (isCredentialed(items)) {
             getStorageVulnsAndRender(items, app, tab);
+            renderVulnerableLibraries(tab, app)
           } else {
             throw new Error("Not Credentialed")
           }

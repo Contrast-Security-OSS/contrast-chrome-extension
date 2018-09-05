@@ -7,6 +7,7 @@ html {
 body {
   font-family: Lato, Helvetica, Neue, Arial, 'sans-serif';
   font-size: 14px;
+  min-width: 600px; /*  max width is 800px */
 }
 
 #settings-body {
@@ -72,13 +73,13 @@ button.buttonTab:hover {
 }
 
 #no-results {
-  width: 400px;
+  width: 600px;
   align-items: center;
   justify-content: space-between;
 }
 
 #vulnerabilities-section, #libraries-section {
-  width: 400px;
+  width: 600px;
   padding: 0px;
   align-items: center;
   justify-content: space-between;
@@ -100,19 +101,19 @@ div#configuration-problem {
 }
 
 #get-started-img {
-  width: 300px;
+  width: 600px;
   display: block;
   margin: 0 auto;
 }
 
 #get-started-description {
-  width: 300px;
+  width: 600px;
   display: block;
   margin: 0 auto;
 }
 
 img#header-logo {
-  width: 300px;
+  width: 600px;
 }
 
 form.settings-form input {
@@ -124,8 +125,8 @@ form.settings-form input {
   border-color: #cbcbcb;
 }
 
-h1, h2, h3, h4 {
-  font-family: Roboto, Lato;
+h1, h2, h3, h4, span, p {
+  font-family: "Roboto Condensed", "Lato", "Helvetica Neue", Arial, sans-serif;
 }
 
 a.activity-timestamp-header {
@@ -147,20 +148,11 @@ label {
 }
 
 .logo-icon {
-  max-width: 130%;
+  max-width: 100%;
 }
 
 .no-border {
   border: 0;
-}
-
-.vulnerability-li {
-  padding: 2px 15px;
-}
-
-.vulnerability-rule-name, .vulnerability-rule-name:hover {
-  color: black;
-  cursor: pointer;
 }
 
 #vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
@@ -169,6 +161,27 @@ label {
 
 #vulnerabilities-found-on-page-list, #libs-vulnerabilities-found-on-page-list {
   margin-top: 10px;
+}
+
+.vulnerability-li {
+  padding: 3px 25px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+  overflow: hidden;
+}
+
+.vulnerability-rule-name, .vulnerability-link {
+  color: black;
+}
+
+.vulnerability-link:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.vulnerability-rule-name {
+  padding-left: 10px;
 }
 
 /* gear button in bottom right corner */
@@ -244,9 +257,25 @@ label {
   position: absolute;
 }
 
-#refresh-libs-btn {
-  display: block;
-  margin: 10px auto;
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+#scan-libs-text {
+  color: #65C0B2;
+  float: right;
+  font-size: 14px;
+}
+
+#scan-libs-text:hover {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.no-margin {
+  margin: 0px;
 }
 
 
@@ -276,9 +305,33 @@ label {
 #found-libs-message {
   color: #65C0B2;
   text-align: center;
+  font-size: 14px;
 }
 
 /* @keyframes loadingSpin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 } */
+
+
+/* BADGES */
+
+.parent-badge {
+  display: inline-flex;
+  width: 73px;
+  border-radius: 2px;
+}
+
+.child-badge {
+  font-family: "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  display: flex;
+  flex-wrap: nowrap;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  width: 73px;
+  height: 20px;
+}

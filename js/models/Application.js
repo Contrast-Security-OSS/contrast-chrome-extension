@@ -47,7 +47,6 @@ Application.retrieveApplicationFromStorage = function(tab) {
           try {
             updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
           } catch (e) {
-            console.log(e);
             reject(new Error("Error updating tab badge"))
           }
         } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {

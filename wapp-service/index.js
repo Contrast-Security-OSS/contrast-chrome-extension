@@ -50,4 +50,5 @@ app.get("/", (req, res) => {
   })
 });
 
-app.listen(5003, console.log("Wappalyzer service started on port 5003"));
+const port = process.env.WAPP_PORT || 5203;
+app.listen(port, console.log("Wappalyzer service started on port " + port));

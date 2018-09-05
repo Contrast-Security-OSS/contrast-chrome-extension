@@ -37,6 +37,7 @@ function indexFunction() {
     .then(credentials => {
       const credentialed = isCredentialed(credentials);
       const config = new Config(tab, url, credentialed);
+      config.setGearIcon();
       if (!credentialed) {
         config.getUserConfiguration();
       } else if (credentialed && config._isTeamserverAccountPage()) {
@@ -50,7 +51,6 @@ function indexFunction() {
         table.renderActivityFeed();
         config.renderContrastUsername(credentials);
       }
-      config.setGearIcon();
     })
     .catch(error => new Error(error));
   });
@@ -60,77 +60,93 @@ function indexFunction() {
 * Run when popup loads
 */
 document.addEventListener('DOMContentLoaded', indexFunction, false);
-document.addEventListener('DOMContentLoaded', addButtonTabListeners, false);
+document.addEventListener('DOMContentLoaded', showRefreshButton, false);
+// document.addEventListener('DOMContentLoaded', addButtonTabListeners, false);
 
 // NOTE: Initial Values
-let LIBS_ACTIVE  = false;
-let VULNS_ACTIVE = true;
+// let LIBS_ACTIVE  = false;
+// let VULNS_ACTIVE = true;
 
-function addButtonTabListeners() {
-  const vulnsTab = document.getElementById('vulns-tab');
-  const libsTab  = document.getElementById('libs-tab');
-  vulnsTab.addEventListener('click', function() {
-    if (VULNS_ACTIVE) {
-      return;
-    }
-    LIBS_ACTIVE  = false;
-    VULNS_ACTIVE = true;
-    libsTab.classList.remove('unfocued-but-still-showing');
+// function addButtonTabListeners() {
+  // const vulnsTab = document.getElementById('vulns-tab');
+  // const libsTab  = document.getElementById('libs-tab');
+  // vulnsTab.addEventListener('click', function() {
+  //   if (VULNS_ACTIVE) {
+  //     return;
+  //   }
+  //   LIBS_ACTIVE  = false;
+  //   VULNS_ACTIVE = true;
+  //   libsTab.classList.remove('unfocued-but-still-showing');
+  //
+  //   const libsSection  = document.getElementById('libraries-section');
+  //   const vulnsSection = document.getElementById('vulnerabilities-section');
+  //   vulnsSection.classList.add('visible');
+  //   vulnsSection.classList.remove('hidden');
+  //
+  //   libsSection.classList.remove('visible');
+  //   libsSection.classList.add('hidden');
+  //
+  //   const libsList = document.getElementById('libs-vulnerabilities-found-on-page-list');
+  //   while (libsList.firstChild) {
+  //     libsList.firstChild.remove();
+  //   }
+  // });
 
-    const libsSection  = document.getElementById('libraries-section');
-    const vulnsSection = document.getElementById('vulnerabilities-section');
-    vulnsSection.classList.add('visible');
-    vulnsSection.classList.remove('hidden');
+  // libsTab.addEventListener('click', function() {
+  //   if (LIBS_ACTIVE) {
+  //     return;
+  //   }
+  //   VULNS_ACTIVE = false;
+  //   LIBS_ACTIVE  = true;
+  //   vulnsTab.classList.remove('unfocued-but-still-showing');
+  //
+  //   const libsSection  = document.getElementById('libraries-section');
+  //   const vulnsSection = document.getElementById('vulnerabilities-section');
+  //   vulnsSection.classList.remove('visible');
+  //   vulnsSection.classList.add('hidden');
+  //
+  //   libsSection.classList.add('visible');
+  //   libsSection.classList.remove('hidden');
+  //
+  //   addListenerToRefreshButton();
+  //   renderVulnerableLibraries();
+  // });
+  //
+  // vulnsTab.addEventListener('blur', function() {
+  //   if (VULNS_ACTIVE) {
+  //     vulnsTab.classList.add('unfocued-but-still-showing');
+  //   } else {
+  //     vulnsTab.classList.remove('unfocued-but-still-showing');
+  //   }
+  // });
+  //
+  // libsTab.addEventListener('blur', function() {
+  //   if (LIBS_ACTIVE) {
+  //     libsTab.classList.add('unfocued-but-still-showing');
+  //   } else {
+  //     libsTab.classList.remove('unfocued-but-still-showing');
+  //   }
+  // });
+// }
 
-    libsSection.classList.remove('visible');
-    libsSection.classList.add('hidden');
+function showRefreshButton() {
+  const refreshLibsButton = document.getElementById('scan-libs-text');
+  const loadingElement		= document.getElementById('libs-loading');
 
-    const libsList = document.getElementById('libs-vulnerabilities-found-on-page-list');
-    while (libsList.firstChild) {
-      libsList.firstChild.remove();
-    }
-  });
+  chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
+    if (!tabs || tabs.length === 0) return;
+    const tab = tabs[0];
+    const app = await Application.retrieveApplicationFromStorage(tab);
+    if (app) {
+      refreshLibsButton.classList.remove('hidden');
+      refreshLibsButton.classList.add('visible');
 
-  libsTab.addEventListener('click', function() {
-    if (LIBS_ACTIVE) {
-      return;
-    }
-    VULNS_ACTIVE = false;
-    LIBS_ACTIVE  = true;
-    vulnsTab.classList.remove('unfocued-but-still-showing');
-
-    const libsSection  = document.getElementById('libraries-section');
-    const vulnsSection = document.getElementById('vulnerabilities-section');
-    vulnsSection.classList.remove('visible');
-    vulnsSection.classList.add('hidden');
-
-    libsSection.classList.add('visible');
-    libsSection.classList.remove('hidden');
-
-    addListenerToRefreshButton();
-    renderVulnerableLibraries();
-  });
-
-  vulnsTab.addEventListener('blur', function() {
-    if (VULNS_ACTIVE) {
-      vulnsTab.classList.add('unfocued-but-still-showing');
-    } else {
-      vulnsTab.classList.remove('unfocued-but-still-showing');
-    }
-  });
-
-  libsTab.addEventListener('blur', function() {
-    if (LIBS_ACTIVE) {
-      libsTab.classList.add('unfocued-but-still-showing');
-    } else {
-      libsTab.classList.remove('unfocued-but-still-showing');
+      addListenerToRefreshButton(refreshLibsButton, loadingElement)
     }
   });
 }
 
-function addListenerToRefreshButton() {
-  const refreshLibsButton = document.getElementById('refresh-libs-btn');
-  const loadingElement		= document.getElementById('libs-loading');
+function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
   refreshLibsButton.addEventListener('click', function() {
     _renderLoadingElement(refreshLibsButton, loadingElement);
     chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
@@ -138,19 +154,24 @@ function addListenerToRefreshButton() {
       const tab 	 = tabs[0];
       const app 	 = await Application.retrieveApplicationFromStorage(tab);
       const appLib = new ApplicationLibrary(tab, app);
-      const libs 	 = await appLib.getApplicationLibraries();
-      if (!libs || libs.length === 0) {
-        _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-        _hideLoadingElement(refreshLibsButton, loadingElement)
-        return;
-      }
-      const addedLibs = await appLib.addNewApplicationLibraries(libs);
-      if (addedLibs && addedLibs.length > 0) {
-        renderVulnerableLibraries(tab, app);
-        _renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
-        _hideLoadingElement(refreshLibsButton, loadingElement);
-      } else {
-        _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+      try {
+        const libs = await appLib.getApplicationLibraries();
+        if (!libs || libs.length === 0) {
+          _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+          _hideLoadingElement(refreshLibsButton, loadingElement)
+          return;
+        }
+        const addedLibs = await appLib.addNewApplicationLibraries(libs);
+        if (addedLibs && addedLibs.length > 0) {
+          renderVulnerableLibraries(tab, app);
+          _renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
+          _hideLoadingElement(refreshLibsButton, loadingElement);
+        } else {
+          _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
+          _hideLoadingElement(refreshLibsButton, loadingElement);
+        }
+      } catch (e) {
+        _renderFoundVulnerableLibraries("Error collecting libraries.");
         _hideLoadingElement(refreshLibsButton, loadingElement);
       }
     });
