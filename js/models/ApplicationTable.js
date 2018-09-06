@@ -28,8 +28,6 @@ ApplicationTable.DOWN_ARROW  = ' ▼';
  */
 ApplicationTable.prototype.renderApplicationsMenu = function() {
   console.log("render app menu");
-  setElementDisplay(document.getElementById('vulnerabilities-section'), 'none');
-  setElementDisplay(document.getElementById('vulnerabilities-header'), 'none');
   // setElementDisplay(document.getElementById('vulnerabilities-footer'), 'none');
 
   const tableElements = [
@@ -44,6 +42,11 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
 
   headings.forEach(el => setElementDisplay(el, 'inline'));
   tableElements.forEach(el => setElementDisplay(el, 'block'));
+
+  const arrow = document.getElementById('applications-arrow');
+  if (arrow.innerText.trim() === ApplicationTable.DOWN_ARROW.trim()) {
+    this._unrollApplications(arrow);
+  }
 
   for (let i = 0, len = headings.length; i < len; i++) {
     headings[i].addEventListener('click', () => this.rollApplications());
@@ -63,11 +66,11 @@ ApplicationTable.prototype.rollApplications = function() {
   } else {
     this._rollupApplications(arrow);
   }
+  this._changeTableVisibility(true);
 }
 
 ApplicationTable.prototype._unrollApplications = function(arrow) {
   setElementText(arrow, ApplicationTable.DOWN_ARROW);
-  this._changeTableVisibility(true);
 
   // if less than 2 then only the heading row has been rendered
   if (document.getElementsByTagName('tr').length < 2) {
@@ -84,7 +87,6 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
 }
 
 ApplicationTable.prototype._rollupApplications = function(arrow) {
-  this._changeTableVisibility(false);
   setElementText(arrow, ApplicationTable.RIGHT_ARROW);
 }
 
@@ -97,7 +99,6 @@ ApplicationTable.prototype._rollupApplications = function(arrow) {
  */
 ApplicationTable.prototype.renderActivityFeed = function() {
   if (isBlacklisted(this.url.host)) {
-    _hideConfigurationElements()
     return;
   }
 
@@ -106,9 +107,7 @@ ApplicationTable.prototype.renderActivityFeed = function() {
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (_appIsConfigured(storedApps, host)) {
       // if you don't need credentials, hide the signin functionality and don't render a table
-      _hideConfigurationElements();
     } else {
-      _hideConfigurationElements();
       this._showContrastApplications(storedApps);
     }
   });
@@ -116,10 +115,11 @@ ApplicationTable.prototype.renderActivityFeed = function() {
 
 ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   // transitions on these classes, not a simple display none/table
-  this._changeTableVisibility(true);
-
-  const vulnsFound = document.getElementById("vulnerabilities-found-on-page");
-  setElementDisplay(vulnsFound, "none");
+  // this._changeTableVisibility(true);
+  const vulnsSection = document.getElementById("vulnerabilities-section");
+  const scanLibsText = document.getElementById('scan-libs-text');
+  setElementDisplay(vulnsSection, "none");
+  setElementDisplay(scanLibsText, "none");
 
   // if app is not stored, render the table with buttons to add the domain
   getOrgApplications()
@@ -133,7 +133,7 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
     applications.forEach(app => this.createAppTableRow(app));
   })
   .catch(() => {
-    throw new Error("Error getting applications");
+    return new Error("Error getting applications");
   });
 }
 
@@ -203,21 +203,4 @@ ApplicationTable.prototype._changeTableVisibility = function(show) {
 
 function _appIsConfigured(result, host) {
   return result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]
-}
-
-function _hideConfigurationElements() {
-  const elements = [
-    document.getElementById('configuration-section'),
-    document.getElementById('not-configured'),
-    document.getElementById('configure-extension'),
-    document.getElementById('configuration-header'),
-    document.getElementById('configuration-footer'),
-  ]
-  console.log("hiding elements", elements);
-
-  elements.forEach(el => {
-    setElementDisplay(el, "none");
-    el.classList.add('hidden');
-    el.classList.remove('visible');
-  });
 }

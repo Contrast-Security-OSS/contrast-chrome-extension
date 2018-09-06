@@ -39,18 +39,17 @@ function indexFunction() {
       const credentialed = isCredentialed(credentials);
       const config = new Config(tab, url, credentialed);
       config.setGearIcon();
+      config.getUserConfiguration();
       if (!credentialed) {
-        console.log("1");
-        config.getUserConfiguration();
+        console.log("indexFunction Action 1");
       } else if (credentialed && config._isTeamserverAccountPage()) {
-        console.log("2");
-        config.getUserConfiguration();
+        console.log("indexFunction Action 2");
         config.setCredentialsInSettings(credentials);
         const table = new ApplicationTable(url);
         table.renderApplicationsMenu();
         config.renderContrastUsername(credentials);
       } else {
-        console.log("3");
+        console.log("indexFunction Action 3");
         const table = new ApplicationTable(url);
         table.renderActivityFeed();
         config.renderContrastUsername(credentials);
