@@ -61,7 +61,6 @@ Config.prototype.popupState = function() {
   throw new Error("Whoops");
 }
 
-
 /**
  * getUserConfiguration - renders the elements/dialog for a user configuring the connection from the extension to teamserver
  *
@@ -85,8 +84,10 @@ Config.prototype.getUserConfiguration = function() {
   const scanLibsText = document.getElementById('scan-libs-text');
   const appTableContainer = document.getElementById('application-table-container-div');
   const configButton = document.getElementById('configure-extension-button');
-  console.log("This popupstate is ", this.popupState());
-  switch(this.popupState()) {
+
+  const popupState = this.popupState();
+  console.log("This popupstate is ", popupState);
+  switch(popupState) {
     case 0: {
       console.log("case 0, notContrastNotConfigured");
       setElementDisplay(vulnsSection, "none");
@@ -162,7 +163,7 @@ Config.prototype.getUserConfiguration = function() {
     case 5: {
       console.log("case 5 notContrastConfigured");
       setElementDisplay(vulnsSection, "block");
-      setElementDisplay(vulnsHeader, "block");
+      setElementDisplay(vulnsHeader, "flex");
       setElementDisplay(configFooter, "none");
       setElementDisplay(configuredFooter, "flex");
       setElementDisplay(configContainer, "none");
