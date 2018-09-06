@@ -3,8 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-    crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
   <link rel="stylesheet" href="../style.css" />
   <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -15,31 +14,41 @@
 </head>
 
 <body>
+  <section class="headers-section section">
+    <div id="configuration-header" class="flex-row header-row visible">
+      <div>
+        <img src="../icon.png" alt="" class="logo-icon">
+      </div>
+      <div id="header-text">
+        <h5>
+          <strong>Contrast</strong>
+        </h5>
+        <h5 class="no-margin">Connection Settings</h5>
+      </div>
+    </div>
+    <div id="vulnerabilities-header" class="flex-row header-row visible">
+      <div>
+        <img src="../icon.png" alt="" class="logo-icon">
+      </div>
+      <div id="header-text">
+        <p>
+          <strong>Contrast</strong>
+        </p>
+        <p class="no-margin">Discovered Vulnerabilities</p>
+      </div>
+      <div>
+        <span id="scan-libs-text">Scan Libraries</span>
+      </div>
+    </div>
+  </section>
   <!-- <div class="tab-selector">
     <button id="vulns-tab" class="btn buttonTab" autofocus type="button" name="button">Vulnerabilities</button>
     <button id="libs-tab" class="btn buttonTab" type="button" name="button">Libraries</button>
   </div> -->
 
+  <section id="vulnerabilities-section" class="hidden panel panel-default visible section">
 
-  <section id="vulnerabilities-section" class="panel panel-default visible">
-    <div class="panel-heading container-fluid">
-      <div class="flex-row">
-        <div class="col-xs-2">
-          <img src="../icon.png" alt="" class="logo-icon">
-        </div>
-        <div class="col-xs-6" id="header-text">
-          <h4 class="discovered-vulnerabilities-h">
-            <strong>Contrast</strong>
-          </h4>
-          <h4 class="no-margin">Discovered Vulnerabilities</h4>
-        </div>
-        <div class="col-xs-4" id="scan-libs-container">
-          <span id="scan-libs-text">Scan Libraries</span>
-        </div>
-      </div>
-    </div>
-
-    <div style="display: none;" class="color-gray panel-body" id="no-vulnerabilities-found">
+    <div class="color-gray panel-body" id="no-vulnerabilities-found">
       <h5>No vulnerabilities were found.</h5>
     </div>
 
@@ -47,33 +56,7 @@
       <h5>To start using the extension, please log into Contrast and navigate to "Your Account"</h5>
     </div>
 
-    <div id="application-table-container-div">
-      <p id="connected-domain-message" class="hidden"></p>
-      <div id="applications-heading-container">
-        <h5 id="applications-heading">Your Applications</h5><span id="applications-arrow"> ▶</span>
-      </div>
-      <table class="table table-responsive table-striped application-table-hidden" id="application-table">
-        <thead>
-          <th>Application</th>
-          <th>Domain</th>
-          <th></th>
-        </thead>
-        <tbody id="application-table-body">
-        </tbody>
-      </table>
-    </div>
-
-    <div style="display: none;" class="color-gray panel-body" id="configure-extension">
-      <h5>Would you like to configure Contrast extension for Chrome?</h5>
-      <h5 id="configure-extension-host"></h5>
-      <button id="configure-extension-button" class="btn btn-primary btn-contrast-plugin">
-        Configure
-      </button>
-      <h5 id="config-success" class="configure-message">Successfully Configured Contrast Extension!</h5>
-      <h5 id="config-failure" class="configure-message">Error Configuring Extension, try reloading the page.</h5>
-    </div>
-
-    <div style="display: none;" id="vulnerabilities-found-on-page" class="panel-body">
+    <div id="vulnerabilities-found-on-page" class="panel-body">
       <div class="app-vulnerabilities-div">
         <ul class="list-group" id="vulnerabilities-found-on-page-list">
         </ul>
@@ -90,69 +73,58 @@
         </div>
       </div>
     </div>
+  </section>
 
-    <div class="panel-footer container-fluid">
-      <div class="row">
-        <div class="col-xs-10 color-gray" id="user-email">
+  <div id="application-table-container-div">
+    <p id="connected-domain-message" class="hidden"></p>
+    <div id="applications-heading-container">
+      <h5 id="applications-heading">Your Applications</h5><h5 id="applications-arrow"> ▼</h5>
+    </div>
+    <table class="table table-responsive table-striped" id="application-table">
+      <thead>
+        <th>Application</th>
+        <th>Domain</th>
+        <th></th>
+      </thead>
+      <tbody id="application-table-body">
+      </tbody>
+    </table>
+  </div>
+
+  <section id="configuration-section" class="section">
+    <div class="container color-gray panel-body" id="configure-extension">
+      <form>
+        <div class="form-group">
+          <label id="contrast-url-input-label" for="contrast-url-input">Contrast URL</label>
+          <input readonly placeholder="https://app.contrastsecurity.com" class="form-control user-inputs" type="text" name="" value="" id="contrast-url-input" />
         </div>
-        <div class="col-xs-2">
-          <a href="#" class="configure-gear">
-            <span class="glyphicon glyphicon-cog color-gray"></span>
-          </a>
+        <div class="form-group">
+          <input id="contrast-service-key-input" readonly placeholder="Service Key" class="form-control user-inputs" type="text" name="" value="">
+          <input id="contrast-username-input" readonly placeholder="Username" class="form-control user-inputs" type="text" name="" value="">
+          <input id="contrast-api-key-input" readonly placeholder="API Key" class="form-control user-inputs" type="text" name="" value="">
+          <button class="btn btn-light" type="button" name="button" id="configure-extension-button">Connect</button>
         </div>
-      </div>
+      </form>
+      <h5 id="config-success" class="configure-message">Successfully Configured Contrast Extension!</h5>
+      <h5 id="config-failure" class="configure-message">Error Configuring Extension, try reloading the page.</h5>
     </div>
   </section>
+
   <!-- end vulnerabilities section -->
 
-  <!-- begin Libraries section -->
-  <!-- <section id="libraries-section" class="panel panel-default hidden">
-    <div class="panel-heading container-fluid">
-      <div class="row">
-        <div class="col-xs-2">
-          <img src="../icon.png" alt="" class="logo-icon">
-        </div>
-        <div class="col-xs-10">
-          <h4 class="discovered-vulnerabilities-h">
-            <strong>Contrast</strong>
-          </h4>
-          <h4 class="no-margin">Library Vulnerabilities</h4>
-        </div>
+  <section class="footers-section section">
+    <div id="configuration-footer" class="flex-row footer-row">
+      <div>
+        <h6 class="color-gray">To configure this extension, <a class="contrast-green" href="http://localhost:19090/Contrast">log in to Contrast</a> and go to Your Account</h6>
       </div>
     </div>
-
-    <div class="color-gray panel-body" id="libs-no-vulnerabilities-found">
-      <h5>No vulnerabilities found in front-end application libraries.</h5>
-    </div>
-
-    <div style="display: none;" class="color-gray panel-body" id="libs-not-configured">
-      <h5>To start using the extension, please log into Contrast and navigate to "Your Account"</h5>
-    </div>
-
-    <div style="display: none;" id="libs-vulnerabilities-found-on-page" class="panel-body">
-      <ul class="list-group" id="libs-vulnerabilities-found-on-page-list">
-      </ul>
-    </div>
-
-    <h4 id="found-libs-message" class="hidden"></h4>
-    <div class="hidden" id="libs-loading">
-      <img src="/img/contrast128.png" alt="loading">
-    </div>
-    <button class="btn btn-contrast-plugin btn-primary" id="scan-libs-text">
-      Scan Libraries
-    </button>
-
-    <div class="panel-footer container-fluid">
-      <div class="row">
-        <div class="col-xs-10 color-gray" id="libs-user-email">
-        </div>
-        <div class="col-xs-2">
-          <a href="#" class="configure-gear">
-            <span class="glyphicon glyphicon-cog color-gray"></span>
-          </a>
-        </div>
+    <div id="configured-footer" class="flex-row footer-row">
+      <div class="color-gray" id="user-email">
       </div>
-  </section> -->
+      <img class="configure-gear" src="/img/glyphicons-cog.png" alt="gear">
+    </div>
+  </section>
+
 </body>
 
 </html>

@@ -6,6 +6,7 @@ import {
   getOrgApplications,
   getHostFromUrl,
   isContrastTeamserver,
+  changeElementVisibility,
 } from '../util.js';
 
 import Application from './Application.js';
@@ -18,8 +19,6 @@ export default function ApplicationTable(url) {
 
 ApplicationTable.RIGHT_ARROW = ' ▶';
 ApplicationTable.DOWN_ARROW  = ' ▼';
-ApplicationTable.TABLE_VISIBLE_CLASS = 'application-table-visible';
-ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
 
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
@@ -28,13 +27,23 @@ ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
  * @return {void}
  */
 ApplicationTable.prototype.renderApplicationsMenu = function() {
+  console.log("render app menu");
+  setElementDisplay(document.getElementById('vulnerabilities-section'), 'none');
+  setElementDisplay(document.getElementById('vulnerabilities-header'), 'none');
+  // setElementDisplay(document.getElementById('vulnerabilities-footer'), 'none');
+
+  const tableElements = [
+    document.getElementById('applications-heading-container'),
+    document.getElementById('application-table-container-div'),
+  ];
+
   const headings = [
     document.getElementById('applications-heading'),
     document.getElementById('applications-arrow'),
-  ]
+  ];
 
-  const container = document.getElementById('applications-heading-container');
-  setElementDisplay(container, "block");
+  headings.forEach(el => setElementDisplay(el, 'inline'));
+  tableElements.forEach(el => setElementDisplay(el, 'block'));
 
   for (let i = 0, len = headings.length; i < len; i++) {
     headings[i].addEventListener('click', () => this.rollApplications());
@@ -49,7 +58,7 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
  */
 ApplicationTable.prototype.rollApplications = function() {
   const arrow = document.getElementById('applications-arrow');
-  if (arrow.innerText === ApplicationTable.RIGHT_ARROW) {
+  if (arrow.innerText.trim() === ApplicationTable.RIGHT_ARROW.trim()) {
     this._unrollApplications(arrow);
   } else {
     this._rollupApplications(arrow);
@@ -64,6 +73,7 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
   if (document.getElementsByTagName('tr').length < 2) {
     getOrgApplications()
     .then(json => {
+
       if (!json) {
         throw new Error("Error getting applications");
       }
@@ -86,7 +96,10 @@ ApplicationTable.prototype._rollupApplications = function(arrow) {
  * @return {type}
  */
 ApplicationTable.prototype.renderActivityFeed = function() {
-  if (isBlacklisted(this.url.host)) return;
+  if (isBlacklisted(this.url.host)) {
+    _hideConfigurationElements()
+    return;
+  }
 
   chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
     const host = getHostFromUrl(this.url);
@@ -95,6 +108,7 @@ ApplicationTable.prototype.renderActivityFeed = function() {
       // if you don't need credentials, hide the signin functionality and don't render a table
       _hideConfigurationElements();
     } else {
+      _hideConfigurationElements();
       this._showContrastApplications(storedApps);
     }
   });
@@ -177,13 +191,14 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
 }
 
 ApplicationTable.prototype._changeTableVisibility = function(show) {
-  if (!show) {
-    this.table.classList.remove(ApplicationTable.TABLE_VISIBLE_CLASS);
-    this.table.classList.add(ApplicationTable.TABLE_HIDDEN_CLASS);
-  } else {
-    this.table.classList.add(ApplicationTable.TABLE_VISIBLE_CLASS);
-    this.table.classList.remove(ApplicationTable.TABLE_HIDDEN_CLASS);
-  }
+  this.table.classList.toggle('collapsed');
+  // if (!show) {
+  //   this.table.classList.remove(ApplicationTable.TABLE_VISIBLE_CLASS);
+  //   this.table.classList.add(ApplicationTable.TABLE_HIDDEN_CLASS);
+  // } else {
+  //   this.table.classList.add(ApplicationTable.TABLE_VISIBLE_CLASS);
+  //   this.table.classList.remove(ApplicationTable.TABLE_HIDDEN_CLASS);
+  // }
 }
 
 function _appIsConfigured(result, host) {
@@ -192,9 +207,17 @@ function _appIsConfigured(result, host) {
 
 function _hideConfigurationElements() {
   const elements = [
+    document.getElementById('configuration-section'),
     document.getElementById('not-configured'),
     document.getElementById('configure-extension'),
+    document.getElementById('configuration-header'),
+    document.getElementById('configuration-footer'),
   ]
+  console.log("hiding elements", elements);
 
-  elements.forEach(el => setElementDisplay(el, "none"));
+  elements.forEach(el => {
+    setElementDisplay(el, "none");
+    el.classList.add('hidden');
+    el.classList.remove('visible');
+  });
 }

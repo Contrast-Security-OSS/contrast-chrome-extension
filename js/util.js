@@ -549,7 +549,7 @@ function setElementText(element, text) {
   }
 }
 
-function changeElementVisibility(element) {
+function changeElementVisibility(element, display = 'flex') {
   const classes = Array.prototype.slice.call(element.classList);
   if (classes.includes("visible")) {
     element.classList.remove("visible");

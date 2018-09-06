@@ -32,21 +32,25 @@ function indexFunction() {
 
     const tab = tabs[0];
     const url = new URL(tab.url);
-
+    console.log("getting creds");
     getStoredCredentials()
     .then(credentials => {
+      console.log("creds are", credentials);
       const credentialed = isCredentialed(credentials);
       const config = new Config(tab, url, credentialed);
       config.setGearIcon();
       if (!credentialed) {
+        console.log("1");
         config.getUserConfiguration();
       } else if (credentialed && config._isTeamserverAccountPage()) {
+        console.log("2");
         config.getUserConfiguration();
-        // renderApplicationsMenu(url);
+        config.setCredentialsInSettings(credentials);
         const table = new ApplicationTable(url);
         table.renderApplicationsMenu();
         config.renderContrastUsername(credentials);
       } else {
+        console.log("3");
         const table = new ApplicationTable(url);
         table.renderActivityFeed();
         config.renderContrastUsername(credentials);

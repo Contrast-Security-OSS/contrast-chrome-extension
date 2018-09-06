@@ -1,6 +1,5 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
-  CONTRAST_USERNAME,
   STORED_APPS_KEY,
   STORED_TRACES_KEY,
   VALID_TEAMSERVER_HOSTNAMES,
@@ -13,6 +12,10 @@ import {
   setElementDisplay,
   changeElementVisibility,
   hideElementAfterTimeout,
+  TEAMSERVER_URL,
+  CONTRAST_SERVICE_KEY,
+  CONTRAST_API_KEY,
+  CONTRAST_USERNAME,
 } from '../util.js'
 
 export default function Config(tab, url, credentialed) {
@@ -29,18 +32,41 @@ export default function Config(tab, url, credentialed) {
  * @return {void}
  */
 Config.prototype.getUserConfiguration = function() {
+  const notConfigured = document.getElementById('not-configured');
+  const configFooter = document.getElementById('configuration-footer');
+  const configContainer = document.getElementById('configure-extension');
   if (this._isTeamserverAccountPage()) {
-    const configExtension = document.getElementById('configure-extension');
-    const configExtensionHost = document.getElementById('configure-extension-host');
-
-    setElementDisplay(configExtension, "block");
-    setElementText(configExtensionHost, `Make sure you trust this site: ${this.url.hostname}`);
+    configContainer.classList.toggle('collapsed');
+    setElementDisplay(notConfigured, "none");
+    setElementDisplay(configFooter, "none");
 
     this._renderConfigButton(this.tab);
   } else {
-    const notConfigured = document.getElementById('not-configured');
-    setElementDisplay(notConfigured, "");
+    configContainer.classList.toggle('collapsed');
+    setElementDisplay(notConfigured, "block");
   }
+}
+
+Config.prototype.changeConfigDisplay = function() {
+
+
+}
+
+Config.prototype.setCredentialsInSettings = function(credentials) {
+  const urlInput = document.getElementById("contrast-url-input");
+  const serviceKeyInput = document.getElementById("contrast-service-key-input");
+  const userNameInput = document.getElementById("contrast-username-input");
+  const apiKeyInput = document.getElementById("contrast-api-key-input");
+
+  const teamServerUrl = credentials[TEAMSERVER_URL];
+  const serviceKey = credentials[CONTRAST_SERVICE_KEY];
+  const apiKey = credentials[CONTRAST_API_KEY];
+  const profileEmail = credentials[CONTRAST_USERNAME];
+
+  urlInput.value = teamServerUrl;
+  serviceKeyInput.value = serviceKey;
+  userNameInput.value = apiKey;
+  apiKeyInput.value = profileEmail;
 }
 
 /**
@@ -51,7 +77,6 @@ Config.prototype.getUserConfiguration = function() {
  */
 Config.prototype._renderConfigButton = function() {
   const configButton = document.getElementById('configure-extension-button');
-  setElementText(configButton, this.credentialed ? "Reconfigure" : "Configure");
 
   configButton.addEventListener('click', () => {
     configButton.setAttribute('disabled', true);
@@ -69,7 +94,7 @@ Config.prototype._renderConfigButton = function() {
     // credentials are set by sending a message to content-script
     chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: CONTRAST_INITIALIZE }, (response) => {
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
-      if (response === CONTRAST_INITIALIZED) {
+      if (response.action === CONTRAST_INITIALIZED) {
         chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: '' });
 
         // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
@@ -78,6 +103,12 @@ Config.prototype._renderConfigButton = function() {
         hideElementAfterTimeout(successMessage, () => {
           configButton.removeAttribute('disabled');
         });
+
+        this.setCredentialsInSettings(response.contrastObj)
+
+        const section = document.getElementById('configuration-section');
+        section.display = 'none';
+        // hideElementAfterTimeout(section);
       } else {
         const failureMessage = document.getElementById('config-failure');
         changeElementVisibility(failureMessage);
@@ -123,8 +154,9 @@ Config.prototype.renderContrastUsername = function(credentials) {
 Config.prototype.setGearIcon = function() {
   // configure button opens up settings page in new tab
   const configureGearIcon = document.getElementsByClassName('configure-gear')[0];
+  const configContainer = document.getElementById('configuration-section');
   configureGearIcon.addEventListener('click', () => {
-    chrome.tabs.create({ url: this._chromeExtensionSettingsUrl() })
+    configContainer.classList.toggle('collapsed');
   }, false);
 }
 
