@@ -73,6 +73,7 @@ Config.prototype.getUserConfiguration = function() {
   console.log("get user configuration");
   console.log("This popupstate is ", this.popupState());
   const userEmail = document.getElementById('user-email');
+  const configSection = document.getElementById('configuration-section');
   const configHeader = document.getElementById('configuration-header');
   const configHeaderText = document.getElementById('config-header-text');
   const configFooter = document.getElementById('configuration-footer');
@@ -169,9 +170,10 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(configButton, "none");
       setElementDisplay(userEmail, "block");
       setElementDisplay(scanLibsText, "none");
-      setElementText(vulnsHeaderText, "Configured");
       setElementDisplay(configGear, "block");
+      setElementText(vulnsHeaderText, "Configured");
       this.setCredentialsInSettings();
+      configSection.classList.add('collapsed');
       break;
     }
     case 5: {

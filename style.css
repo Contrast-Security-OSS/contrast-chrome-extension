@@ -1,92 +1,71 @@
-.contrast-green {
-  color: #3cc3b2;
-}
-
+/******************/
+/* GENERAL STYLES */
+/******************/
+.contrast-green { color: #3cc3b2; }
+.color-gray { color: #999; }
+.wide-lines { line-height: 1.5em; }
+.scalable-subtext { font-size: 3.5vw; }
+.no-border { border: 0; }
+.visible { visibility: visible; }
+.hidden { visibility: hidden; }
+.no-margin { margin: 0; }
 html {
   margin: 0;
   top: 0;
   margin-bottom: 10px;
 }
-
 body {
   font-family: Lato, Helvetica, Neue, Arial, 'sans-serif';
   font-size: 14px;
   min-width: 400px;
-}
-body:nth-child(even) {
-  background-color: white;
-}
-body:nth-child(odd) {
   background-color: rgb(247, 247, 247);
 }
-
-#configured-header {
-  display: none;
-}
-
-#configuration-header {
-  display: flex;
-}
-
-#settings-body {
-  margin: 25px;
-  background-image: url(img/loginBackground.png);
-}
-
-body.configuration-problem {
-  background-image: url(img/403Unauthorized.jpg);
-  background-position: 0px 50px;
-  background-size: cover;
-}
-
-h1 {
-  font-size: 15px;
-}
-
-button.btn-contrast-plugin {
-  border-radius: 3px;
-  background-color: #3cc3b2 !important;
-  border-color: #3cc3b2;
-  border-radius: 3px;
-  color: #fff;
-}
-
-button.btn-contrast-plugin:hover, button.buttonTab:hover {
-  background-color: #0da1a9 !important;
-  border-color: #0da1a9;
-}
-
-.tab-selector {
-  display: flex;
-  flex-direction: row;
-  top: 0px;
-}
-
-button.buttonTab {
-  width: 50%;
+h1, h2, h3, h4, h5, h6, span, p {
+  font-family: "Roboto Condensed", "Lato", "Helvetica Neue", Arial, sans-serif;
   margin: 0;
-  border: 2px solid transparent;
-  border-radius: 0;
-  outline: none;
 }
-
-button.buttonTab:focus, button.buttonTab:active, .unfocued-but-still-showing {
-  border: 2px solid #3cc3b2;
-  border-color: #3cc3b2;
-  background-color: #3cc3b2 !important;
-  color: #fff;
-  outline: none;
+label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 2px;
+  font-weight: 700;
+  color: gray;
 }
+/******************/
+/* GENERAL STYLES */
+/******************/
 
-button.buttonTab:hover {
-  color: #fff;
+
+
+
+
+/*******************/
+/* SECTIONS STYLES */
+/*******************/
+.section {
+  overflow: hidden;
+  height: auto;
 }
-
-#no-results {
-  align-items: center;
-  justify-content: space-between;
+.section {
+  overflow: hidden;
+  transition: max-height 0.3s linear;
+  height: auto;
+  max-height: 1000px;
 }
+.section.collapsed {
+  max-height: 0px;
+}
+/*******************/
+/* SECTIONS STYLES */
+/*******************/
 
+
+
+
+
+/**************************/
+/* VULNERABILITIES STYLES */
+/**************************/
 #vulnerabilities-section, #libraries-section {
   width: 400px;
   padding: 0px;
@@ -94,38 +73,50 @@ button.buttonTab:hover {
   justify-content: space-between;
   border: 0;
   margin-bottom: 0px;
+  background-color: white;
 }
 #no-vulnerabilities-found {
   margin: 0 auto;
   padding: 20px;
 }
-
 #activity-feed input {
   width: 100%;
 }
-
-div#get-started {
-  display: none;
-  margin: 100px auto;
+#vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
+  width: 100%;
+  padding: 0px;
 }
-
-div#configuration-problem {
-  margin: 100px auto;
+#vulnerabilities-found-on-page-list, #libs-vulnerabilities-found-on-page-list {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
-
-#get-started-img {
-  display: block;
-  margin: 0 auto;
+.vulnerability-li {
+  padding: 3px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 99%;
+  overflow: hidden;
 }
-
-#get-started-description {
-  display: block;
-  margin: 0 auto;
+.vulnerability-rule-name, .vulnerability-link {
+  color: black;
 }
-
-img#header-logo {
+.vulnerability-link:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
+.vulnerability-rule-name {
+  padding-left: 10px;
+}
+/**************************/
+/* VULNERABILITIES STYLES */
+/**************************/
 
+
+
+
+/******************************/
+/* SETTINGS SECTION, NOT USED */
+/******************************/
 form.settings-form input {
   width: 100%;
   height: 34px;
@@ -135,70 +126,89 @@ form.settings-form input {
   border-color: #cbcbcb;
 }
 
-h1, h2, h3, h4, h5, h6, span, p {
-  font-family: "Roboto Condensed", "Lato", "Helvetica Neue", Arial, sans-serif;
+#settings-body {
+  margin: 25px;
+  background-image: url(img/loginBackground.png);
+}
+/******************************/
+/* SETTINGS SECTION, NOT USED */
+/******************************/
+
+
+
+
+/***********************/
+/* APPLICATIONS STYLES */
+/***********************/
+.table {
+  display: table;
   margin: 0;
+  border: none;
+}
+.table td, .table th {
+  border: none;
+}
+#table-container {
+  overflow: hidden;
+  transition: max-height 0.3s linear;
+  height: auto;
+  max-height: 1000px;
+}
+#table-container.collapsed {
+  max-height: 0px;
 }
 
-a.activity-timestamp-header {
-  text-transform: uppercase;
-  color: #999;
+/* click to show/hide applications */
+#applications-heading-container {
+  margin: 10px;
+}
+
+#applications-heading, #applications-arrow {
+  color: black;
+  display: inline;
+  cursor: pointer;
+}
+#application-table-container-div {
+  width: 100%;
+  height: auto;
+  background-color: white;
+}
+#applications-arrow {
   font-size: 10px;
 }
+#connected-domain-message {
+  text-align: center;
+  padding: 10px;
+  margin: 0px;
+}
+/***********************/
+/* APPLICATIONS STYLES */
+/***********************/
 
-.color-gray {
-  color: #999;
-}
-.wide-lines {
-  line-height: 1.5em;
-}
-.scalable-subtext {
-  font-size: 3.5vw;
-}
 
-label {
-  display: inline-block;
-  max-width: 100%;
-  margin-bottom: 2px;
-  font-weight: 700;
-  color: gray;
-}
 
-.no-border {
-  border: 0;
-}
 
-#vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
-  width: 100%;
-  padding: 0px;
-}
 
-#vulnerabilities-found-on-page-list, #libs-vulnerabilities-found-on-page-list {
-  margin-top: 10px;
-  margin-bottom: 10px;
+/************************/
+/* CONFIGURATION STYLES */
+/************************/
+#configuration-header {
+  display: flex;
 }
-
-.vulnerability-li {
-  padding: 3px 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 99%;
-  overflow: hidden;
+#configuration-section {
+  background-color: white;
 }
-
-.vulnerability-rule-name, .vulnerability-link {
-  color: black;
+button.btn-contrast-plugin {
+  border-radius: 3px;
+  background-color: #3cc3b2 !important;
+  border-color: #3cc3b2;
+  border-radius: 3px;
+  color: #fff;
 }
-
-.vulnerability-link:hover {
-  cursor: pointer;
-  text-decoration: underline;
+button.btn-contrast-plugin:hover, button.buttonTab:hover {
+  background-color: #0da1a9 !important;
+  border-color: #0da1a9;
 }
-
-.vulnerability-rule-name {
-  padding-left: 10px;
-}
-
 /* gear button in bottom right corner */
 .configure-gear {
   outline: none;
@@ -210,81 +220,14 @@ label {
 @keyframes gear-spin {
   100% { transform: rotate(180deg); }
 }
-
-.table {
-  display: table;
-  margin: 0;
-}
-.section {
-  overflow: hidden;
-  height: auto;
-}
-.section, .table {
-  /* transition: transform 2s ease-out; /* note that we're transitioning transform, not height! */
-  /* transform: scaleY(1); /* implicit, but good to specify explicitly */ */
-  /* transform-origin: top; /* keep the top of the element in the same place. this is optional. */
-  overflow: hidden;
-  transition: max-height 0.3s ease-out;
-  height: auto;
-  max-height: 600px;
-}
-.section.collapsed, .table.collapsed {
-  /* transform: scaleY(0); */
-  max-height: 0px;
-}
-@keyframes collapse {
-  from {
-    transform: scaleY(1);
-  } to {
-    transform: scaleY(0);
-  }
-} */
-
-/* click to show/hide applications */
-#applications-heading-container {
-  padding: 15px;
-  display: none;
-}
-
-#applications-heading, #applications-arrow {
-  color: black;
-  display: inline;
-  cursor: pointer;
-}
-
-#application-table-container-div {
-  width: 100%;
-  height: auto;
-}
-
-#applications-arrow {
-  font-size: 10px;
-}
-
-#user-email {
-  cursor: pointer;
-}
-
 /* Hide success/error message and show when user clicks configure button after installing extension */
 .configure-message {
   display: none;
   font-weight: bold;
 }
-
-#connected-domain-message {
-  text-align: center;
-  padding: 10px;
-  margin: 0px;
+#user-email {
+  cursor: pointer;
 }
-
-.visible {
-  display: block;
-}
-
-.hidden {
-  display: none;
-}
-
 #config-success, #config-failure {
   color: gray;
   border: 1px solid gray;
@@ -303,23 +246,9 @@ label {
   padding: 10px;
   font-size: 16px;
 }
-
-.application-table-visible {
-  display: table;
-  transition-property: visibility, opacity;
-  transition-duration: 0s, 1s;
-  margin-bottom: 0px;
-}
-
-.application-table-hidden {
-  opacity: 0;
-  visibility: hidden;
-  transition-property: opacity, visibility;
-  transition-duration: 1s, 0s;
-  transition-delay: 0s, 0s;
-  position: absolute;
-}
-
+/************************/
+/* CONFIGURATION STYLES */
+/************************/
 /***********************************************/
 /* NOTE: CONFIGURATION AND POPUP HEADER/FOOTER */
 /***********************************************/
@@ -379,25 +308,14 @@ label {
   line-height: normal;
   font-size: 3.75vw;
 }
-/*********************************************/
-/* END CONFIGURATION AND POPUP HEADER/FOOTER */
-/*********************************************/
-
 #scan-libs-text {
   color: #65C0B2;
   margin-right: 5px;
 }
-
 #scan-libs-text:hover {
   cursor: pointer;
   font-weight: bold;
 }
-
-.no-margin {
-  margin: 0px;
-}
-
-
 #libs-loading {
   margin: 0 auto;
   width: 30px;
@@ -407,7 +325,6 @@ label {
   width: 100%;
   height: auto;
 }
-
 #found-libs-message {
   color: #65C0B2;
   text-align: center;
@@ -415,21 +332,23 @@ label {
   padding-top: 10px;
   padding-bottom: 20px;
 }
-
-/* @keyframes loadingSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-} */
+/*********************************************/
+/* END CONFIGURATION AND POPUP HEADER/FOOTER */
+/*********************************************/
 
 
+
+
+
+
+/**********/
 /* BADGES */
-
+/**********/
 .parent-badge {
   display: inline-flex;
   width: 73px;
   border-radius: 2px;
 }
-
 .child-badge {
   font-family: "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
   font-size: 12px;
@@ -443,3 +362,6 @@ label {
   width: 73px;
   height: 20px;
 }
+/**********/
+/* BADGES */
+/**********/

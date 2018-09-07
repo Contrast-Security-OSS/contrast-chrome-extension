@@ -28,7 +28,6 @@ ApplicationTable.DOWN_ARROW  = ' ▼';
  */
 ApplicationTable.prototype.renderApplicationsMenu = function() {
   console.log("render app menu");
-  // setElementDisplay(document.getElementById('vulnerabilities-footer'), 'none');
 
   const tableElements = [
     document.getElementById('applications-heading-container'),
@@ -62,13 +61,10 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
 ApplicationTable.prototype.rollApplications = function() {
   const arrow = document.getElementById('applications-arrow');
   if (arrow.innerText.trim() === ApplicationTable.RIGHT_ARROW.trim()) {
-    console.log("unroll apps");
     this._unrollApplications(arrow);
   } else {
-    console.log("roll apps");
     this._rollupApplications(arrow);
   }
-  this._changeTableVisibility(true);
 }
 
 ApplicationTable.prototype._unrollApplications = function(arrow) {
@@ -79,7 +75,6 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
   if (document.getElementsByTagName('tr').length < 2) {
     getOrgApplications()
     .then(json => {
-
       if (!json) {
         throw new Error("Error getting applications");
       }
@@ -87,11 +82,13 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
     })
     .catch(error => new Error(error));
   }
+  this.table.parentElement.classList.remove('collapsed');
 }
 
 ApplicationTable.prototype._rollupApplications = function(arrow) {
   console.log("roll up apps");
   setElementText(arrow, ApplicationTable.RIGHT_ARROW);
+  this.table.parentElement.classList.add('collapsed');
 }
 
 /**
@@ -127,8 +124,10 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   // this._changeTableVisibility(true);
   const vulnsSection = document.getElementById("vulnerabilities-section");
   const scanLibsText = document.getElementById('scan-libs-text');
+  const appHeading = document.getElementById('applications-heading-container');
   setElementDisplay(vulnsSection, "none");
   setElementDisplay(scanLibsText, "none");
+  setElementDisplay(appHeading, "none");
 
   const vulnsHeaderText = document.getElementById('vulns-header-text');
   setElementText(vulnsHeaderText, "Connect an Application");
