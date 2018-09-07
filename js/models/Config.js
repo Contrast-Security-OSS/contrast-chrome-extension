@@ -330,8 +330,3 @@ Config.prototype.setGearIcon = function() {
     configContainer.classList.toggle('collapsed');
   }, false);
 }
-
-Config.prototype._chromeExtensionSettingsUrl = function() {
-  const extensionId = chrome.runtime.id;
-  return `chrome-extension://${String(extensionId)}/settings.html`;
-}
