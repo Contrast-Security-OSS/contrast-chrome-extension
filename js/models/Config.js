@@ -321,6 +321,10 @@ Config.prototype.setGearIcon = function() {
   const configureGearIcon = document.getElementsByClassName('configure-gear')[0];
   const configContainer = document.getElementById('configuration-section');
   configureGearIcon.addEventListener('click', () => {
+    configureGearIcon.classList.add('configure-gear-rotate');
+    setTimeout(() => {
+      configureGearIcon.classList.remove('configure-gear-rotate');
+    }, 1000)
     configContainer.classList.toggle('collapsed');
   }, false);
 }
