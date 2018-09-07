@@ -278,8 +278,6 @@ button.btn-contrast-plugin:hover, button.buttonTab:hover {
 #configure-extension-button {
   float: right;
   border-radius: 0.25;
-  color: black;
-  border: 2px solid rgb(183, 183, 183);
   margin: 20px;
   margin-right: 0px;
 }
