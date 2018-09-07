@@ -13,7 +13,7 @@ import Application from './Application.js';
 import ConnectedDomain from './ConnectedDomain.js'
 
 const CONNECT_BUTTON_TEXT     = "Click to Connect";
-const CONNECT_SUCCESS_MESSAGE = "Successfully connected. You may need to reload the page.";
+const CONNECT_SUCCESS_MESSAGE = "Successfully connected. Please reload the page.";
 const CONNECT_FAILURE_MESSAGE = "Error connecting. Try refreshing the page.";
 // const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected";
 const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting";
@@ -102,16 +102,16 @@ TableRow.prototype._showMessage = function(result, connect) {
   if (result && connect) {
     this._successConnect(message);
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-    hideElementAfterTimeout(message);
+    // hideElementAfterTimeout(message);
   } else if (!result && connect) {
     this._failConnect(message);
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
-    hideElementAfterTimeout(message);
+    // hideElementAfterTimeout(message);
   }
   else if (!result && !connect) {
     this._failDisonnect(message);
     message.setAttribute('style', `color: ${CONTRAST_RED}`);
-    hideElementAfterTimeout(message);
+    // hideElementAfterTimeout(message);
   } else {
     changeElementVisibility(message);
   }

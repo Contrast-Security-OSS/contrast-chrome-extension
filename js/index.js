@@ -37,14 +37,13 @@ function indexFunction() {
     .then(credentials => {
       console.log("creds are", credentials);
       const credentialed = isCredentialed(credentials);
-      const config = new Config(tab, url, credentialed);
+      const config = new Config(tab, url, credentialed, credentials);
       config.setGearIcon();
       config.getUserConfiguration();
       if (!credentialed) {
         console.log("indexFunction Action 1");
       } else if (credentialed && config._isTeamserverAccountPage()) {
         console.log("indexFunction Action 2");
-        config.setCredentialsInSettings(credentials);
         const table = new ApplicationTable(url);
         table.renderApplicationsMenu();
         config.renderContrastUsername(credentials);
@@ -64,73 +63,6 @@ function indexFunction() {
 */
 document.addEventListener('DOMContentLoaded', indexFunction, false);
 document.addEventListener('DOMContentLoaded', showRefreshButton, false);
-// document.addEventListener('DOMContentLoaded', addButtonTabListeners, false);
-
-// NOTE: Initial Values
-// let LIBS_ACTIVE  = false;
-// let VULNS_ACTIVE = true;
-
-// function addButtonTabListeners() {
-  // const vulnsTab = document.getElementById('vulns-tab');
-  // const libsTab  = document.getElementById('libs-tab');
-  // vulnsTab.addEventListener('click', function() {
-  //   if (VULNS_ACTIVE) {
-  //     return;
-  //   }
-  //   LIBS_ACTIVE  = false;
-  //   VULNS_ACTIVE = true;
-  //   libsTab.classList.remove('unfocued-but-still-showing');
-  //
-  //   const libsSection  = document.getElementById('libraries-section');
-  //   const vulnsSection = document.getElementById('vulnerabilities-section');
-  //   vulnsSection.classList.add('visible');
-  //   vulnsSection.classList.remove('hidden');
-  //
-  //   libsSection.classList.remove('visible');
-  //   libsSection.classList.add('hidden');
-  //
-  //   const libsList = document.getElementById('libs-vulnerabilities-found-on-page-list');
-  //   while (libsList.firstChild) {
-  //     libsList.firstChild.remove();
-  //   }
-  // });
-
-  // libsTab.addEventListener('click', function() {
-  //   if (LIBS_ACTIVE) {
-  //     return;
-  //   }
-  //   VULNS_ACTIVE = false;
-  //   LIBS_ACTIVE  = true;
-  //   vulnsTab.classList.remove('unfocued-but-still-showing');
-  //
-  //   const libsSection  = document.getElementById('libraries-section');
-  //   const vulnsSection = document.getElementById('vulnerabilities-section');
-  //   vulnsSection.classList.remove('visible');
-  //   vulnsSection.classList.add('hidden');
-  //
-  //   libsSection.classList.add('visible');
-  //   libsSection.classList.remove('hidden');
-  //
-  //   addListenerToRefreshButton();
-  //   renderVulnerableLibraries();
-  // });
-  //
-  // vulnsTab.addEventListener('blur', function() {
-  //   if (VULNS_ACTIVE) {
-  //     vulnsTab.classList.add('unfocued-but-still-showing');
-  //   } else {
-  //     vulnsTab.classList.remove('unfocued-but-still-showing');
-  //   }
-  // });
-  //
-  // libsTab.addEventListener('blur', function() {
-  //   if (LIBS_ACTIVE) {
-  //     libsTab.classList.add('unfocued-but-still-showing');
-  //   } else {
-  //     libsTab.classList.remove('unfocued-but-still-showing');
-  //   }
-  // });
-// }
 
 function showRefreshButton() {
   const refreshLibsButton = document.getElementById('scan-libs-text');
@@ -151,6 +83,7 @@ function showRefreshButton() {
 
 function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
   refreshLibsButton.addEventListener('click', function() {
+    console.log('clicked libs btn');
     _renderLoadingElement(refreshLibsButton, loadingElement);
     chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
       if (!tabs || tabs.length === 0) return;
@@ -195,16 +128,16 @@ function _renderFoundVulnerableLibraries(message) {
 }
 
 function _hideLoadingElement(refreshLibsButton, loadingElement) {
-  refreshLibsButton.classList.remove('hidden');
-  refreshLibsButton.classList.add('visible');
+  // refreshLibsButton.classList.remove('hidden');
+  // refreshLibsButton.classList.add('visible');
 
   loadingElement.classList.add('hidden');
   loadingElement.classList.remove('visible');
 }
 
 function _renderLoadingElement(refreshLibsButton, loadingElement) {
-  refreshLibsButton.classList.add('hidden');
-  refreshLibsButton.classList.remove('visible');
+  // refreshLibsButton.classList.add('hidden');
+  // refreshLibsButton.classList.remove('visible');
 
   loadingElement.classList.remove('hidden');
   loadingElement.classList.add('visible');

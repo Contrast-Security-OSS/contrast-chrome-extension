@@ -18,10 +18,11 @@ import {
   CONTRAST_USERNAME,
 } from '../util.js'
 
-export default function Config(tab, url, credentialed) {
+export default function Config(tab, url, credentialed, credentials) {
   this.tab = tab;
   this.url = url;
   this.credentialed = credentialed;
+  this.credentials = credentials;
 }
 
 const POPUP_STATES = {
@@ -84,6 +85,7 @@ Config.prototype.getUserConfiguration = function() {
   const scanLibsText = document.getElementById('scan-libs-text');
   const appTableContainer = document.getElementById('application-table-container-div');
   const configButton = document.getElementById('configure-extension-button');
+  const configGear = document.getElementById('configure-gear');
 
   const popupState = this.popupState();
   console.log("This popupstate is ", popupState);
@@ -99,6 +101,7 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(configHeader, "flex");
       setElementText(configHeaderText, "Set Up Configuration");
       setElementDisplay(configButton, "none");
+      setElementDisplay(configGear, "none");
       break;
     }
     case 1: {
@@ -112,7 +115,8 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(configHeader, "flex");
       setElementDisplay(configButton, "none");
       setElementText(configHeaderText, "Connection Settings");
-      setElementText(configFooterText, "Log into Contrast and go to Your Account so we can grab your keys.")
+      setElementText(configFooterText, "Log into Contrast and go to Your Account so we can grab your keys.");
+      setElementDisplay(configGear, "block");
       break;
     }
     case 2: {
@@ -127,6 +131,7 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(configButton, "block");
       setElementText(configHeaderText, "Connection Settings");
       setElementText(configFooterText, "Click the Connect button to get started.")
+      setElementDisplay(configGear, "block");
       this._renderConfigButton(configButton);
       configContainer.classList.toggle('collapsed');
       break;
@@ -135,6 +140,8 @@ Config.prototype.getUserConfiguration = function() {
       console.log("case 3 contrastYourAccountConfigured");
       setElementDisplay(vulnsSection, "none");
       setElementDisplay(vulnsHeader, "flex");
+      vulnsHeader.classList.remove('flex-row-space-between');
+      vulnsHeader.classList.add('flex-row-head');
       setElementDisplay(configFooter, "none");
       setElementDisplay(configuredFooter, "flex");
       setElementDisplay(configContainer, "block");
@@ -142,7 +149,9 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(configButton, "block");
       setElementDisplay(userEmail, "block");
       setElementDisplay(scanLibsText, "none");
-      setElementText(vulnsHeaderText, "Configuration");
+      setElementText(vulnsHeaderText, "Configured");
+      setElementDisplay(configGear, "block");
+      this.setCredentialsInSettings();
       this._renderConfigButton(configButton);
       configContainer.classList.toggle('collapsed');
       break;
@@ -150,26 +159,34 @@ Config.prototype.getUserConfiguration = function() {
     case 4: {
       console.log("case 4 contrastConfigured");
       setElementDisplay(vulnsSection, "none");
-      setElementDisplay(vulnsHeader, "none");
+      setElementDisplay(vulnsHeader, "flex");
+      vulnsHeader.classList.remove('flex-row-space-between');
+      vulnsHeader.classList.add('flex-row-head');
       setElementDisplay(configuredFooter, "flex");
+      setElementDisplay(configFooter, "none");
       setElementDisplay(configContainer, "block");
       setElementDisplay(configHeader, "none");
       setElementDisplay(configButton, "none");
       setElementDisplay(userEmail, "block");
       setElementDisplay(scanLibsText, "none");
-      setElementText(vulnsHeaderText, "Configuration");
+      setElementText(vulnsHeaderText, "Configured");
+      setElementDisplay(configGear, "block");
+      this.setCredentialsInSettings();
       break;
     }
     case 5: {
       console.log("case 5 notContrastConfigured");
-      setElementDisplay(vulnsSection, "block");
+      setElementDisplay(vulnsSection, "flex");
       setElementDisplay(vulnsHeader, "flex");
+      vulnsHeader.classList.add('flex-row-space-between');
+      vulnsHeader.classList.remove('flex-row-head');
       setElementDisplay(configFooter, "none");
       setElementDisplay(configuredFooter, "flex");
       setElementDisplay(configContainer, "none");
       setElementDisplay(configHeader, "none");
       setElementDisplay(configButton, "none");
       setElementDisplay(userEmail, "block");
+      setElementDisplay(configGear, "none");
       break;
     }
     default: {
@@ -179,16 +196,16 @@ Config.prototype.getUserConfiguration = function() {
   }
 }
 
-Config.prototype.setCredentialsInSettings = function(credentials) {
+Config.prototype.setCredentialsInSettings = function() {
   const urlInput = document.getElementById("contrast-url-input");
   const serviceKeyInput = document.getElementById("contrast-service-key-input");
   const userNameInput = document.getElementById("contrast-username-input");
   const apiKeyInput = document.getElementById("contrast-api-key-input");
 
-  const teamServerUrl = credentials[TEAMSERVER_URL];
-  const serviceKey = credentials[CONTRAST_SERVICE_KEY];
-  const apiKey = credentials[CONTRAST_API_KEY];
-  const profileEmail = credentials[CONTRAST_USERNAME];
+  const teamServerUrl = this.credentials[TEAMSERVER_URL];
+  const serviceKey = this.credentials[CONTRAST_SERVICE_KEY];
+  const apiKey = this.credentials[CONTRAST_API_KEY];
+  const profileEmail = this.credentials[CONTRAST_USERNAME];
 
   urlInput.value = teamServerUrl;
   serviceKeyInput.value = serviceKey;
@@ -222,8 +239,10 @@ Config.prototype._renderConfigButton = function(configButton) {
       const failureMessage = document.getElementById('config-failure');
       if (!response || !response.action) {
         changeElementVisibility(failureMessage);
+        setElementDisplay(configButton, "none");
         hideElementAfterTimeout(failureMessage, () => {
           configButton.removeAttribute('disabled');
+          setElementDisplay(configButton, "block");
         });
       }
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
@@ -233,8 +252,10 @@ Config.prototype._renderConfigButton = function(configButton) {
         // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
         const successMessage = document.getElementById('config-success');
         changeElementVisibility(successMessage);
+        setElementDisplay(configButton, "none");
         hideElementAfterTimeout(successMessage, () => {
           configButton.removeAttribute('disabled');
+          setElementDisplay(configButton, "block");
         });
 
         this.setCredentialsInSettings(response.contrastObj)
@@ -244,8 +265,10 @@ Config.prototype._renderConfigButton = function(configButton) {
         // hideElementAfterTimeout(section);
       } else {
         changeElementVisibility(failureMessage);
+        setElementDisplay(configButton, "none");
         hideElementAfterTimeout(failureMessage, () => {
           configButton.removeAttribute('disabled');
+          setElementDisplay(configButton, "block");
         });
       }
       return;
@@ -274,10 +297,11 @@ Config.prototype._isTeamserverAccountPage = function() {
 
 Config.prototype._isContrastPage = function() {
   if (!this.tab || !this.url) throw new Error("_isTeamserverAccountPage expects tab or url");
-
+  console.log("is contrast page url", this.tab.url);
   const conditions = [
     this.tab.url.startsWith("http"),
     VALID_TEAMSERVER_HOSTNAMES.includes(this.url.hostname),
+    this.tab.url.includes('Contrast'),
   ];
   return conditions.every(c => !!c);
 }

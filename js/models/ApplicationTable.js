@@ -62,14 +62,17 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
 ApplicationTable.prototype.rollApplications = function() {
   const arrow = document.getElementById('applications-arrow');
   if (arrow.innerText.trim() === ApplicationTable.RIGHT_ARROW.trim()) {
+    console.log("unroll apps");
     this._unrollApplications(arrow);
   } else {
+    console.log("roll apps");
     this._rollupApplications(arrow);
   }
   this._changeTableVisibility(true);
 }
 
 ApplicationTable.prototype._unrollApplications = function(arrow) {
+  console.log("unrolling apps");
   setElementText(arrow, ApplicationTable.DOWN_ARROW);
 
   // if less than 2 then only the heading row has been rendered
@@ -87,6 +90,7 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
 }
 
 ApplicationTable.prototype._rollupApplications = function(arrow) {
+  console.log("roll up apps");
   setElementText(arrow, ApplicationTable.RIGHT_ARROW);
 }
 
@@ -98,14 +102,19 @@ ApplicationTable.prototype._rollupApplications = function(arrow) {
  * @return {type}
  */
 ApplicationTable.prototype.renderActivityFeed = function() {
-  if (isBlacklisted(this.url.host)) {
-    return;
-  }
+  // if (isBlacklisted(this.url.host)) {
+  //   console.log("blacklisted domain");
+  //   return;
+  // }
 
   chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
+    console.log("storedApps", storedApps);
     const host = getHostFromUrl(this.url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (_appIsConfigured(storedApps, host)) {
+      console.log("app configured");
+      const appTableContainer = document.getElementById('application-table-container-div');
+      setElementDisplay(appTableContainer, "none");
       // if you don't need credentials, hide the signin functionality and don't render a table
     } else {
       this._showContrastApplications(storedApps);
@@ -120,6 +129,9 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   const scanLibsText = document.getElementById('scan-libs-text');
   setElementDisplay(vulnsSection, "none");
   setElementDisplay(scanLibsText, "none");
+
+  const vulnsHeaderText = document.getElementById('vulns-header-text');
+  setElementText(vulnsHeaderText, "Connect an Application");
 
   // if app is not stored, render the table with buttons to add the domain
   getOrgApplications()
@@ -165,7 +177,6 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
   const tr = new TableRow(application, this.url, this.table.tBodies[0]);
   tr.appendChildren();
   tr.setAppId(application);
-  this._changeTableVisibility(true);
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
     tr.setHost(getHostFromUrl(this.url));

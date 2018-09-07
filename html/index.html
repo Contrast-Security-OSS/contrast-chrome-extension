@@ -16,28 +16,27 @@
 <body>
   <section class="headers-section section">
     <div id="configuration-header" class="flex-row header-row flex-row-head">
-      <div>
-        <img src="../icon.png" alt="" class="logo-icon">
-      </div>
-      <div id="header-text">
+      <img src="../icon.png" alt="" class="logo-icon flex-row-item">
+      <div id="header-text" class="flex-row-item">
         <h5>
           <strong>Contrast</strong>
         </h5>
-        <h6 id="config-header-text" class="no-margin">Set Up Configuration</h6>
+        <p id="config-header-text" class="no-margin scalable-subtext flex-row-item">Set Up Configuration</p>
       </div>
     </div>
     <div id="vulnerabilities-header" class="flex-row header-row">
-      <div>
-        <img src="../icon.png" alt="" class="logo-icon">
-      </div>
-      <div id="header-text">
+      <img src="../icon.png" alt="" class="logo-icon flex-row-item">
+      <div id="header-text" class="flex-row-item">
         <h5>
           <strong>Contrast</strong>
         </h5>
-        <h6 id="vulns-header-text" class="no-margin">Discovered Vulnerabilities</h6>
+        <p id="vulns-header-text" class="no-margin scalable-subtext">Discovered Vulnerabilities</p>
       </div>
-      <div>
-        <span id="scan-libs-text">Scan Libraries</span>
+      <div class="flex-row-item">
+        <div class="flex-row">
+          <span id="scan-libs-text" class="scalable-subtext">Scan Libraries</span>
+          <img class="hidden" id="libs-loading" src="/img/contrast128.png" alt="loading">
+        </div>
       </div>
     </div>
   </section>
@@ -46,7 +45,7 @@
     <button id="libs-tab" class="btn buttonTab" type="button" name="button">Libraries</button>
   </div> -->
 
-  <section id="vulnerabilities-section" class="hidden panel panel-default section">
+  <section id="vulnerabilities-section" class="panel panel-default section">
 
     <div class="color-gray panel-body" id="no-vulnerabilities-found">
       <h5>No vulnerabilities were found.</h5>
@@ -64,9 +63,6 @@
         </div>
 
         <h4 id="found-libs-message" class="hidden"></h4>
-        <div class="hidden" id="libs-loading">
-          <img src="/img/contrast128.png" alt="loading">
-        </div>
       </div>
     </div>
   </section>
@@ -101,8 +97,8 @@
           <button class="btn btn-light" type="button" name="button" id="configure-extension-button">Connect</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message">Successfully Configured Contrast Extension!</h5>
-      <h5 id="config-failure" class="configure-message">Error Configuring Extension, try reloading the page.</h5>
+      <h5 id="config-success" class="configure-message"><span id="success-check">✔</span>Successfully Configured!</h5>
+      <h5 id="config-failure" class="configure-message"><span id="error-x">X</span>Error Configuring, try reloading the page.</h5>
     </div>
   </section>
 
@@ -111,13 +107,13 @@
   <section class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
-        <h6 id="config-footer-text" class="color-gray wide-lines">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="https://app.contrastsecurity.com">log into Contrast</a> and go to Your Account so we can grab your keys.</h6>
+        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="https://app.contrastsecurity.com">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
       </div>
     </div>
     <div id="configured-footer" class="flex-row footer-row flex-row-foot">
       <div class="color-gray" id="user-email">
       </div>
-      <img class="configure-gear" src="/img/glyphicons-cog.png" alt="gear">
+      <img id="configure-gear" class="configure-gear" src="/img/glyphicons-cog.png" alt="gear">
     </div>
   </section>
 
