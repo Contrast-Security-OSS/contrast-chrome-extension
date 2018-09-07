@@ -18,7 +18,6 @@ import {
   CONTRAST_USERNAME,
 } from '../util.js'
 
-import ApplicationTable from './ApplicationTable.js';
 import { indexFunction } from '../index.js';
 
 export default function Config(tab, url, credentialed, credentials) {

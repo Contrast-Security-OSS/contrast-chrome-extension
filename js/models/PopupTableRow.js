@@ -165,8 +165,3 @@ TableRow.prototype._addHTTProtocol = function(host) {
   }
   return [http, https]; // eslint-disable-line
 }
-
-
-function loadingIconHTML() {
-  return `<img style="padding: 5px; width: 20px;" id="config-loading-icon" class="loading-icon" src="../img/ring-alt.gif" alt="loading">`;
-}

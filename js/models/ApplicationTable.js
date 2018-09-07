@@ -58,8 +58,8 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
   for (let i = 0, len = headings.length; i < len; i++) {
 
     // NOTE: Used to prevent event listeners from being readded
-    if (ApplicationTable.listener.attached &&
-        ApplicationTable.listener.url === this.url.href) {
+    if (ApplicationTable.listener.attached
+        && ApplicationTable.listener.url === this.url.href) {
           return;
         }
 
@@ -75,7 +75,7 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
  *
  * @return {type}  description
  */
-ApplicationTable.prototype.rollApplications = function(e) {
+ApplicationTable.prototype.rollApplications = function() {
   const arrow = document.getElementById('applications-arrow');
   if (arrow.innerText.trim() === ApplicationTable.RIGHT_ARROW.trim()) {
     this._unrollApplications(arrow);
