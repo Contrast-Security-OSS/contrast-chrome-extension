@@ -82,8 +82,15 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
 
   disconnectButton.setAttribute('class', CONTRAST_BUTTON_CLASS);
   disconnectButton.addEventListener('click', () => {
-    connected.disconnectDomain(storedApps, this)
-    .then(disconnected => this._showMessage(disconnected))
+    console.log("disconnecting");
+    connected.disconnectDomain(this)
+    .then(disconnected => {
+      if (disconnected) {
+        this.removeDomainAndButton();
+      } else {
+        throw new Error("Error Disconnecting Domain");
+      }
+    })
     .catch(error => this._handleConnectError(error));
   });
   this.disconnectTD.appendChild(disconnectButton);
@@ -157,4 +164,9 @@ TableRow.prototype._addHTTProtocol = function(host) {
     https = 'https://' + host + "/*";
   }
   return [http, https]; // eslint-disable-line
+}
+
+
+function loadingIconHTML() {
+  return `<img style="padding: 5px; width: 20px;" id="config-loading-icon" class="loading-icon" src="../img/ring-alt.gif" alt="loading">`;
 }

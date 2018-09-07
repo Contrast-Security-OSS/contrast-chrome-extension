@@ -27,7 +27,7 @@ import Config from './models/Config.js';
 *
 * @return {void}
 */
-function indexFunction() {
+export function indexFunction() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
     const tab = tabs[0];
@@ -38,18 +38,19 @@ function indexFunction() {
       console.log("creds are", credentials);
       const credentialed = isCredentialed(credentials);
       const config = new Config(tab, url, credentialed, credentials);
-      config.setGearIcon();
       config.getUserConfiguration();
       if (!credentialed) {
         console.log("indexFunction Action 1");
       } else if (credentialed && config._isTeamserverAccountPage()) {
         console.log("indexFunction Action 2");
         const table = new ApplicationTable(url);
+        config.setGearIcon();
         table.renderApplicationsMenu();
         config.renderContrastUsername(credentials);
       } else {
         console.log("indexFunction Action 3");
         const table = new ApplicationTable(url);
+        config.setGearIcon();
         table.renderActivityFeed();
         config.renderContrastUsername(credentials);
       }

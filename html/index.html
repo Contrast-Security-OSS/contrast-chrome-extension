@@ -21,7 +21,7 @@
         <h5>
           <strong>Contrast</strong>
         </h5>
-        <p id="config-header-text" class="no-margin scalable-subtext flex-row-item">Set Up Configuration</p>
+        <p id="config-header-text" class="no-margin scalable-subtext">Set Up Configuration</p>
       </div>
     </div>
     <div id="vulnerabilities-header" class="flex-row header-row">
@@ -35,14 +35,13 @@
       <div class="flex-row-item">
         <div class="flex-row">
           <span id="scan-libs-text" class="scalable-subtext">Scan Libraries</span>
-          <img class="hidden" id="libs-loading" src="/img/ring-alt.gif" alt="loading">
+          <img id="libs-loading" class="hidden loading-icon" src="/img/ring-alt.gif" alt="loading">
         </div>
       </div>
     </div>
   </section>
 
   <section id="vulnerabilities-section" class="panel panel-default section">
-
     <div class="color-gray panel-body" id="no-vulnerabilities-found">
       <h5>No vulnerabilities were found.</h5>
     </div>
@@ -66,7 +65,7 @@
   <div id="application-table-container-div">
     <p id="connected-domain-message" class="hidden"></p>
     <div id="applications-heading-container">
-      <h5 id="applications-heading">Your Applications</h5><h5 id="applications-arrow"> ▼</h5>
+      <h5 id="applications-heading">Your Applications</h5><h5 id="applications-arrow"> ▶</h5>
     </div>
     <div id="table-container">
       <table class="table table-responsive table-striped" id="application-table">
@@ -95,20 +94,19 @@
           <button class="btn btn-light" type="button" name="button" id="configure-extension-button">Connect</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message"><span id="success-check">✔</span>Successfully Configured!</h5>
-      <h5 id="config-failure" class="configure-message"><span id="error-x">X</span>Error Configuring, try reloading the page.</h5>
+      <h5 id="config-success" class="configure-message hidden"><span id="success-check">✔</span>Successfully Configured!</h5>
+      <h5 id="config-failure" class="configure-message hidden"><span id="error-x">X</span>Error Configuring, try reloading the page.</h5>
     </div>
   </section>
 
   <section class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
-        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="https://app.contrastsecurity.com">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
+        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
       </div>
     </div>
     <div id="configured-footer" class="flex-row footer-row flex-row-foot">
-      <div class="color-gray" id="user-email">
-      </div>
+      <div class="color-gray" id="user-email"></div>
       <img id="configure-gear" class="configure-gear" src="/img/glyphicons-cog.png" alt="gear">
     </div>
   </section>

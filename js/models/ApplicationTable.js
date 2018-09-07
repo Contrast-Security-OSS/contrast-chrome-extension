@@ -15,7 +15,15 @@ import TableRow from './PopupTableRow.js';
 export default function ApplicationTable(url) {
   this.table = document.getElementById('application-table');
   this.url   = url;
+
+  this.rollApplications = this.rollApplications.bind(this);
 }
+
+// NOTE: Used to prevent event listeners from being readded
+ApplicationTable.listener = {
+  attached: false,
+  url: "",
+};
 
 ApplicationTable.RIGHT_ARROW = ' ▶';
 ApplicationTable.DOWN_ARROW  = ' ▼';
@@ -48,7 +56,16 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
   }
 
   for (let i = 0, len = headings.length; i < len; i++) {
-    headings[i].addEventListener('click', () => this.rollApplications());
+
+    // NOTE: Used to prevent event listeners from being readded
+    if (ApplicationTable.listener.attached &&
+        ApplicationTable.listener.url === this.url.href) {
+          return;
+        }
+
+    ApplicationTable.listener.attached = true;
+    ApplicationTable.listener.url = this.url.href;
+    headings[i].addEventListener('click', this.rollApplications, false);
   }
 }
 
@@ -58,7 +75,7 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
  *
  * @return {type}  description
  */
-ApplicationTable.prototype.rollApplications = function() {
+ApplicationTable.prototype.rollApplications = function(e) {
   const arrow = document.getElementById('applications-arrow');
   if (arrow.innerText.trim() === ApplicationTable.RIGHT_ARROW.trim()) {
     this._unrollApplications(arrow);
@@ -68,7 +85,6 @@ ApplicationTable.prototype.rollApplications = function() {
 }
 
 ApplicationTable.prototype._unrollApplications = function(arrow) {
-  console.log("unrolling apps");
   setElementText(arrow, ApplicationTable.DOWN_ARROW);
 
   // if less than 2 then only the heading row has been rendered
@@ -86,7 +102,6 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
 }
 
 ApplicationTable.prototype._rollupApplications = function(arrow) {
-  console.log("roll up apps");
   setElementText(arrow, ApplicationTable.RIGHT_ARROW);
   this.table.parentElement.classList.add('collapsed');
 }

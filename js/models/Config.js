@@ -18,11 +18,16 @@ import {
   CONTRAST_USERNAME,
 } from '../util.js'
 
+import ApplicationTable from './ApplicationTable.js';
+import { indexFunction } from '../index.js';
+
 export default function Config(tab, url, credentialed, credentials) {
   this.tab = tab;
   this.url = url;
   this.credentialed = credentialed;
   this.credentials = credentials;
+
+  this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
 }
 
 const POPUP_STATES = {
@@ -71,7 +76,6 @@ Config.prototype.popupState = function() {
  */
 Config.prototype.getUserConfiguration = function() {
   console.log("get user configuration");
-  console.log("This popupstate is ", this.popupState());
   const userEmail = document.getElementById('user-email');
   const configSection = document.getElementById('configuration-section');
   const configHeader = document.getElementById('configuration-header');
@@ -143,6 +147,7 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(vulnsHeader, "flex");
       vulnsHeader.classList.remove('flex-row-space-between');
       vulnsHeader.classList.add('flex-row-head');
+      setElementDisplay(configSection, "block");
       setElementDisplay(configFooter, "none");
       setElementDisplay(configuredFooter, "flex");
       setElementDisplay(configContainer, "block");
@@ -222,60 +227,76 @@ Config.prototype.setCredentialsInSettings = function() {
  * @return {void}
  */
 Config.prototype._renderConfigButton = function(configButton) {
-  configButton.addEventListener('click', () => {
-    console.log("clicked");
-    configButton.setAttribute('disabled', true);
+  configButton.addEventListener('click', this._handleConfigButtonClick, false);
+}
 
-    // whenever user configures, remove all traces and apps, useful for when reconfiguring
-    chrome.storage.local.remove([
-      STORED_APPS_KEY,
-      STORED_TRACES_KEY,
-    ], () => {
-      if (chrome.runtime.lastError) {
-        throw new Error("Error removing stored apps and stored traces");
-      }
-    });
+Config.prototype._handleConfigButtonClick = function(e) {
+  const configButton = e.target;
+  console.log("clicked", e.target, this);
+  configButton.setAttribute('disabled', true);
 
-    // credentials are set by sending a message to content-script
-    chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: CONTRAST_INITIALIZE }, (response) => {
-      const failureMessage = document.getElementById('config-failure');
-      if (!response || !response.action) {
-        changeElementVisibility(failureMessage);
-        setElementDisplay(configButton, "none");
-        hideElementAfterTimeout(failureMessage, () => {
-          configButton.removeAttribute('disabled');
-          setElementDisplay(configButton, "block");
-        });
-      }
-      // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
-      if (response.action === CONTRAST_INITIALIZED) {
-        chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: '' });
+  // whenever user configures, remove all traces and apps, useful for when reconfiguring
+  chrome.storage.local.remove([
+    STORED_APPS_KEY,
+    STORED_TRACES_KEY,
+  ], () => {
+    if (chrome.runtime.lastError) {
+      throw new Error("Error removing stored apps and stored traces");
+    }
+  });
 
-        // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
-        const successMessage = document.getElementById('config-success');
-        changeElementVisibility(successMessage);
-        setElementDisplay(configButton, "none");
-        hideElementAfterTimeout(successMessage, () => {
-          configButton.removeAttribute('disabled');
-          setElementDisplay(configButton, "block");
-        });
-
-        this.setCredentialsInSettings(response.contrastObj)
-
-        const section = document.getElementById('configuration-section');
-        section.display = 'none';
-        // hideElementAfterTimeout(section);
-      } else {
-        changeElementVisibility(failureMessage);
-        setElementDisplay(configButton, "none");
-        hideElementAfterTimeout(failureMessage, () => {
-          configButton.removeAttribute('disabled');
-          setElementDisplay(configButton, "block");
-        });
-      }
+  // credentials are set by sending a message to content-script
+  chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: CONTRAST_INITIALIZE }, (response) => {
+    const failureMessage = document.getElementById('config-failure');
+    if (!response || !response.action) {
+      changeElementVisibility(failureMessage);
+      setElementDisplay(configButton, "none");
+      hideElementAfterTimeout(failureMessage, () => {
+        configButton.removeAttribute('disabled');
+        setElementDisplay(configButton, "block");
+      });
       return;
-    })
-  }, false);
+    }
+    // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
+    if (response.action === CONTRAST_INITIALIZED) {
+      chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: '' });
+      // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
+      const successMessage = document.getElementById('config-success');
+      const configFooterText = document.getElementById('config-footer-text');
+      changeElementVisibility(successMessage);
+      setElementDisplay(configButton, "none");
+      configFooterText.innerText = "";
+      configFooterText.innerHTML = loadingIconHTML();
+      this._updateCredentials(response.contrastObj);
+      hideElementAfterTimeout(successMessage, () => {
+        configButton.removeAttribute('disabled');
+        setElementDisplay(configButton, "block");
+        configFooterText.innerHTML = "";
+        console.log("this 2", this);
+        configButton.removeEventListener('click', this._handleConfigButtonClick);
+
+        indexFunction();
+      });
+      this.setCredentialsInSettings();
+
+      const section = document.getElementById('configuration-section');
+      section.display = 'none';
+      hideElementAfterTimeout(section);
+    } else {
+      changeElementVisibility(failureMessage);
+      setElementDisplay(configButton, "none");
+      hideElementAfterTimeout(failureMessage, () => {
+        configButton.removeAttribute('disabled');
+        setElementDisplay(configButton, "block");
+      });
+    }
+    return;
+  })
+}
+
+Config.prototype._updateCredentials = function(credentialsObj) {
+  this.credentials = credentialsObj;
+  this.credentialed = true;
 }
 
 /**
@@ -320,13 +341,23 @@ Config.prototype.renderContrastUsername = function(credentials) {
 
 Config.prototype.setGearIcon = function() {
   // configure button opens up settings page in new tab
-  const configureGearIcon = document.getElementsByClassName('configure-gear')[0];
+  const configureGearIcon = document.getElementById('configure-gear');
+  configureGearIcon.addEventListener('click', this._handleGearClick, false);
+}
+
+Config.prototype._handleGearClick = function(e) {
+  console.log("clicked gear");
+  const configureGearIcon = e.target;
   const configContainer = document.getElementById('configuration-section');
-  configureGearIcon.addEventListener('click', () => {
-    configureGearIcon.classList.add('configure-gear-rotate');
-    setTimeout(() => {
-      configureGearIcon.classList.remove('configure-gear-rotate');
-    }, 1000)
-    configContainer.classList.toggle('collapsed');
-  }, false);
+  configureGearIcon.classList.add('configure-gear-rotate');
+  setTimeout(() => {
+    configureGearIcon.classList.remove('configure-gear-rotate');
+    // configureGearIcon.removeEventListener('click', this._handleGearClick);
+  }, 1000);
+  configContainer.classList.toggle('collapsed');
+}
+
+
+function loadingIconHTML() {
+  return `<img style="float: right; padding-bottom: 20px; width: 50px;" id="config-loading-icon" class="loading-icon" src="/img/ring-alt.gif" alt="loading">`;
 }

@@ -6,8 +6,8 @@
 .wide-lines { line-height: 1.5em; }
 .scalable-subtext { font-size: 3.5vw; }
 .no-border { border: 0; }
-.visible { visibility: visible; }
-.hidden { visibility: hidden; }
+.visible { display: block; }
+.hidden { display: none; }
 .no-margin { margin: 0; }
 html {
   margin: 0;
@@ -138,7 +138,7 @@ label {
 
 /* click to show/hide applications */
 #applications-heading-container {
-  margin: 10px;
+  padding: 10px;
 }
 
 #applications-heading, #applications-arrow {
@@ -200,8 +200,9 @@ button.btn-contrast-plugin:hover, button.buttonTab:hover {
 }
 /* Hide success/error message and show when user clicks configure button after installing extension */
 .configure-message {
-  display: none;
   font-weight: bold;
+  margin: 15px;
+  text-align: center;
 }
 #user-email {
   cursor: pointer;
@@ -294,12 +295,12 @@ button.btn-contrast-plugin:hover, button.buttonTab:hover {
   cursor: pointer;
   font-weight: bold;
 }
-#libs-loading {
+.loading-icon {
   margin: 0 auto;
   width: 30px;
   height: auto;
 }
-#libs-loading img {
+.loading-icon img {
   width: 100%;
   height: auto;
 }
