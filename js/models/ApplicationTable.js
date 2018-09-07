@@ -14,6 +14,7 @@ import TableRow from './PopupTableRow.js';
 
 export default function ApplicationTable(url) {
   this.table = document.getElementById('application-table');
+  this.tableContainer = this.table.parentElement;
   this.url   = url;
 
   this.rollApplications = this.rollApplications.bind(this);
@@ -25,8 +26,9 @@ ApplicationTable.listener = {
   url: "",
 };
 
-ApplicationTable.RIGHT_ARROW = ' ▶';
-ApplicationTable.DOWN_ARROW  = ' ▼';
+ApplicationTable.showApps = false;
+ApplicationTable.RIGHT_ARROW = `<svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M826.2 654.6l-3.6-4.2-272-313c-9.2-10.6-23-17.2-38.4-17.2s-29.2 6.8-38.4 17.2L197.4 655c-3.4 5-5.4 11-5.4 17.4 0 17.4 14.8 31.6 33.2 31.6h573.6c18.4 0 33.2-14.2 33.2-31.6 0-6.6-2.2-12.8-5.8-17.8z"></path></g></svg>`;
+ApplicationTable.DOWN_ARROW  = `<svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M197.8 369.4l3.6 4.2 272 313c9.2 10.6 23 17.2 38.4 17.2s29.2-6.8 38.4-17.2L826.6 369c3.4-5 5.4-11 5.4-17.4 0-17.4-14.8-31.6-33.2-31.6H225.2c-18.4 0-33.2 14.2-33.2 31.6 0 6.6 2.2 12.8 5.8 17.8z"></path></g></svg>`;
 
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
@@ -51,22 +53,20 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
   tableElements.forEach(el => setElementDisplay(el, 'block'));
 
   const arrow = document.getElementById('applications-arrow');
-  if (arrow.innerText.trim() === ApplicationTable.DOWN_ARROW.trim()) {
+  if (ApplicationTable.showApps) {
     this._unrollApplications(arrow);
   }
 
+  // NOTE: Used to prevent event listeners from being readded
+  if (ApplicationTable.listener.attached
+      && ApplicationTable.listener.url === this.url.href) {
+        return;
+      }
   for (let i = 0, len = headings.length; i < len; i++) {
-
-    // NOTE: Used to prevent event listeners from being readded
-    if (ApplicationTable.listener.attached
-        && ApplicationTable.listener.url === this.url.href) {
-          return;
-        }
-
-    ApplicationTable.listener.attached = true;
-    ApplicationTable.listener.url = this.url.href;
     headings[i].addEventListener('click', this.rollApplications, false);
   }
+  ApplicationTable.listener.attached = true;
+  ApplicationTable.listener.url = this.url.href;
 }
 
 
@@ -76,8 +76,9 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
  * @return {type}  description
  */
 ApplicationTable.prototype.rollApplications = function() {
+  ApplicationTable.showApps = !ApplicationTable.showApps;
   const arrow = document.getElementById('applications-arrow');
-  if (arrow.innerText.trim() === ApplicationTable.RIGHT_ARROW.trim()) {
+  if (ApplicationTable.showApps) {
     this._unrollApplications(arrow);
   } else {
     this._rollupApplications(arrow);
@@ -85,7 +86,7 @@ ApplicationTable.prototype.rollApplications = function() {
 }
 
 ApplicationTable.prototype._unrollApplications = function(arrow) {
-  setElementText(arrow, ApplicationTable.DOWN_ARROW);
+  arrow.innerHTML = ApplicationTable.DOWN_ARROW;
 
   // if less than 2 then only the heading row has been rendered
   if (document.getElementsByTagName('tr').length < 2) {
@@ -98,12 +99,12 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
     })
     .catch(error => new Error(error));
   }
-  this.table.parentElement.classList.remove('collapsed');
+  this.tableContainer.classList.remove('collapsed');
 }
 
 ApplicationTable.prototype._rollupApplications = function(arrow) {
-  setElementText(arrow, ApplicationTable.RIGHT_ARROW);
-  this.table.parentElement.classList.add('collapsed');
+  arrow.innerHTML = ApplicationTable.RIGHT_ARROW;
+  this.tableContainer.classList.add('collapsed');
 }
 
 /**
@@ -118,6 +119,7 @@ ApplicationTable.prototype.renderActivityFeed = function() {
   //   console.log("blacklisted domain");
   //   return;
   // }
+  this.tableContainer.classList.remove('collapsed');
 
   chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
     console.log("storedApps", storedApps);

@@ -65,10 +65,13 @@
   <div id="application-table-container-div">
     <p id="connected-domain-message" class="hidden"></p>
     <div id="applications-heading-container">
-      <h5 id="applications-heading">Your Applications</h5><h5 id="applications-arrow"> ▶</h5>
+      <h5 id="applications-heading">Your Applications</h5>
+      <h5 id="applications-arrow">
+        <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M826.2 654.6l-3.6-4.2-272-313c-9.2-10.6-23-17.2-38.4-17.2s-29.2 6.8-38.4 17.2L197.4 655c-3.4 5-5.4 11-5.4 17.4 0 17.4 14.8 31.6 33.2 31.6h573.6c18.4 0 33.2-14.2 33.2-31.6 0-6.6-2.2-12.8-5.8-17.8z"></path></g></svg>
+      </h5>
     </div>
-    <div id="table-container">
-      <table class="table table-responsive table-striped" id="application-table">
+    <div id="table-container" class="collapsed">
+      <table class="table table-responsive" id="application-table">
         <thead>
           <th>Application</th>
           <th>Domain</th>
@@ -94,7 +97,12 @@
           <button class="btn btn-primary btn-xs btn-contrast-plugin" type="button" name="button" id="configure-extension-button">Configure</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message hidden"><span id="success-check">✔</span>Successfully Configured!</h5>
+      <h5 id="config-success" class="configure-message hidden">
+        <span id="success-check">
+          <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
+        </span>
+        Successfully Configured!
+      </h5>
       <h5 id="config-failure" class="configure-message hidden"><span id="error-x">X</span>Error Configuring, try reloading the page.</h5>
     </div>
   </section>

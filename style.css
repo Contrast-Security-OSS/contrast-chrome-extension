@@ -20,7 +20,7 @@ body {
   min-width: 400px;
   background-color: rgb(247, 247, 247);
 }
-h1, h2, h3, h4, h5, h6, span, p {
+h1, h2, h3, h4, h5, h6, span, p, td, th {
   font-family: "Roboto Condensed", "Lato", "Helvetica Neue", Arial, sans-serif;
   margin: 0;
 }
@@ -122,6 +122,9 @@ label {
   display: table;
   margin: 0;
   border: none;
+}
+tr:not(:last-child) {
+  border-bottom: 1px solid rgb(187, 187, 187);
 }
 .table td, .table th {
   border: none;
