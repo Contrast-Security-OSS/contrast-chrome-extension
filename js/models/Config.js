@@ -89,7 +89,7 @@ Config.prototype.getUserConfiguration = function() {
 
   const popupState = this.popupState();
   console.log("This popupstate is ", popupState);
-  switch(popupState) {
+  switch (popupState) {
     case 0: {
       console.log("case 0, notContrastNotConfigured");
       setElementDisplay(vulnsSection, "none");

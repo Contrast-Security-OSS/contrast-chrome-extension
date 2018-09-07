@@ -2,11 +2,11 @@ import {
   STORED_APPS_KEY,
   setElementText,
   setElementDisplay,
-  isBlacklisted,
+  // isBlacklisted,
   getOrgApplications,
   getHostFromUrl,
   isContrastTeamserver,
-  changeElementVisibility,
+  // changeElementVisibility,
 } from '../util.js';
 
 import Application from './Application.js';
@@ -201,7 +201,7 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
   }
 }
 
-ApplicationTable.prototype._changeTableVisibility = function(show) {
+ApplicationTable.prototype._changeTableVisibility = function() {
   this.table.classList.toggle('collapsed');
   // if (!show) {
   //   this.table.classList.remove(ApplicationTable.TABLE_VISIBLE_CLASS);
