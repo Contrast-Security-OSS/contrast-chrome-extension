@@ -154,9 +154,10 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
       throw new Error("Error getting applications");
     }
     const applications = this._filterApplications(storedApps, json.applications);
+    // const { applications } = json;
 
     // create a row for each application
-    applications.forEach(app => this.createAppTableRow(app));
+    applications.forEach(app => this.createAppTableRow(app, storedApps));
   })
   .catch(() => {
     return new Error("Error getting applications");
@@ -176,7 +177,11 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
     const appIds = storedApps[STORED_APPS_KEY].map(app => app.id).flatten();
 
     // include in applications if it's not in storage
-    return applications.filter(app => !appIds.includes(app.app_id));
+    // return applications.filter(app => !appIds.includes(app.app_id));
+    return applications.map(app => {
+      app.connectedAlready = appIds.includes(app.app_id);
+      return app;
+    });
   }
   return applications;
 }
@@ -187,15 +192,22 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
  * @param  {Object} application the contrast application from TS
  * @return {void} - adds rows to a table
  */
-ApplicationTable.prototype.createAppTableRow = function(application) {
+ApplicationTable.prototype.createAppTableRow = function(application, storedApps) {
   const tr = new TableRow(application, this.url, this.table.tBodies[0]);
   tr.appendChildren();
   tr.setAppId(application);
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
-    tr.setHost(getHostFromUrl(this.url));
-    tr.createConnectButton();
-  } else {
+    if (application.connectedAlready) {
+      const storedApp = Application.getStoredApp(storedApps, application);
+      setElementText(tr.nameTD, application.name);
+      tr.setHost(storedApp.host);
+      tr.renderDisconnect(storedApps, storedApp);
+    } else {
+      tr.setHost(getHostFromUrl(this.url));
+      tr.createConnectButton();
+    }
+  } else if (!storedApps) {
     // on a contrast page - render the full collection of apps in a user org with respective domains
     chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
       if (chrome.runtime.lastError) return;
@@ -212,6 +224,14 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
         tr.renderDisconnect(storedApps, storedApp);
       }
     });
+  } else {
+    const storedApp = Application.getStoredApp(storedApps, application);
+    setElementText(tr.nameTD, application.name);
+
+    if (!!storedApp) {
+      tr.setHost(storedApp.host);
+      tr.renderDisconnect(storedApps, storedApp);
+    }
   }
 }
 

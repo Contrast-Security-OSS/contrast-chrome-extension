@@ -73,6 +73,8 @@ Application.retrieveApplicationFromStorage = function(tab) {
  * @return {Array<Application>}            - array of 1 connected app
  */
 Application.getStoredApp = function(storedApps, application) {
+  console.log("storedapps", storedApps);
+  console.log("application", application);
   if (!application) throw new Error("application must be defined");
   return storedApps[STORED_APPS_KEY].filter(app => {
     return app.id === application.app_id;
