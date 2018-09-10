@@ -181,14 +181,25 @@ tr:not(:last-child) {
 }
 button.btn-contrast-plugin {
   border-radius: 3px;
+}
+button.btn-connect {
+  color: #fff;
   background-color: #3cc3b2 !important;
   border-color: #3cc3b2;
-  border-radius: 3px;
-  color: #fff;
 }
-button.btn-contrast-plugin:hover, button.buttonTab:hover {
+button.btn-connect:hover, button.buttonTab:hover {
   background-color: #0da1a9 !important;
   border-color: #0da1a9;
+}
+button.btn-disconnect {
+  color: rgb(168, 168, 168);
+  background-color: #fff !important;
+  border-color: rgb(168, 168, 168);
+}
+button.btn-disconnect:hover {
+  color: #fff;
+  background-color: rgb(168, 168, 168) !important;
+  border-color: rgb(168, 168, 168);
 }
 /* gear button in bottom right corner */
 .configure-gear {

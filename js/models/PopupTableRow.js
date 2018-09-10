@@ -19,7 +19,8 @@ const CONNECT_FAILURE_MESSAGE = "Error connecting. Try refreshing the page.";
 const DISCONNECT_FAILURE_MESSAGE = "Error Disconnecting";
 const DISCONNECT_BUTTON_TEXT     = "Disconnect";
 
-const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin";
+const CONTRAST_BUTTON_CLASS = "btn btn-primary btn-xs btn-contrast-plugin btn-connect";
+const CONTRAST_BUTTON_DISCONNECT_CLASS = "btn btn-primary btn-xs btn-contrast-plugin btn-disconnect";
 
 export default function TableRow(application, url, table) {
   this.application  = application;
@@ -80,7 +81,8 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
   setElementText(this.domainTD, Application.subDomainColonForUnderscore(this.host));
   setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
 
-  disconnectButton.setAttribute('class', CONTRAST_BUTTON_CLASS);
+  disconnectButton.setAttribute('class', CONTRAST_BUTTON_DISCONNECT_CLASS);
+
   disconnectButton.addEventListener('click', () => {
     console.log("disconnecting");
     connected.disconnectDomain(this)
