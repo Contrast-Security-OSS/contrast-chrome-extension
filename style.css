@@ -329,7 +329,8 @@ button.btn-connect, button.btn-disconnect {
   margin: 0 auto;
   width: 2em;
   height: auto;
-  display: none;
+  visibility: hidden;
+  /* display: none; */
 }
 #found-libs-message {
   color: #65C0B2;

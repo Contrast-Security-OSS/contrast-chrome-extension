@@ -15,7 +15,7 @@ import ApplicationLibrary from './libraries/ApplicationLibrary.js';
 import {
   getStoredCredentials,
   isCredentialed,
-  setElementDisplay,
+  // setElementDisplay,
 } from './util.js';
 
 import ApplicationTable from './models/ApplicationTable.js';
@@ -33,23 +33,19 @@ export function indexFunction() {
 
     const tab = tabs[0];
     const url = new URL(tab.url);
-    console.log("getting creds");
     getStoredCredentials()
     .then(credentials => {
-      console.log("creds are", credentials);
       const credentialed = isCredentialed(credentials);
       const config = new Config(tab, url, credentialed, credentials);
       config.getUserConfiguration();
       if (!credentialed) {
-        console.log("indexFunction Action 1");
-      } else if (credentialed && config._isTeamserverAccountPage()) {
-        console.log("indexFunction Action 2");
+      }
+      else if (credentialed && config._isTeamserverAccountPage()) {
         const table = new ApplicationTable(url);
         config.setGearIcon();
         table.renderApplicationsMenu();
         config.renderContrastUsername(credentials);
       } else {
-        console.log("indexFunction Action 3");
         const table = new ApplicationTable(url);
         config.setGearIcon();
         table.renderActivityFeed();
@@ -85,7 +81,6 @@ function showRefreshButton() {
 
 function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
   refreshLibsButton.addEventListener('click', function() {
-    console.log('clicked libs btn');
     _renderLoadingElement(loadingElement);
     chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
       if (!tabs || tabs.length === 0) return;
@@ -130,9 +125,11 @@ function _renderFoundVulnerableLibraries(message) {
 }
 
 function _hideLoadingElement(loadingElement) {
-  setElementDisplay(loadingElement, 'none');
+  loadingElement.style.visibility = 'hidden';
+  // setElementDisplay(loadingElement, 'none');
 }
 
 function _renderLoadingElement(loadingElement) {
-  setElementDisplay(loadingElement, 'inline');
+  loadingElement.style.visibility = 'visible';
+  // setElementDisplay(loadingElement, 'inline');
 }

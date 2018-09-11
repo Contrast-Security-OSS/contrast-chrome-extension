@@ -232,7 +232,6 @@ Config.prototype._renderConfigButton = function(configButton) {
 
 Config.prototype._handleConfigButtonClick = function(e) {
   const configButton = e.target;
-  console.log("clicked", e.target, this);
   configButton.setAttribute('disabled', true);
 
   // whenever user configures, remove all traces and apps, useful for when reconfiguring
@@ -272,7 +271,6 @@ Config.prototype._handleConfigButtonClick = function(e) {
         configButton.removeAttribute('disabled');
         setElementDisplay(configButton, "block");
         configFooterText.innerHTML = "";
-        console.log("this 2", this);
         configButton.removeEventListener('click', this._handleConfigButtonClick);
 
         indexFunction();
@@ -345,7 +343,7 @@ Config.prototype.setGearIcon = function() {
   configureGearIcon.addEventListener('click', this._handleGearClick, false);
 }
 
-Config.prototype._handleGearClick = function(e) {
+Config.prototype._handleGearClick = function() {
   console.log("clicked gear");
   const configureGearIcon = document.getElementById('gear-container');
   console.log(configureGearIcon);

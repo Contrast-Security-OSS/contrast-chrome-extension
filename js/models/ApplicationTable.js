@@ -202,7 +202,7 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
  * @param  {Object} application the contrast application from TS
  * @return {void} - adds rows to a table
  */
-ApplicationTable.prototype.createAppTableRow = function(application, storedApps) {
+ApplicationTable.prototype.createAppTableRow = function(application, appsInStorage) {
   const tr = new TableRow(application, this.url, this.table.tBodies[0]);
   tr.appendChildren();
   // tr.setAppId(application);
@@ -217,7 +217,7 @@ ApplicationTable.prototype.createAppTableRow = function(application, storedApps)
       tr.setHost(getHostFromUrl(this.url));
       tr.createConnectButton();
     }
-  } else if (!storedApps) {
+  } else if (!appsInStorage) {
     // on a contrast page - render the full collection of apps in a user org with respective domains
     chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
       if (chrome.runtime.lastError) return;
@@ -235,12 +235,12 @@ ApplicationTable.prototype.createAppTableRow = function(application, storedApps)
       }
     });
   } else {
-    const storedApp = Application.getStoredApp(storedApps, application);
+    const storedApp = Application.getStoredApp(appsInStorage, application);
     setElementText(tr.nameTD, application.name);
 
     if (!!storedApp) {
       tr.setHost(storedApp.host);
-      tr.renderDisconnect(storedApps, storedApp);
+      tr.renderDisconnect(appsInStorage, storedApp);
     }
   }
 }

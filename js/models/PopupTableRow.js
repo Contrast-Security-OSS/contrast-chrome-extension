@@ -3,7 +3,7 @@ import {
   CONTRAST_RED,
   CONTRAST_GREEN,
   setElementText,
-  setElementDisplay,
+  // setElementDisplay,
   changeElementVisibility,
   hideElementAfterTimeout,
   APPLICATION_CONNECTED,
