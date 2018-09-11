@@ -186,6 +186,7 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(vulnsHeader, "flex");
       vulnsHeader.classList.add('flex-row-space-between');
       vulnsHeader.classList.remove('flex-row-head');
+      vulnsHeaderText.style.fontSize = '3.75vw';
       setElementDisplay(configFooter, "none");
       setElementDisplay(configuredFooter, "flex");
       setElementDisplay(configContainer, "none");
@@ -346,7 +347,8 @@ Config.prototype.setGearIcon = function() {
 
 Config.prototype._handleGearClick = function(e) {
   console.log("clicked gear");
-  const configureGearIcon = e.target;
+  const configureGearIcon = document.getElementById('gear-container');
+  console.log(configureGearIcon);
   const configContainer = document.getElementById('configuration-section');
   configureGearIcon.classList.add('configure-gear-rotate');
   setTimeout(() => {

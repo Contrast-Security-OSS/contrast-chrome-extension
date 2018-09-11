@@ -12,7 +12,8 @@ import {
 import Application from './Application.js';
 import ConnectedDomain from './ConnectedDomain.js'
 
-const CONNECT_BUTTON_TEXT     = "Click to Connect";
+const HOST_SPAN_CLASS = "app-host-span"
+const CONNECT_BUTTON_TEXT     = "Connect";
 const CONNECT_SUCCESS_MESSAGE = "Successfully connected. Please reload the page.";
 const CONNECT_FAILURE_MESSAGE = "Error connecting. Try refreshing the page.";
 // const DISCONNECT_SUCCESS_MESSAGE = "Successfully Disconnected";
@@ -29,9 +30,9 @@ export default function TableRow(application, url, table) {
   this.host         = "";
   this.row          = document.createElement('tr');
   this.nameTD       = document.createElement('td');
-  this.appIdTD      = document.createElement('td');
-  this.domainTD     = document.createElement('td');
-  this.disconnectTD = document.createElement('td');
+  // this.appIdTD      = document.createElement('td');
+  this.buttonTD     = document.createElement('td');
+  // this.disconnectTD = document.createElement('td');
 }
 
 TableRow.prototype.setHost = function(host) {
@@ -43,22 +44,22 @@ TableRow.prototype.setHost = function(host) {
 TableRow.prototype.appendChildren = function() {
   this.table.appendChild(this.row);
   this.row.appendChild(this.nameTD);
-  this.row.appendChild(this.domainTD);
-  this.row.appendChild(this.appIdTD);
-  this.row.appendChild(this.disconnectTD);
+  this.row.appendChild(this.buttonTD);
+  // this.row.appendChild(this.appIdTD);
+  // this.row.appendChild(this.disconnectTD);
 }
 
-TableRow.prototype.setAppId = function() {
-  setElementText(this.appIdTD, this.application.app_id);
-  setElementDisplay(this.appIdTD, "none");
-}
+// TableRow.prototype.setAppId = function() {
+//   setElementText(this.appIdTD, this.application.app_id);
+//   setElementDisplay(this.appIdTD, "none");
+// }
 
 TableRow.prototype.createConnectButton = function() {
-  const domainTD  = this.domainTD;
+  const buttonTD  = this.buttonTD;
   const domainBtn = document.createElement('button');
 
   domainBtn.setAttribute('class', `${CONTRAST_BUTTON_CLASS} domainBtn`);
-  domainTD.appendChild(domainBtn);
+  buttonTD.appendChild(domainBtn);
 
   setElementText(domainBtn, CONNECT_BUTTON_TEXT);
   setElementText(this.nameTD, this.application.name.titleize());
@@ -78,7 +79,12 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
   const disconnectButton = document.createElement('button');
   const connected        = new ConnectedDomain(this.host, storedApp);
 
-  setElementText(this.domainTD, Application.subDomainColonForUnderscore(this.host));
+  const appHostSpan = document.createElement('span');
+  appHostSpan.innerText = Application.subDomainColonForUnderscore(this.host);
+  appHostSpan.setAttribute('class', HOST_SPAN_CLASS);
+  this.nameTD.appendChild(appHostSpan);
+
+  // setElementText(this.buttonTD, Application.subDomainColonForUnderscore(this.host));
   setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
 
   disconnectButton.setAttribute('class', CONTRAST_BUTTON_DISCONNECT_CLASS);
@@ -95,12 +101,12 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
     })
     .catch(error => this._handleConnectError(error));
   });
-  this.disconnectTD.appendChild(disconnectButton);
+  this.buttonTD.appendChild(disconnectButton);
 }
 
 TableRow.prototype.removeDomainAndButton = function() {
-  this.domainTD.innerHTML = "";
-  this.disconnectTD.innerHTML = "";
+  this.buttonTD.innerHTML = "";
+  // this.disconnectTD.innerHTML = "";
 }
 
 // HELPERS

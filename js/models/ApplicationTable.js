@@ -146,8 +146,16 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   setElementDisplay(scanLibsText, "none");
   setElementDisplay(appHeading, "none");
 
+  // NOTE: Ugly but leave for now
   const vulnsHeaderText = document.getElementById('vulns-header-text');
-  setElementText(vulnsHeaderText, "Connect an Application");
+  const vulnsHeader = vulnsHeaderText.parentElement.parentElement;
+  setElementDisplay(vulnsHeader.lastElementChild, "none");
+  setElementText(vulnsHeaderText, "Connect Applications");
+  vulnsHeaderText.style.fontSize = '4.5vw';
+  vulnsHeader.style.border = 'none';
+
+  const configuredFooter = document.getElementById('configured-footer');
+  configuredFooter.style.border = 'none';
 
   // if app is not stored, render the table with buttons to add the domain
   getOrgApplications()
@@ -197,7 +205,7 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
 ApplicationTable.prototype.createAppTableRow = function(application, storedApps) {
   const tr = new TableRow(application, this.url, this.table.tBodies[0]);
   tr.appendChildren();
-  tr.setAppId(application);
+  // tr.setAppId(application);
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
     if (application.connectedAlready) {

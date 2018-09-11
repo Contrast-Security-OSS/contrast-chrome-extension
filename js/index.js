@@ -15,6 +15,7 @@ import ApplicationLibrary from './libraries/ApplicationLibrary.js';
 import {
   getStoredCredentials,
   isCredentialed,
+  setElementDisplay,
 } from './util.js';
 
 import ApplicationTable from './models/ApplicationTable.js';
@@ -85,7 +86,7 @@ function showRefreshButton() {
 function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
   refreshLibsButton.addEventListener('click', function() {
     console.log('clicked libs btn');
-    _renderLoadingElement(refreshLibsButton, loadingElement);
+    _renderLoadingElement(loadingElement);
     chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
       if (!tabs || tabs.length === 0) return;
       const tab 	 = tabs[0];
@@ -95,21 +96,21 @@ function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
         const libs = await appLib.getApplicationLibraries();
         if (!libs || libs.length === 0) {
           _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-          _hideLoadingElement(refreshLibsButton, loadingElement)
+          _hideLoadingElement(loadingElement)
           return;
         }
         const addedLibs = await appLib.addNewApplicationLibraries(libs);
         if (addedLibs && addedLibs.length > 0) {
           renderVulnerableLibraries(tab, app);
           _renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
-          _hideLoadingElement(refreshLibsButton, loadingElement);
+          _hideLoadingElement(loadingElement);
         } else {
           _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-          _hideLoadingElement(refreshLibsButton, loadingElement);
+          _hideLoadingElement(loadingElement);
         }
       } catch (e) {
         _renderFoundVulnerableLibraries("Error collecting libraries.");
-        _hideLoadingElement(refreshLibsButton, loadingElement);
+        _hideLoadingElement(loadingElement);
       }
     });
   });
@@ -128,18 +129,10 @@ function _renderFoundVulnerableLibraries(message) {
   }, 3000);
 }
 
-function _hideLoadingElement(refreshLibsButton, loadingElement) {
-  // refreshLibsButton.classList.remove('hidden');
-  // refreshLibsButton.classList.add('visible');
-
-  loadingElement.classList.add('hidden');
-  loadingElement.classList.remove('visible');
+function _hideLoadingElement(loadingElement) {
+  setElementDisplay(loadingElement, 'none');
 }
 
-function _renderLoadingElement(refreshLibsButton, loadingElement) {
-  // refreshLibsButton.classList.add('hidden');
-  // refreshLibsButton.classList.remove('visible');
-
-  loadingElement.classList.remove('hidden');
-  loadingElement.classList.add('visible');
+function _renderLoadingElement(loadingElement) {
+  setElementDisplay(loadingElement, 'inline');
 }
