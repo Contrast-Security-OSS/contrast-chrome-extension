@@ -21,8 +21,6 @@ import {
 import ApplicationTable from './models/ApplicationTable.js';
 import Config from './models/Config.js';
 
-// import { Application } from './models/application';
-
 /**
 * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
 *
@@ -39,6 +37,7 @@ export function indexFunction() {
       const config = new Config(tab, url, credentialed, credentials);
       config.getUserConfiguration();
       if (!credentialed) {
+        console.log("Please Configure the Extension");
       }
       else if (credentialed && config._isTeamserverAccountPage()) {
         const table = new ApplicationTable(url);

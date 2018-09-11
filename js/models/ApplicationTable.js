@@ -209,10 +209,10 @@ ApplicationTable.prototype.createAppTableRow = function(application, appsInStora
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
     if (application.connectedAlready) {
-      const storedApp = Application.getStoredApp(storedApps, application);
+      const storedApp = Application.getStoredApp(appsInStorage, application);
       setElementText(tr.nameTD, application.name);
       tr.setHost(storedApp.host);
-      tr.renderDisconnect(storedApps, storedApp);
+      tr.renderDisconnect(appsInStorage, storedApp);
     } else {
       tr.setHost(getHostFromUrl(this.url));
       tr.createConnectButton();
