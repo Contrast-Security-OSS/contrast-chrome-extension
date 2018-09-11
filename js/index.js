@@ -39,6 +39,7 @@ export function indexFunction() {
       const config = new Config(tab, url, credentialed, credentials);
       config.getUserConfiguration();
       if (!credentialed) {
+        console.log("Please Configure the Extension");
       }
       else if (credentialed && config._isTeamserverAccountPage()) {
         const table = new ApplicationTable(url);
