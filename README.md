@@ -29,7 +29,7 @@ debugger
 localhost
 ```
 
-It also starts [Wappalyzer](https://www.wappalyzer.com/) as a node service in the background on port 5003, which is used for detecting libraries that your front-end application uses.
+It also starts [Wappalyzer](https://www.wappalyzer.com/) as a node service in the background on port 5203, which is used for detecting libraries that your front-end application uses.
 
 ### Run Tests
 
