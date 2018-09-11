@@ -1,6 +1,5 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
-  CONTRAST_USERNAME,
   STORED_APPS_KEY,
   STORED_TRACES_KEY,
   VALID_TEAMSERVER_HOSTNAMES,
@@ -13,12 +12,58 @@ import {
   setElementDisplay,
   changeElementVisibility,
   hideElementAfterTimeout,
+  TEAMSERVER_URL,
+  CONTRAST_SERVICE_KEY,
+  CONTRAST_API_KEY,
+  CONTRAST_USERNAME,
 } from '../util.js'
 
-export default function Config(tab, url, credentialed) {
+import { indexFunction } from '../index.js';
+
+export default function Config(tab, url, credentialed, credentials) {
   this.tab = tab;
   this.url = url;
   this.credentialed = credentialed;
+  this.credentials = credentials;
+
+  this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
+}
+
+const POPUP_STATES = {
+  notContrastNotConfigured: 0,
+  contrastNotConfigured: 1,
+  contrastYourAccountNotConfigured: 2,
+  contrastYourAccountConfigured: 3,
+  contrastConfigured: 4,
+  notContrastConfigured: 5,
+}
+
+Config.prototype.popupState = function() {
+  // contrast and configured - 0
+  if (this._isTeamserverAccountPage() && !this.credentialed) {
+    return POPUP_STATES.contrastYourAccountNotConfigured;
+  }
+  // teamserver page and configured - 3
+  else if (this._isTeamserverAccountPage() && this.credentialed) {
+    return POPUP_STATES.contrastYourAccountConfigured;
+  }
+  // contrast but not configured - 1
+  else if (this._isContrastPage() && !this.credentialed) {
+    return POPUP_STATES.contrastNotConfigured;
+  }
+  // teamserver page but not configured - 2
+  else if (!this._isContrastPage() && !this.credentialed) {
+    return POPUP_STATES.notContrastNotConfigured;
+  }
+  // not a contrast page and not configured - 4
+  else if (this._isContrastPage() && this.credentialed) {
+     return POPUP_STATES.contrastConfigured;
+   }
+  // not a contrast page but configured - 5
+  else if (!this._isContrastPage() && this.credentialed) {
+    return POPUP_STATES.notContrastConfigured;
+  }
+  throw new Error("Whoops");
 }
 
 /**
@@ -29,18 +74,150 @@ export default function Config(tab, url, credentialed) {
  * @return {void}
  */
 Config.prototype.getUserConfiguration = function() {
-  if (this._isTeamserverAccountPage()) {
-    const configExtension = document.getElementById('configure-extension');
-    const configExtensionHost = document.getElementById('configure-extension-host');
+  console.log("get user configuration");
+  const userEmail = document.getElementById('user-email');
+  const configSection = document.getElementById('configuration-section');
+  const configHeader = document.getElementById('configuration-header');
+  const configHeaderText = document.getElementById('config-header-text');
+  const configFooter = document.getElementById('configuration-footer');
+  const configFooterText = document.getElementById('config-footer-text');
+  const configuredFooter = document.getElementById('configured-footer');
+  const configContainer = document.getElementById('configure-extension');
+  const vulnsSection = document.getElementById('vulnerabilities-section');
+  const vulnsHeader = document.getElementById('vulnerabilities-header');
+  const vulnsHeaderText = document.getElementById('vulns-header-text');
+  const scanLibsText = document.getElementById('scan-libs-text');
+  const appTableContainer = document.getElementById('application-table-container-div');
+  const configButton = document.getElementById('configure-extension-button');
+  const configGear = document.getElementById('configure-gear');
 
-    setElementDisplay(configExtension, "block");
-    setElementText(configExtensionHost, `Make sure you trust this site: ${this.url.hostname}`);
-
-    this._renderConfigButton(this.tab);
-  } else {
-    const notConfigured = document.getElementById('not-configured');
-    setElementDisplay(notConfigured, "");
+  const popupState = this.popupState();
+  console.log("This popupstate is ", popupState);
+  switch (popupState) {
+    case 0: {
+      console.log("case 0, notContrastNotConfigured");
+      setElementDisplay(vulnsSection, "none");
+      setElementDisplay(vulnsHeader, "none");
+      setElementDisplay(configuredFooter, "none");
+      setElementDisplay(configFooter, "block");
+      setElementDisplay(configContainer, "none");
+      setElementDisplay(appTableContainer, "none");
+      setElementDisplay(configHeader, "flex");
+      setElementText(configHeaderText, "Set Up Configuration");
+      setElementDisplay(configButton, "none");
+      setElementDisplay(configGear, "none");
+      break;
+    }
+    case 1: {
+      console.log("case 1 contrastNotConfigured");
+      setElementDisplay(vulnsSection, "none");
+      setElementDisplay(vulnsHeader, "none");
+      setElementDisplay(configFooter, "block");
+      setElementDisplay(configuredFooter, "none");
+      setElementDisplay(configContainer, "block");
+      setElementDisplay(appTableContainer, "none");
+      setElementDisplay(configHeader, "flex");
+      setElementDisplay(configButton, "none");
+      setElementText(configHeaderText, "Connection Settings");
+      setElementText(configFooterText, "Log into Contrast and go to Your Account so we can grab your keys.");
+      setElementDisplay(configGear, "block");
+      break;
+    }
+    case 2: {
+      console.log("case 2 contrastYourAccountNotConfigured");
+      setElementDisplay(vulnsSection, "none");
+      setElementDisplay(vulnsHeader, "none");
+      setElementDisplay(configFooter, "block");
+      setElementDisplay(configuredFooter, "none");
+      setElementDisplay(configContainer, "block");
+      setElementDisplay(appTableContainer, "none");
+      setElementDisplay(configHeader, "flex");
+      setElementDisplay(configButton, "block");
+      setElementText(configHeaderText, "Connection Settings");
+      setElementText(configFooterText, "Click the Connect button to get started.")
+      setElementDisplay(configGear, "block");
+      this._renderConfigButton(configButton);
+      configContainer.classList.toggle('collapsed');
+      break;
+    }
+    case 3: {
+      console.log("case 3 contrastYourAccountConfigured");
+      setElementDisplay(vulnsSection, "none");
+      setElementDisplay(vulnsHeader, "flex");
+      vulnsHeader.classList.remove('flex-row-space-between');
+      vulnsHeader.classList.add('flex-row-head');
+      setElementDisplay(configSection, "block");
+      setElementDisplay(configFooter, "none");
+      setElementDisplay(configuredFooter, "flex");
+      setElementDisplay(configContainer, "block");
+      setElementDisplay(configHeader, "none");
+      setElementDisplay(configButton, "block");
+      setElementDisplay(userEmail, "block");
+      setElementDisplay(scanLibsText, "none");
+      setElementText(vulnsHeaderText, "Configured");
+      setElementDisplay(configGear, "block");
+      this.setCredentialsInSettings();
+      this._renderConfigButton(configButton);
+      configContainer.classList.toggle('collapsed');
+      break;
+    }
+    case 4: {
+      console.log("case 4 contrastConfigured");
+      setElementDisplay(vulnsSection, "none");
+      setElementDisplay(vulnsHeader, "flex");
+      vulnsHeader.classList.remove('flex-row-space-between');
+      vulnsHeader.classList.add('flex-row-head');
+      setElementDisplay(configuredFooter, "flex");
+      setElementDisplay(configFooter, "none");
+      setElementDisplay(configContainer, "block");
+      setElementDisplay(configHeader, "none");
+      setElementDisplay(configButton, "none");
+      setElementDisplay(userEmail, "block");
+      setElementDisplay(scanLibsText, "none");
+      setElementDisplay(configGear, "block");
+      setElementText(vulnsHeaderText, "Configured");
+      this.setCredentialsInSettings();
+      configSection.classList.add('collapsed');
+      break;
+    }
+    case 5: {
+      console.log("case 5 notContrastConfigured");
+      setElementDisplay(vulnsSection, "flex");
+      setElementDisplay(vulnsHeader, "flex");
+      vulnsHeader.classList.add('flex-row-space-between');
+      vulnsHeader.classList.remove('flex-row-head');
+      vulnsHeaderText.style.fontSize = '3.75vw';
+      setElementDisplay(configFooter, "none");
+      setElementDisplay(configuredFooter, "flex");
+      setElementDisplay(configContainer, "none");
+      setElementDisplay(configHeader, "none");
+      setElementDisplay(configButton, "none");
+      setElementDisplay(userEmail, "block");
+      setElementDisplay(configGear, "none");
+      break;
+    }
+    default: {
+      console.log("Default Case");
+      break;
+    }
   }
+}
+
+Config.prototype.setCredentialsInSettings = function() {
+  const urlInput = document.getElementById("contrast-url-input");
+  const serviceKeyInput = document.getElementById("contrast-service-key-input");
+  const userNameInput = document.getElementById("contrast-username-input");
+  const apiKeyInput = document.getElementById("contrast-api-key-input");
+
+  const teamServerUrl = this.credentials[TEAMSERVER_URL];
+  const serviceKey = this.credentials[CONTRAST_SERVICE_KEY];
+  const apiKey = this.credentials[CONTRAST_API_KEY];
+  const profileEmail = this.credentials[CONTRAST_USERNAME];
+
+  urlInput.value = teamServerUrl;
+  serviceKeyInput.value = serviceKey;
+  userNameInput.value = apiKey;
+  apiKeyInput.value = profileEmail;
 }
 
 /**
@@ -49,45 +226,75 @@ Config.prototype.getUserConfiguration = function() {
  * @param  {Object} tab the current tab
  * @return {void}
  */
-Config.prototype._renderConfigButton = function() {
-  const configButton = document.getElementById('configure-extension-button');
-  setElementText(configButton, this.credentialed ? "Reconfigure" : "Configure");
+Config.prototype._renderConfigButton = function(configButton) {
+  configButton.addEventListener('click', this._handleConfigButtonClick, false);
+}
 
-  configButton.addEventListener('click', () => {
-    configButton.setAttribute('disabled', true);
+Config.prototype._handleConfigButtonClick = function(e) {
+  const configButton = e.target;
+  configButton.setAttribute('disabled', true);
 
-    // whenever user configures, remove all traces and apps, useful for when reconfiguring
-    chrome.storage.local.remove([
-      STORED_APPS_KEY,
-      STORED_TRACES_KEY,
-    ], () => {
-      if (chrome.runtime.lastError) {
-        throw new Error("Error removing stored apps and stored traces");
-      }
-    });
+  // whenever user configures, remove all traces and apps, useful for when reconfiguring
+  chrome.storage.local.remove([
+    STORED_APPS_KEY,
+    STORED_TRACES_KEY,
+  ], () => {
+    if (chrome.runtime.lastError) {
+      throw new Error("Error removing stored apps and stored traces");
+    }
+  });
 
-    // credentials are set by sending a message to content-script
-    chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: CONTRAST_INITIALIZE }, (response) => {
-      // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
-      if (response === CONTRAST_INITIALIZED) {
-        chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: '' });
-
-        // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
-        const successMessage = document.getElementById('config-success');
-        changeElementVisibility(successMessage);
-        hideElementAfterTimeout(successMessage, () => {
-          configButton.removeAttribute('disabled');
-        });
-      } else {
-        const failureMessage = document.getElementById('config-failure');
-        changeElementVisibility(failureMessage);
-        hideElementAfterTimeout(failureMessage, () => {
-          configButton.removeAttribute('disabled');
-        });
-      }
+  // credentials are set by sending a message to content-script
+  chrome.tabs.sendMessage(this.tab.id, { url: this.tab.url, action: CONTRAST_INITIALIZE }, (response) => {
+    const failureMessage = document.getElementById('config-failure');
+    if (!response || !response.action) {
+      changeElementVisibility(failureMessage);
+      setElementDisplay(configButton, "none");
+      hideElementAfterTimeout(failureMessage, () => {
+        configButton.removeAttribute('disabled');
+        setElementDisplay(configButton, "block");
+      });
       return;
-    })
-  }, false);
+    }
+    // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
+    if (response.action === CONTRAST_INITIALIZED) {
+      chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: '' });
+      // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
+      const successMessage = document.getElementById('config-success');
+      const configFooterText = document.getElementById('config-footer-text');
+      changeElementVisibility(successMessage);
+      setElementDisplay(configButton, "none");
+      configFooterText.innerText = "";
+      configFooterText.innerHTML = loadingIconHTML();
+      this._updateCredentials(response.contrastObj);
+      hideElementAfterTimeout(successMessage, () => {
+        configButton.removeAttribute('disabled');
+        setElementDisplay(configButton, "block");
+        configFooterText.innerHTML = "";
+        configButton.removeEventListener('click', this._handleConfigButtonClick);
+
+        indexFunction();
+      });
+      this.setCredentialsInSettings();
+
+      const section = document.getElementById('configuration-section');
+      section.display = 'none';
+      hideElementAfterTimeout(section);
+    } else {
+      changeElementVisibility(failureMessage);
+      setElementDisplay(configButton, "none");
+      hideElementAfterTimeout(failureMessage, () => {
+        configButton.removeAttribute('disabled');
+        setElementDisplay(configButton, "block");
+      });
+    }
+    return;
+  })
+}
+
+Config.prototype._updateCredentials = function(credentialsObj) {
+  this.credentials = credentialsObj;
+  this.credentialed = true;
 }
 
 /**
@@ -109,10 +316,20 @@ Config.prototype._isTeamserverAccountPage = function() {
   return conditions.every(c => !!c);
 }
 
+Config.prototype._isContrastPage = function() {
+  if (!this.tab || !this.url) throw new Error("_isTeamserverAccountPage expects tab or url");
+  console.log("is contrast page url", this.tab.url);
+  const conditions = [
+    this.tab.url.startsWith("http"),
+    VALID_TEAMSERVER_HOSTNAMES.includes(this.url.hostname),
+    this.tab.url.includes('Contrast'),
+  ];
+  return conditions.every(c => !!c);
+}
+
 Config.prototype.renderContrastUsername = function(credentials) {
   const userEmail = document.getElementById('user-email');
   setElementText(userEmail, credentials[CONTRAST_USERNAME]);
-  setElementDisplay(userEmail, "block");
   userEmail.addEventListener('click', () => {
     const contrastIndex = credentials.teamserver_url.indexOf("/api");
     const teamserverUrl = credentials.teamserver_url.substring(0, contrastIndex);
@@ -122,13 +339,24 @@ Config.prototype.renderContrastUsername = function(credentials) {
 
 Config.prototype.setGearIcon = function() {
   // configure button opens up settings page in new tab
-  const configureGearIcon = document.getElementsByClassName('configure-gear')[0];
-  configureGearIcon.addEventListener('click', () => {
-    chrome.tabs.create({ url: this._chromeExtensionSettingsUrl() })
-  }, false);
+  const configureGearIcon = document.getElementById('configure-gear');
+  configureGearIcon.addEventListener('click', this._handleGearClick, false);
 }
 
-Config.prototype._chromeExtensionSettingsUrl = function() {
-  const extensionId = chrome.runtime.id;
-  return `chrome-extension://${String(extensionId)}/settings.html`;
+Config.prototype._handleGearClick = function() {
+  console.log("clicked gear");
+  const configureGearIcon = document.getElementById('gear-container');
+  console.log(configureGearIcon);
+  const configContainer = document.getElementById('configuration-section');
+  configureGearIcon.classList.add('configure-gear-rotate');
+  setTimeout(() => {
+    configureGearIcon.classList.remove('configure-gear-rotate');
+    // configureGearIcon.removeEventListener('click', this._handleGearClick);
+  }, 1000);
+  configContainer.classList.toggle('collapsed');
+}
+
+
+function loadingIconHTML() {
+  return `<img style="float: right; padding-bottom: 20px; width: 50px;" id="config-loading-icon" class="loading-icon" src="/img/ring-alt.gif" alt="loading">`;
 }

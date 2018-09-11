@@ -15,6 +15,7 @@ import ApplicationLibrary from './libraries/ApplicationLibrary.js';
 import {
   getStoredCredentials,
   isCredentialed,
+  // setElementDisplay,
 } from './util.js';
 
 import ApplicationTable from './models/ApplicationTable.js';
@@ -27,27 +28,27 @@ import Config from './models/Config.js';
 *
 * @return {void}
 */
-function indexFunction() {
+export function indexFunction() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
     const tab = tabs[0];
     const url = new URL(tab.url);
-
     getStoredCredentials()
     .then(credentials => {
       const credentialed = isCredentialed(credentials);
-      const config = new Config(tab, url, credentialed);
-      config.setGearIcon();
+      const config = new Config(tab, url, credentialed, credentials);
+      config.getUserConfiguration();
       if (!credentialed) {
-        config.getUserConfiguration();
-      } else if (credentialed && config._isTeamserverAccountPage()) {
-        config.getUserConfiguration();
-        // renderApplicationsMenu(url);
+        console.log("Please Configure the Extension");
+      }
+      else if (credentialed && config._isTeamserverAccountPage()) {
         const table = new ApplicationTable(url);
+        config.setGearIcon();
         table.renderApplicationsMenu();
         config.renderContrastUsername(credentials);
       } else {
         const table = new ApplicationTable(url);
+        config.setGearIcon();
         table.renderActivityFeed();
         config.renderContrastUsername(credentials);
       }
@@ -61,73 +62,6 @@ function indexFunction() {
 */
 document.addEventListener('DOMContentLoaded', indexFunction, false);
 document.addEventListener('DOMContentLoaded', showRefreshButton, false);
-// document.addEventListener('DOMContentLoaded', addButtonTabListeners, false);
-
-// NOTE: Initial Values
-// let LIBS_ACTIVE  = false;
-// let VULNS_ACTIVE = true;
-
-// function addButtonTabListeners() {
-  // const vulnsTab = document.getElementById('vulns-tab');
-  // const libsTab  = document.getElementById('libs-tab');
-  // vulnsTab.addEventListener('click', function() {
-  //   if (VULNS_ACTIVE) {
-  //     return;
-  //   }
-  //   LIBS_ACTIVE  = false;
-  //   VULNS_ACTIVE = true;
-  //   libsTab.classList.remove('unfocued-but-still-showing');
-  //
-  //   const libsSection  = document.getElementById('libraries-section');
-  //   const vulnsSection = document.getElementById('vulnerabilities-section');
-  //   vulnsSection.classList.add('visible');
-  //   vulnsSection.classList.remove('hidden');
-  //
-  //   libsSection.classList.remove('visible');
-  //   libsSection.classList.add('hidden');
-  //
-  //   const libsList = document.getElementById('libs-vulnerabilities-found-on-page-list');
-  //   while (libsList.firstChild) {
-  //     libsList.firstChild.remove();
-  //   }
-  // });
-
-  // libsTab.addEventListener('click', function() {
-  //   if (LIBS_ACTIVE) {
-  //     return;
-  //   }
-  //   VULNS_ACTIVE = false;
-  //   LIBS_ACTIVE  = true;
-  //   vulnsTab.classList.remove('unfocued-but-still-showing');
-  //
-  //   const libsSection  = document.getElementById('libraries-section');
-  //   const vulnsSection = document.getElementById('vulnerabilities-section');
-  //   vulnsSection.classList.remove('visible');
-  //   vulnsSection.classList.add('hidden');
-  //
-  //   libsSection.classList.add('visible');
-  //   libsSection.classList.remove('hidden');
-  //
-  //   addListenerToRefreshButton();
-  //   renderVulnerableLibraries();
-  // });
-  //
-  // vulnsTab.addEventListener('blur', function() {
-  //   if (VULNS_ACTIVE) {
-  //     vulnsTab.classList.add('unfocued-but-still-showing');
-  //   } else {
-  //     vulnsTab.classList.remove('unfocued-but-still-showing');
-  //   }
-  // });
-  //
-  // libsTab.addEventListener('blur', function() {
-  //   if (LIBS_ACTIVE) {
-  //     libsTab.classList.add('unfocued-but-still-showing');
-  //   } else {
-  //     libsTab.classList.remove('unfocued-but-still-showing');
-  //   }
-  // });
-// }
 
 function showRefreshButton() {
   const refreshLibsButton = document.getElementById('scan-libs-text');
@@ -148,7 +82,7 @@ function showRefreshButton() {
 
 function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
   refreshLibsButton.addEventListener('click', function() {
-    _renderLoadingElement(refreshLibsButton, loadingElement);
+    _renderLoadingElement(loadingElement);
     chrome.tabs.query({ active: true, currentWindow: true }, async(tabs) => {
       if (!tabs || tabs.length === 0) return;
       const tab 	 = tabs[0];
@@ -158,21 +92,21 @@ function addListenerToRefreshButton(refreshLibsButton, loadingElement) {
         const libs = await appLib.getApplicationLibraries();
         if (!libs || libs.length === 0) {
           _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-          _hideLoadingElement(refreshLibsButton, loadingElement)
+          _hideLoadingElement(loadingElement)
           return;
         }
         const addedLibs = await appLib.addNewApplicationLibraries(libs);
         if (addedLibs && addedLibs.length > 0) {
           renderVulnerableLibraries(tab, app);
           _renderFoundVulnerableLibraries(`Found ${addedLibs.length} libraries with vulnerabilities.`);
-          _hideLoadingElement(refreshLibsButton, loadingElement);
+          _hideLoadingElement(loadingElement);
         } else {
           _renderFoundVulnerableLibraries("No libraries with vulnerabilities found.");
-          _hideLoadingElement(refreshLibsButton, loadingElement);
+          _hideLoadingElement(loadingElement);
         }
       } catch (e) {
         _renderFoundVulnerableLibraries("Error collecting libraries.");
-        _hideLoadingElement(refreshLibsButton, loadingElement);
+        _hideLoadingElement(loadingElement);
       }
     });
   });
@@ -191,18 +125,12 @@ function _renderFoundVulnerableLibraries(message) {
   }, 3000);
 }
 
-function _hideLoadingElement(refreshLibsButton, loadingElement) {
-  refreshLibsButton.classList.remove('hidden');
-  refreshLibsButton.classList.add('visible');
-
-  loadingElement.classList.add('hidden');
-  loadingElement.classList.remove('visible');
+function _hideLoadingElement(loadingElement) {
+  loadingElement.style.visibility = 'hidden';
+  // setElementDisplay(loadingElement, 'none');
 }
 
-function _renderLoadingElement(refreshLibsButton, loadingElement) {
-  refreshLibsButton.classList.add('hidden');
-  refreshLibsButton.classList.remove('visible');
-
-  loadingElement.classList.remove('hidden');
-  loadingElement.classList.add('visible');
+function _renderLoadingElement(loadingElement) {
+  loadingElement.style.visibility = 'visible';
+  // setElementDisplay(loadingElement, 'inline');
 }

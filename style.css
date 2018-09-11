@@ -1,144 +1,29 @@
+/******************/
+/* GENERAL STYLES */
+/******************/
+.contrast-green { color: #3cc3b2; }
+.color-gray { color: #999; }
+.wide-lines { line-height: 1.5em; }
+.scalable-subtext { font-size: 3.75vw; }
+.no-border { border: 0; }
+.visible { display: block; }
+.hidden { display: none; }
+.no-margin { margin: 0; }
 html {
   margin: 0;
   top: 0;
   margin-bottom: 10px;
 }
-
 body {
   font-family: Lato, Helvetica, Neue, Arial, 'sans-serif';
   font-size: 14px;
-  min-width: 600px; /*  max width is 800px */
+  min-width: 350px;
+  background-color: rgb(247, 247, 247);
 }
-
-#settings-body {
-  margin: 25px;
-  background-image: url(img/loginBackground.png);
-}
-
-body.configuration-problem {
-  background-image: url(img/403Unauthorized.jpg);
-  background-position: 0px 50px;
-  background-size: cover;
-}
-
-h1 {
-  font-size: 15px;
-}
-
-button.btn-contrast-plugin {
-  border-radius: 3px;
-  background-color: #3cc3b2 !important;
-  border-color: #3cc3b2;
-  border-radius: 3px;
-  color: #fff;
-}
-
-button.btn-contrast-plugin:hover, button.buttonTab:hover {
-  background-color: #0da1a9 !important;
-  border-color: #0da1a9;
-}
-
-.tab-selector {
-  display: flex;
-  flex-direction: row;
-  top: 0px;
-}
-
-button.buttonTab {
-  width: 50%;
-  margin: 0;
-  border: 2px solid transparent;
-  border-radius: 0;
-  outline: none;
-}
-
-button.buttonTab:focus, button.buttonTab:active, .unfocued-but-still-showing {
-  border: 2px solid #3cc3b2;
-  border-color: #3cc3b2;
-  background-color: #3cc3b2 !important;
-  color: #fff;
-  outline: none;
-}
-
-#vulns-tab {
-  border-top-left-radius: 2px;
-}
-
-#libs-tab {
-  border-top-right-radius: 2px;
-}
-
-button.buttonTab:hover {
-  color: #fff;
-}
-
-#no-results {
-  width: 600px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-#vulnerabilities-section, #libraries-section {
-  width: 600px;
-  padding: 0px;
-  align-items: center;
-  justify-content: space-between;
-  border: 0;
-  margin-bottom: 0px;
-}
-
-#activity-feed input {
-  width: 100%;
-}
-
-div#get-started {
-  display: none;
-  margin: 100px auto;
-}
-
-div#configuration-problem {
-  margin: 100px auto;
-}
-
-#get-started-img {
-  width: 600px;
-  display: block;
-  margin: 0 auto;
-}
-
-#get-started-description {
-  width: 600px;
-  display: block;
-  margin: 0 auto;
-}
-
-img#header-logo {
-  width: 600px;
-}
-
-form.settings-form input {
-  width: 100%;
-  height: 34px;
-  font-size: 14px;
-  border-width: 1px;
-  border-radius: 3px;
-  border-color: #cbcbcb;
-}
-
-h1, h2, h3, h4, span, p {
+h1, h2, h3, h4, h5, h6, span, p, td, th {
   font-family: "Roboto Condensed", "Lato", "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
 }
-
-a.activity-timestamp-header {
-  text-transform: uppercase;
-  color: #999;
-  font-size: 10px;
-}
-
-.color-gray {
-  color: #999;
-}
-
 label {
   display: inline-block;
   max-width: 100%;
@@ -146,53 +31,119 @@ label {
   font-weight: 700;
   color: gray;
 }
+/******************/
+/* GENERAL STYLES */
+/******************/
 
-.logo-icon {
-  max-width: 100%;
+
+
+
+
+/*******************/
+/* SECTIONS STYLES */
+/*******************/
+.section {
+  overflow: hidden;
+  height: auto;
 }
+.section {
+  overflow: hidden;
+  transition: max-height 0.3s linear;
+  height: auto;
+  max-height: 1000px;
+}
+.section.collapsed {
+  max-height: 0px;
+}
+/*******************/
+/* SECTIONS STYLES */
+/*******************/
 
-.no-border {
+
+
+
+
+/**************************/
+/* VULNERABILITIES STYLES */
+/**************************/
+#vulnerabilities-section, #libraries-section {
+  width: 400px;
+  padding: 0px;
+  align-items: center;
+  justify-content: space-between;
   border: 0;
+  margin-bottom: 0px;
+  background-color: white;
 }
-
+#no-vulnerabilities-found {
+  margin: 0 auto;
+  padding: 20px;
+}
+#activity-feed input {
+  width: 100%;
+}
 #vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
+  width: 100%;
   padding: 0px;
 }
-
 #vulnerabilities-found-on-page-list, #libs-vulnerabilities-found-on-page-list {
   margin-top: 10px;
+  margin-bottom: 10px;
 }
-
 .vulnerability-li {
-  padding: 3px 25px;
-  white-space: nowrap;
+  padding: 3px 10px;
   text-overflow: ellipsis;
-  width: 100%;
+  white-space: nowrap;
+  width: 99%;
   overflow: hidden;
 }
-
 .vulnerability-rule-name, .vulnerability-link {
   color: black;
 }
-
 .vulnerability-link:hover {
   cursor: pointer;
   text-decoration: underline;
 }
-
 .vulnerability-rule-name {
   padding-left: 10px;
 }
+/**************************/
+/* VULNERABILITIES STYLES */
+/**************************/
 
-/* gear button in bottom right corner */
-.configure-gear {
-  outline: none;
+
+
+
+
+/***********************/
+/* APPLICATIONS STYLES */
+/***********************/
+.table {
+  display: table;
+  margin: 0;
+  border: none;
 }
-
+.table td {
+  padding-left: 2em;
+  padding-right: 2em;
+  vertical-align: middle;
+}
+.app-host-span {
+  color: rgb(160, 160, 160);
+  display: block;
+}
+#table-container {
+  overflow: hidden;
+  transition: max-height 0.3s linear;
+  height: auto;
+  max-height: 1000px;
+}
+#table-container.collapsed {
+  max-height: 0px;
+}
 /* click to show/hide applications */
 #applications-heading-container {
-  padding: 15px;
-  display: none;
+  padding: 10px;
 }
 
 #applications-heading, #applications-arrow {
@@ -200,128 +151,211 @@ label {
   display: inline;
   cursor: pointer;
 }
-
 #application-table-container-div {
   width: 100%;
   height: auto;
+  background-color: white;
 }
-
 #applications-arrow {
   font-size: 10px;
 }
-
-#user-email {
-  cursor: pointer;
-}
-
-/* Hide success/error message and show when user clicks configure button after installing extension */
-.configure-message {
-  display: none;
-  font-weight: bold;
-}
-
 #connected-domain-message {
   text-align: center;
   padding: 10px;
   margin: 0px;
 }
+/***********************/
+/* APPLICATIONS STYLES */
+/***********************/
 
-.visible {
+
+
+
+
+/************************/
+/* CONFIGURATION STYLES */
+/************************/
+#configuration-header {
+  display: flex;
+}
+#configuration-section {
+  background-color: white;
+}
+button.btn-contrast-plugin {
+  border-radius: 3px;
+  text-align: center;
+  font-size: 13px;
+}
+button.btn-connect {
+  color: #fff;
+  background-color: #3cc3b2 !important;
+  border-color: #3cc3b2;
+}
+button.btn-connect:hover, button.buttonTab:hover {
+  background-color: #0da1a9 !important;
+  border-color: #0da1a9;
+}
+button.btn-disconnect, #configure-extension-button {
+  color: black;
+  background-color: rgb(247, 247, 247) !important;
+  border-color: rgb(230, 230, 230);
+}
+button.btn-disconnect:hover, #configure-extension-button:hover {
+  color: #fff;
+  background-color: rgb(168, 168, 168) !important;
+  border-color: rgb(168, 168, 168);
+}
+button.btn-connect, button.btn-disconnect {
+  width: 100%;
+  float: right;
+}
+#gear-container {
+  margin: 5px;
   display: block;
-}
 
-.hidden {
-  display: none;
 }
-
-#config-success {
+/* gear button in bottom right corner */
+.configure-gear {
+  margin: none;
+  padding: none;
+  outline: none;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.configure-gear-rotate {
+  animation: gear-spin 1s linear 1;
+}
+@keyframes gear-spin {
+  100% { transform: rotate(180deg); }
+}
+/* Hide success/error message and show when user clicks configure button after installing extension */
+.configure-message {
+  font-weight: bold;
+  margin: 15px;
+  text-align: center;
+}
+#user-email {
+  cursor: pointer;
+}
+#config-success, #config-failure {
+  color: gray;
+  border: 1px solid gray;
+  border-radius: 3px;
+  background-color: rgb(247, 247, 247);
+  padding: 10px;
+  font-size: 16px;
+}
+#success-check {
   color: #65C0B2;
 }
-
-#config-failure {
+#error-x {
   color: #E63025;
 }
-
-.application-table-visible {
-  transition-property: visibility, opacity;
-  transition-duration: 0s, 1s;
-  margin-bottom: 0px;
+#success-check, #error-x {
+  padding: 10px;
+  font-size: 16px;
 }
-
-.application-table-hidden {
-  opacity: 0;
-  visibility: hidden;
-  transition-property: opacity, visibility;
-  transition-duration: 1s, 0s;
-  transition-delay: 0s, 0s;
-  position: absolute;
-}
-
+/************************/
+/* CONFIGURATION STYLES */
+/************************/
+/***********************************************/
+/* NOTE: CONFIGURATION AND POPUP HEADER/FOOTER */
+/***********************************************/
 .flex-row {
   display: flex;
   flex-direction: row;
+  flex-wrap: nowrap;
   align-items: flex-end;
+  width: 100%;
+  line-height: normal;
 }
-
+.flex-row-space-between {
+  justify-content: space-between;
+}
+.flex-row-head {
+  justify-content: flex-start;
+}
+.flex-row-foot {
+  justify-content: space-between;
+}
+.flex-row-item {
+  margin: 5px;
+  width: 100%;
+}
+.header-row, .footer-row {
+  padding: 20px;
+}
+.header-row, #application-table-container-div {
+  border-bottom: 1px solid rgb(220, 220, 220);
+}
+.footer-row {
+  border-top: 1px solid rgb(220, 220, 220);
+}
+.logo-icon {
+  display: inline;
+  width: 15%;
+}
+#configure-extension {
+  margin-top: 15px;
+}
+#contrast-url-input-label {
+  color: black;
+  font-size: 16px;
+}
+.user-inputs {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border: 2px solid rgb(183, 183, 183);
+}
+#configure-extension-button {
+  float: right;
+  border-radius: 0.25;
+  margin: 20px;
+  margin-right: 0px;
+}
+#vulns-header-text {
+  line-height: normal;
+  font-size: 5vw;
+}
 #scan-libs-text {
   color: #65C0B2;
-  float: right;
-  font-size: 14px;
+  margin-right: 5px;
 }
-
 #scan-libs-text:hover {
   cursor: pointer;
   font-weight: bold;
 }
-
-.no-margin {
-  margin: 0px;
-}
-
-
-#libs-loading {
+.loading-icon {
   margin: 0 auto;
-  margin-bottom: 20px;
-  border: 10px solid linear-gradient(#3cc3b2, #f3f3f3);
-  /* border-top: 10px solid #3cc3b2; */
-  /* background-color: linear-gradient(#3cc3b2, #f3f3f3); */
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: bounce 2s linear infinite;
-}
-
-@keyframes bounce {
-  0% { transform: scale(1.0); }
-  50% { transform: scale(1.5); }
-  100% { transform: scale(1.0); }
-}
-
-#libs-loading img {
-  width: 100%;
+  width: 2em;
   height: auto;
+  visibility: hidden;
+  /* display: none; */
 }
-
 #found-libs-message {
   color: #65C0B2;
   text-align: center;
-  font-size: 14px;
+  font-size: 4vw;
+  padding-top: 10px;
+  padding-bottom: 20px;
 }
-
-/* @keyframes loadingSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-} */
+/*********************************************/
+/* END CONFIGURATION AND POPUP HEADER/FOOTER */
+/*********************************************/
 
 
+
+
+
+
+/**********/
 /* BADGES */
-
+/**********/
 .parent-badge {
   display: inline-flex;
   width: 73px;
   border-radius: 2px;
 }
-
 .child-badge {
   font-family: "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
   font-size: 12px;
@@ -335,3 +369,6 @@ label {
   width: 73px;
   height: 20px;
 }
+/**********/
+/* BADGES */
+/**********/

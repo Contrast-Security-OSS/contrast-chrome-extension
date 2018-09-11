@@ -2,10 +2,11 @@ import {
   STORED_APPS_KEY,
   setElementText,
   setElementDisplay,
-  isBlacklisted,
+  // isBlacklisted,
   getOrgApplications,
   getHostFromUrl,
   isContrastTeamserver,
+  // changeElementVisibility,
 } from '../util.js';
 
 import Application from './Application.js';
@@ -13,13 +14,21 @@ import TableRow from './PopupTableRow.js';
 
 export default function ApplicationTable(url) {
   this.table = document.getElementById('application-table');
+  this.tableContainer = this.table.parentElement;
   this.url   = url;
+
+  this.rollApplications = this.rollApplications.bind(this);
 }
 
-ApplicationTable.RIGHT_ARROW = ' ▶';
-ApplicationTable.DOWN_ARROW  = ' ▼';
-ApplicationTable.TABLE_VISIBLE_CLASS = 'application-table-visible';
-ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
+// NOTE: Used to prevent event listeners from being readded
+ApplicationTable.listener = {
+  attached: false,
+  url: "",
+};
+
+ApplicationTable.showApps = false;
+ApplicationTable.RIGHT_ARROW = `<svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M826.2 654.6l-3.6-4.2-272-313c-9.2-10.6-23-17.2-38.4-17.2s-29.2 6.8-38.4 17.2L197.4 655c-3.4 5-5.4 11-5.4 17.4 0 17.4 14.8 31.6 33.2 31.6h573.6c18.4 0 33.2-14.2 33.2-31.6 0-6.6-2.2-12.8-5.8-17.8z"></path></g></svg>`;
+ApplicationTable.DOWN_ARROW  = `<svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M197.8 369.4l3.6 4.2 272 313c9.2 10.6 23 17.2 38.4 17.2s29.2-6.8 38.4-17.2L826.6 369c3.4-5 5.4-11 5.4-17.4 0-17.4-14.8-31.6-33.2-31.6H225.2c-18.4 0-33.2 14.2-33.2 31.6 0 6.6 2.2 12.8 5.8 17.8z"></path></g></svg>`;
 
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
@@ -28,17 +37,36 @@ ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
  * @return {void}
  */
 ApplicationTable.prototype.renderApplicationsMenu = function() {
+  console.log("render app menu");
+
+  const tableElements = [
+    document.getElementById('applications-heading-container'),
+    document.getElementById('application-table-container-div'),
+  ];
+
   const headings = [
     document.getElementById('applications-heading'),
     document.getElementById('applications-arrow'),
-  ]
+  ];
 
-  const container = document.getElementById('applications-heading-container');
-  setElementDisplay(container, "block");
+  headings.forEach(el => setElementDisplay(el, 'inline'));
+  tableElements.forEach(el => setElementDisplay(el, 'block'));
 
-  for (let i = 0, len = headings.length; i < len; i++) {
-    headings[i].addEventListener('click', () => this.rollApplications());
+  const arrow = document.getElementById('applications-arrow');
+  if (ApplicationTable.showApps) {
+    this._unrollApplications(arrow);
   }
+
+  // NOTE: Used to prevent event listeners from being readded
+  if (ApplicationTable.listener.attached
+      && ApplicationTable.listener.url === this.url.href) {
+        return;
+      }
+  for (let i = 0, len = headings.length; i < len; i++) {
+    headings[i].addEventListener('click', this.rollApplications, false);
+  }
+  ApplicationTable.listener.attached = true;
+  ApplicationTable.listener.url = this.url.href;
 }
 
 
@@ -48,8 +76,9 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
  * @return {type}  description
  */
 ApplicationTable.prototype.rollApplications = function() {
+  ApplicationTable.showApps = !ApplicationTable.showApps;
   const arrow = document.getElementById('applications-arrow');
-  if (arrow.innerText === ApplicationTable.RIGHT_ARROW) {
+  if (ApplicationTable.showApps) {
     this._unrollApplications(arrow);
   } else {
     this._rollupApplications(arrow);
@@ -57,8 +86,7 @@ ApplicationTable.prototype.rollApplications = function() {
 }
 
 ApplicationTable.prototype._unrollApplications = function(arrow) {
-  setElementText(arrow, ApplicationTable.DOWN_ARROW);
-  this._changeTableVisibility(true);
+  arrow.innerHTML = ApplicationTable.DOWN_ARROW;
 
   // if less than 2 then only the heading row has been rendered
   if (document.getElementsByTagName('tr').length < 2) {
@@ -71,11 +99,12 @@ ApplicationTable.prototype._unrollApplications = function(arrow) {
     })
     .catch(error => new Error(error));
   }
+  this.tableContainer.classList.remove('collapsed');
 }
 
 ApplicationTable.prototype._rollupApplications = function(arrow) {
-  this._changeTableVisibility(false);
-  setElementText(arrow, ApplicationTable.RIGHT_ARROW);
+  arrow.innerHTML = ApplicationTable.RIGHT_ARROW;
+  this.tableContainer.classList.add('collapsed');
 }
 
 /**
@@ -86,14 +115,21 @@ ApplicationTable.prototype._rollupApplications = function(arrow) {
  * @return {type}
  */
 ApplicationTable.prototype.renderActivityFeed = function() {
-  if (isBlacklisted(this.url.host)) return;
+  // if (isBlacklisted(this.url.host)) {
+  //   console.log("blacklisted domain");
+  //   return;
+  // }
+  this.tableContainer.classList.remove('collapsed');
 
   chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
+    console.log("storedApps", storedApps);
     const host = getHostFromUrl(this.url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (_appIsConfigured(storedApps, host)) {
+      console.log("app configured");
+      const appTableContainer = document.getElementById('application-table-container-div');
+      setElementDisplay(appTableContainer, "none");
       // if you don't need credentials, hide the signin functionality and don't render a table
-      _hideConfigurationElements();
     } else {
       this._showContrastApplications(storedApps);
     }
@@ -102,10 +138,24 @@ ApplicationTable.prototype.renderActivityFeed = function() {
 
 ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   // transitions on these classes, not a simple display none/table
-  this._changeTableVisibility(true);
+  // this._changeTableVisibility(true);
+  const vulnsSection = document.getElementById("vulnerabilities-section");
+  const scanLibsText = document.getElementById('scan-libs-text');
+  const appHeading = document.getElementById('applications-heading-container');
+  setElementDisplay(vulnsSection, "none");
+  setElementDisplay(scanLibsText, "none");
+  setElementDisplay(appHeading, "none");
 
-  const vulnsFound = document.getElementById("vulnerabilities-found-on-page");
-  setElementDisplay(vulnsFound, "none");
+  // NOTE: Ugly but leave for now
+  const vulnsHeaderText = document.getElementById('vulns-header-text');
+  const vulnsHeader = vulnsHeaderText.parentElement.parentElement;
+  setElementDisplay(vulnsHeader.lastElementChild, "none");
+  setElementText(vulnsHeaderText, "Connect Applications");
+  vulnsHeaderText.style.fontSize = '4.5vw';
+  vulnsHeader.style.border = 'none';
+
+  const configuredFooter = document.getElementById('configured-footer');
+  configuredFooter.style.border = 'none';
 
   // if app is not stored, render the table with buttons to add the domain
   getOrgApplications()
@@ -114,12 +164,13 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
       throw new Error("Error getting applications");
     }
     const applications = this._filterApplications(storedApps, json.applications);
+    // const { applications } = json;
 
     // create a row for each application
-    applications.forEach(app => this.createAppTableRow(app));
+    applications.forEach(app => this.createAppTableRow(app, storedApps));
   })
   .catch(() => {
-    throw new Error("Error getting applications");
+    return new Error("Error getting applications");
   });
 }
 
@@ -136,7 +187,11 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
     const appIds = storedApps[STORED_APPS_KEY].map(app => app.id).flatten();
 
     // include in applications if it's not in storage
-    return applications.filter(app => !appIds.includes(app.app_id));
+    // return applications.filter(app => !appIds.includes(app.app_id));
+    return applications.map(app => {
+      app.connectedAlready = appIds.includes(app.app_id);
+      return app;
+    });
   }
   return applications;
 }
@@ -147,16 +202,22 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
  * @param  {Object} application the contrast application from TS
  * @return {void} - adds rows to a table
  */
-ApplicationTable.prototype.createAppTableRow = function(application) {
+ApplicationTable.prototype.createAppTableRow = function(application, appsInStorage) {
   const tr = new TableRow(application, this.url, this.table.tBodies[0]);
   tr.appendChildren();
-  tr.setAppId(application);
-  this._changeTableVisibility(true);
+  // tr.setAppId(application);
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
-    tr.setHost(getHostFromUrl(this.url));
-    tr.createConnectButton();
-  } else {
+    if (application.connectedAlready) {
+      const storedApp = Application.getStoredApp(appsInStorage, application);
+      setElementText(tr.nameTD, application.name);
+      tr.setHost(storedApp.host);
+      tr.renderDisconnect(appsInStorage, storedApp);
+    } else {
+      tr.setHost(getHostFromUrl(this.url));
+      tr.createConnectButton();
+    }
+  } else if (!appsInStorage) {
     // on a contrast page - render the full collection of apps in a user org with respective domains
     chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
       if (chrome.runtime.lastError) return;
@@ -173,28 +234,28 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
         tr.renderDisconnect(storedApps, storedApp);
       }
     });
+  } else {
+    const storedApp = Application.getStoredApp(appsInStorage, application);
+    setElementText(tr.nameTD, application.name);
+
+    if (!!storedApp) {
+      tr.setHost(storedApp.host);
+      tr.renderDisconnect(appsInStorage, storedApp);
+    }
   }
 }
 
-ApplicationTable.prototype._changeTableVisibility = function(show) {
-  if (!show) {
-    this.table.classList.remove(ApplicationTable.TABLE_VISIBLE_CLASS);
-    this.table.classList.add(ApplicationTable.TABLE_HIDDEN_CLASS);
-  } else {
-    this.table.classList.add(ApplicationTable.TABLE_VISIBLE_CLASS);
-    this.table.classList.remove(ApplicationTable.TABLE_HIDDEN_CLASS);
-  }
+ApplicationTable.prototype._changeTableVisibility = function() {
+  this.table.classList.toggle('collapsed');
+  // if (!show) {
+  //   this.table.classList.remove(ApplicationTable.TABLE_VISIBLE_CLASS);
+  //   this.table.classList.add(ApplicationTable.TABLE_HIDDEN_CLASS);
+  // } else {
+  //   this.table.classList.add(ApplicationTable.TABLE_VISIBLE_CLASS);
+  //   this.table.classList.remove(ApplicationTable.TABLE_HIDDEN_CLASS);
+  // }
 }
 
 function _appIsConfigured(result, host) {
   return result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]
-}
-
-function _hideConfigurationElements() {
-  const elements = [
-    document.getElementById('not-configured'),
-    document.getElementById('configure-extension'),
-  ]
-
-  elements.forEach(el => setElementDisplay(el, "none"));
 }
