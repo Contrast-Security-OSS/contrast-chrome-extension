@@ -153,7 +153,7 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(configHeader, "none");
       setElementDisplay(configButton, "block");
       setElementDisplay(userEmail, "block");
-      setElementDisplay(scanLibsText, "none");
+      // setElementDisplay(scanLibsText, "none");
       setElementText(vulnsHeaderText, "Configured");
       setElementDisplay(configGear, "block");
       this.setCredentialsInSettings();
@@ -173,7 +173,7 @@ Config.prototype.getUserConfiguration = function() {
       setElementDisplay(configHeader, "none");
       setElementDisplay(configButton, "none");
       setElementDisplay(userEmail, "block");
-      setElementDisplay(scanLibsText, "none");
+      // setElementDisplay(scanLibsText, "none");
       setElementDisplay(configGear, "block");
       setElementText(vulnsHeaderText, "Configured");
       this.setCredentialsInSettings();
@@ -201,6 +201,7 @@ Config.prototype.getUserConfiguration = function() {
       break;
     }
   }
+  setElementDisplay(scanLibsText, "none");
 }
 
 Config.prototype.setCredentialsInSettings = function() {

@@ -164,7 +164,7 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
       throw new Error("Error getting applications");
     }
     const applications = this._filterApplications(storedApps, json.applications);
-    // const { applications } = json;
+    // console.log("applications", applications, storedApps);
 
     // create a row for each application
     applications.forEach(app => this.createAppTableRow(app, storedApps));
