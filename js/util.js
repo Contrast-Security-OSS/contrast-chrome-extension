@@ -433,6 +433,14 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   }
 }
 
+function updateExtensionIcon(tab, image) {
+//   const details = {
+//     tabId: tab.id,
+//     path: "/img/" + image,
+//   }
+//   chrome.browserAction.setIcon(object details, function callback)
+}
+
 /**
  * removeLoadingBadge - checks if the current tab is the loading icon and removes it if it is
  *
@@ -614,4 +622,5 @@ export {
   isHTTP,
   isEmptyObject,
   murmur,
+  updateExtensionIcon,
 }

@@ -29,6 +29,7 @@ import {
 	updateTabBadge,
 	removeLoadingBadge,
 	loadingBadge,
+	updateExtensionIcon,
 } from './util.js';
 
 import {
@@ -208,6 +209,7 @@ async function _queueActions(tab, tabUpdated) {
 	if (!initalActions) updateTabBadge(tab, "X", CONTRAST_RED);
 
 	if (!initalActions[0] || !initalActions[1]) {
+		// updateExtensionIcon(tab, "notConfigured.png");
 		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
 		return;
 	}
@@ -221,15 +223,7 @@ async function _queueActions(tab, tabUpdated) {
 	}
 	QUEUE.addForms(formActions, true);
 	QUEUE.addXHRequests(window.XHR_REQUESTS, true);
-
-	// NOTE: Hacky
-	// let slept = 0;
-	// while (!window.PAGE_FINISHED_LOADING) {
-	// 	if (slept === 5) window.PAGE_FINISHED_LOADING = true;
-	// 	setTimeout(() => {
-	// 		slept += 1
-	// 	}, 200);
-	// }
+	
 	QUEUE.executeQueue(resetXHRRequests);
 }
 
