@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(items => {
           if (isCredentialed(items)) {
             getStorageVulnsAndRender(items, app, tab);
-            renderVulnerableLibraries(tab, app)
+            // renderVulnerableLibraries(tab, app)
           } else {
             throw new Error("Not Credentialed")
           }

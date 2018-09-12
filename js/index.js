@@ -61,7 +61,7 @@ export function indexFunction() {
 * Run when popup loads
 */
 document.addEventListener('DOMContentLoaded', indexFunction, false);
-document.addEventListener('DOMContentLoaded', showRefreshButton, false);
+// document.addEventListener('DOMContentLoaded', showRefreshButton, false);
 
 function showRefreshButton() {
   const refreshLibsButton = document.getElementById('scan-libs-text');
