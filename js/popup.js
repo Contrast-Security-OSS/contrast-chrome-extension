@@ -3,9 +3,9 @@ chrome,
 document,
 */
 
-import {
-  renderVulnerableLibraries,
-} from './libraries/showLibraries.js'
+// import {
+//   renderVulnerableLibraries,
+// } from './libraries/showLibraries.js'
 import { getStorageVulnsAndRender } from './popupMethods.js';
 import {
   STORED_APPS_KEY,
