@@ -1,3 +1,21 @@
+exports['tests the popup index.html file for changes renders a table of applications 1'] = `
+
+    <p id="connected-domain-message" class="hidden"></p>
+    <div id="applications-heading-container" style="display: none;">
+      <h5 id="applications-heading">Your Applications</h5>
+      <h5 id="applications-arrow">
+        <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M826.2 654.6l-3.6-4.2-272-313c-9.2-10.6-23-17.2-38.4-17.2s-29.2 6.8-38.4 17.2L197.4 655c-3.4 5-5.4 11-5.4 17.4 0 17.4 14.8 31.6 33.2 31.6h573.6c18.4 0 33.2-14.2 33.2-31.6 0-6.6-2.2-12.8-5.8-17.8z"></path></g></svg>
+      </h5>
+    </div>
+    <div id="table-container" class="collapsed">
+      <table class="table table-responsive" id="application-table">
+        <tbody id="application-table-body">
+        <tr><td></td><td></td></tr></tbody>
+      </table>
+    </div>
+  
+`
+
 exports['tests the popup index.html file for changes takes a snapshot of the base index.html file 1'] = `
 <head>
   <meta charset="utf-8">
