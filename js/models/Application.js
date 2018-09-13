@@ -1,8 +1,8 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   STORED_APPS_KEY,
-  CONTRAST_CONFIGURE_TEXT,
-  CONTRAST_YELLOW,
+  // CONTRAST_CONFIGURE_TEXT,
+  // CONTRAST_YELLOW,
   CONTRAST_GREEN,
   getHostFromUrl,
   isBlacklisted,

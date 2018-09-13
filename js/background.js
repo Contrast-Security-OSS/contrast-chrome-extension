@@ -207,8 +207,8 @@ async function _queueActions(tab, tabUpdated) {
 
 	const initalActions = await Promise.all(calls);
 	if (!initalActions) {
-		// updateTabBadge(tab, "X", CONTRAST_RED);
-		updateExtensionIcon(tab, 2);
+		updateTabBadge(tab, "!", CONTRAST_RED);
+		updateExtensionIcon(tab, 1);
 	}
 
 	if (!initalActions[0]) {

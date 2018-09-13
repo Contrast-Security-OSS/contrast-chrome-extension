@@ -420,7 +420,7 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
           if (badge !== "" && !badge) return;
           if (chrome.runtime.lastError) null;
           if (tab.id >= 0 && !chrome.runtime.lastError) {
-            if (color === 'transparent') color = [0, 0, 0];
+            if (color === 'transparent') color = [0, 0, 0]; // eslint-disable-line array-element-newline
             chrome.browserAction.setBadgeBackgroundColor({ color });
             chrome.browserAction.setBadgeText({ tabId: tab.id, text });
           }
