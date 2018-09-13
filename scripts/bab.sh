@@ -9,7 +9,7 @@ babel ${DIR}/js --out-dir ${DIR}/lib
 echo ""
 
 echo "$(tput setaf 2) Running Mocha tests...$(tput sgr0)"
-mocha ${DIR}/test/spec/*
+nyc mocha ${DIR}/test/spec/*
 echo ""
 
 echo "$(tput setaf 2) Creating a new __snapshots__ folder in project root.$(tput sgr0)"
