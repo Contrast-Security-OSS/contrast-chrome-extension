@@ -163,15 +163,19 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
     if (!json) {
       throw new Error("Error getting applications");
     }
+    // console.log("json", json);
     const applications = this._filterApplications(storedApps, json.applications);
-    // const { applications } = json;
 
     // create a row for each application
-    applications.forEach(app => this.createAppTableRow(app, storedApps));
+    this.createTableRows(applications, storedApps)
   })
   .catch(() => {
     return new Error("Error getting applications");
   });
+}
+
+ApplicationTable.prototype.createTableRows = function(applications, storedApps) {
+  applications.forEach(app => this.createAppTableRow(app, storedApps));
 }
 
 /**

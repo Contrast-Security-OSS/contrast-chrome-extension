@@ -21,6 +21,25 @@ const returnShortTraceData = {
   links: []
 }
 
+const storedApps = {
+  contrast__APPS: [
+    {
+      localhost_8080: 'webgoat-id-123',
+      id: 'webgoat-id-123',
+      name: 'webgoat',
+      domain: 'localhost_8080',
+      host: 'localhost_8080'
+    },
+    {
+      'localhost:3000': 'bhima-id-123',
+      id: 'bhima-id-123',
+      name: 'bhima',
+      domain: 'localhost:3000',
+      host: 'localhost:3000'
+    }
+  ]
+}
+
 const application = new Application("http://localhost:8080/WebGoat", {
   app_id: "webgoat-id-123", name: "webgoat"
 })

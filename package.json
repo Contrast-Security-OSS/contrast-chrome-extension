@@ -2,7 +2,7 @@
   "repository": "https://github.com/Contrast-Security-OSS/contrast-chrome-extension",
   "scripts": {
     "test": "nyc mocha test/spec/*",
-    "bab": "babel ./js --out-dir lib && mocha test/spec/*",
+    "bab": "babel ./js --out-dir lib && mocha test/spec/* && mocha test/snapshots/*",
     "lint": "eslint js/"
   },
   "devDependencies": {
@@ -12,10 +12,17 @@
     "babel-preset-env": "^1.7.0",
     "btoa": "^1.2.1",
     "chai": "^4.1.2",
+    "jest-webextension-mock": "^3.4.0",
     "jsdom": "^11.11.0",
     "node-fetch": "^2.1.2",
     "nyc": "^12.0.2",
     "sinon": "^5.0.10",
-    "sinon-chrome": "^2.3.2"
+    "sinon-chrome": "^2.3.2",
+    "snap-shot-it": "^6.1.8"
+  },
+  "jest": {
+    "setupFiles": [
+      "./test/__setups__/chrome.js"
+    ]
   }
 }

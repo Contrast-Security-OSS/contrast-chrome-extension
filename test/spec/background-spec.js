@@ -1,4 +1,4 @@
-const chrome     = require('sinon-chrome/extensions');
+const chrome  = require('sinon-chrome/extensions');
 global.chrome = chrome;
 
 const urlModule  = require('url');
