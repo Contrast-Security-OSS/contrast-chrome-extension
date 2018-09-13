@@ -21,8 +21,6 @@ import {
 import ApplicationTable from './models/ApplicationTable.js';
 import Config from './models/Config.js';
 
-// import { Application } from './models/application';
-
 /**
 * indexFunction - Main function that's run, renders config button if user is on TS Your Account Page, otherwise renders vulnerability feed
 *
