@@ -31,4 +31,4 @@ echo $(git status)
 
 git commit --amend --no-edit
 
-npm test && eslint js/
+npm run bab && eslint js/

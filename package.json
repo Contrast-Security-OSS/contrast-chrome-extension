@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/Contrast-Security-OSS/contrast-chrome-extension",
   "scripts": {
-    "test": "nyc mocha test/spec/*",
+    "test": "scripts/test.sh",
     "bab": "scripts/bab.sh",
     "lint": "eslint js/"
   },
