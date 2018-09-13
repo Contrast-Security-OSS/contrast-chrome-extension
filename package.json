@@ -22,7 +22,7 @@
   },
   "jest": {
     "setupFiles": [
-      "./__setups__/chrome.js"
+      "./test/__setups__/chrome.js"
     ]
   }
 }
