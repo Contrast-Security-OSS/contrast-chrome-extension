@@ -206,13 +206,21 @@ async function _queueActions(tab, tabUpdated) {
 	];
 
 	const initalActions = await Promise.all(calls);
-	if (!initalActions) updateTabBadge(tab, "X", CONTRAST_RED);
-
-	if (!initalActions[0] || !initalActions[1]) {
-		// updateExtensionIcon(tab, "notConfigured.png");
-		updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
-		return;
+	if (!initalActions) {
+		// updateTabBadge(tab, "X", CONTRAST_RED);
+		updateExtensionIcon(tab, 2);
 	}
+
+	if (!initalActions[0]) {
+		updateExtensionIcon(tab, 2);
+	} else if (!initalActions[1]) {
+		updateExtensionIcon(tab, 1);
+	}
+
+	// if (!initalActions[0] || !initalActions[1]) {
+	// 	updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+	// 	return;
+	// }
 
 	QUEUE.setCredentialed(isCredentialed(initalActions[0]));
 	QUEUE.setApplication(initalActions[1]);
@@ -223,7 +231,7 @@ async function _queueActions(tab, tabUpdated) {
 	}
 	QUEUE.addForms(formActions, true);
 	QUEUE.addXHRequests(window.XHR_REQUESTS, true);
-	
+
 	QUEUE.executeQueue(resetXHRRequests);
 }
 
@@ -248,16 +256,16 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 // - switch to tab from another tab
 // ------------------------------------------------------------------
 
-chrome.tabs.onActivated.addListener(activeInfo => {
-	window.PAGE_FINISHED_LOADING = true;
-	// QUEUE.resetQueue();
-	QUEUE = new Queue();
-
-	chrome.tabs.get(activeInfo.tabId, (tab) => {
-		if (!tab) return;
-		_queueActions(tab, false);
-	});
-});
+// chrome.tabs.onActivated.addListener(activeInfo => {
+// 	window.PAGE_FINISHED_LOADING = true;
+// 	// QUEUE.resetQueue();
+// 	QUEUE = new Queue();
+//
+// 	chrome.tabs.get(activeInfo.tabId, (tab) => {
+// 		if (!tab) return;
+// 		_queueActions(tab, false);
+// 	});
+// });
 
 // -------------------------------------------------------------------
 // ------------------------- TAB UPDATED -----------------------------

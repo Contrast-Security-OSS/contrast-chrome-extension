@@ -420,6 +420,7 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
           if (badge !== "" && !badge) return;
           if (chrome.runtime.lastError) null;
           if (tab.id >= 0 && !chrome.runtime.lastError) {
+            if (color === 'transparent') color = [0, 0, 0];
             chrome.browserAction.setBadgeBackgroundColor({ color });
             chrome.browserAction.setBadgeText({ tabId: tab.id, text });
           }
@@ -433,12 +434,21 @@ function updateTabBadge(tab, text = '', color = CONTRAST_GREEN) {
   }
 }
 
-function updateExtensionIcon(tab, image) {
-//   const details = {
-//     tabId: tab.id,
-//     path: "/img/" + image,
-//   }
-//   chrome.browserAction.setIcon(object details, function callback)
+const CONTRAST_ICONS = {
+  0: "contrast-on.png",
+  1: "contrast-off.png",
+  2: "contrast-not-configured.png",
+}
+function updateExtensionIcon(tab, image = 0) {
+  const details = {
+    tabId: tab.id,
+    path: "/img/" + (typeof image === 'number' ? CONTRAST_ICONS[image] : image),
+  }
+  if (!details.path) {
+    throw new Error("update extension icon path is not set", details);
+  }
+  chrome.browserAction.setIcon(details);
+  // chrome.browserAction.setIcon(object details, function callback)
 }
 
 /**

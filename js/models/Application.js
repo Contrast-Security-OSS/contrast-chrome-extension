@@ -7,6 +7,7 @@ import {
   getHostFromUrl,
   isBlacklisted,
   updateTabBadge,
+  updateExtensionIcon,
 } from '../util.js'
 
 export default function Application(host, teamserverApplication) {
@@ -45,12 +46,15 @@ Application.retrieveApplicationFromStorage = function(tab) {
       if (!application) {
         if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
-            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+            updateExtensionIcon(tab, 1);
+            updateTabBadge(tab, '');
+            // updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
           } catch (e) {
             reject(new Error("Error updating tab badge"))
           }
         } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
+            updateExtensionIcon(tab, 1)
             updateTabBadge(tab, '', CONTRAST_GREEN);
           } catch (e) {
             reject(new Error("Error updating tab badge"))
@@ -73,8 +77,6 @@ Application.retrieveApplicationFromStorage = function(tab) {
  * @return {Array<Application>}            - array of 1 connected app
  */
 Application.getStoredApp = function(storedApps, application) {
-  console.log("storedapps", storedApps);
-  console.log("application", application);
   if (!application) throw new Error("application must be defined");
   return storedApps[STORED_APPS_KEY].filter(app => {
     return app.id === application.app_id;

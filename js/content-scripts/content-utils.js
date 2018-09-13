@@ -521,6 +521,23 @@ function loadingBadge(tab) {
   updateTabBadge(tab, "↻", CONTRAST_GREEN);
 }
 
+const CONTRAST_ICONS = {
+  0: "contrast-on.png",
+  1: "contrast-off.png",
+  2: "contrast-not-configured.png",
+}
+function updateExtensionIcon(tab, image = 0) {
+  const details = {
+    tabId: tab.id,
+    path: "/img/" + (typeof image === 'number' ? CONTRAST_ICONS[image] : image),
+  }
+  if (!details.path) {
+    throw new Error("update extension icon path is not set", details);
+  }
+  chrome.browserAction.setIcon(details);
+  // chrome.browserAction.setIcon(object details, function callback)
+}
+
 function retrieveApplicationFromStorage(tab) {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(STORED_APPS_KEY, (result) => {
@@ -542,12 +559,15 @@ function retrieveApplicationFromStorage(tab) {
       if (!application) {
         if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
-            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+            updateExtensionIcon(tab, 1);
+            updateTabBadge(tab, '');
+            // updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
           } catch (e) {
             reject(new Error("Error updating tab badge"))
           }
         } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
+            updateExtensionIcon(tab, 1);
             updateTabBadge(tab, '', CONTRAST_GREEN);
           } catch (e) {
             reject(new Error("Error updating tab badge"))
