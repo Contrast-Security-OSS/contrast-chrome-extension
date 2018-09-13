@@ -31,6 +31,8 @@ function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, applicatio
     // NOTE: Elements set to display show in getStorageVulnsAndRender
     getShortVulnerabilities(traces, application.id)
     .then(sortedTraces => {
+      const loading = document.getElementById('vulns-loading');
+      loading.style.display = 'none';
       sortedTraces.map(trace => renderListItem(trace, teamserverUrl, orgUuid, application));
     })
     .catch(new Error("Error rendering sorted traces into list items."));

@@ -26,11 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const store = result[STORED_APPS_KEY];
       const app   = store ? store.filter(a => a[host])[0] : store;
 
-
       if (app && !isEmptyObject(app)) {
         getStoredCredentials()
         .then(items => {
           if (isCredentialed(items)) {
+            renderLoadingIcon();
             getStorageVulnsAndRender(items, app, tab);
             // renderVulnerableLibraries(tab, app)
           } else {
@@ -42,3 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 }, false);
+
+function renderLoadingIcon() {
+  const loading = document.getElementById('vulns-loading');
+  loading.style.display = 'block';
+}

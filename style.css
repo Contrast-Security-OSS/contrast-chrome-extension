@@ -325,6 +325,11 @@ button.btn-connect, button.btn-disconnect {
   cursor: pointer;
   font-weight: bold;
 }
+#vulns-loading {
+  margin: 10px auto;
+  width: 2.5em;
+  height: auto;
+}
 .loading-icon {
   margin: 0 auto;
   width: 2em;
