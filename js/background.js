@@ -53,7 +53,6 @@ function resetXHRRequests() {
 	window.XHR_REQUESTS = [];
 }
 
-
 const XHRDomains = new DomainStorage();
 
 /******************************************************************************

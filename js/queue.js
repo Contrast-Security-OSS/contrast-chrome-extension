@@ -104,7 +104,8 @@ class Queue {
     ];
 
     if (!conditions.every(Boolean)) {
-      throw new Error("Queue not ready to execute!", conditions);
+      console.log("Queue not ready to execute!", conditions);
+			return;
     }
 
   	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab); //eslint-disable-line
