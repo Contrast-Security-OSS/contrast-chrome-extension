@@ -127,6 +127,8 @@ label {
   padding-left: 2em;
   padding-right: 2em;
   vertical-align: middle;
+  border-top: none;
+  border-bottom: 1px solid rgb(230, 230, 230);
 }
 .app-host-span {
   color: rgb(160, 160, 160);
@@ -137,6 +139,7 @@ label {
   transition: max-height 0.3s linear;
   height: auto;
   max-height: 1000px;
+  width: 100%;
 }
 #table-container.collapsed {
   max-height: 0px;
@@ -151,10 +154,11 @@ label {
   display: inline;
   cursor: pointer;
 }
-#application-table-container-div {
+#application-table-container-section {
   width: 100%;
   height: auto;
   background-color: white;
+  border: none;
 }
 #applications-arrow {
   font-size: 10px;
@@ -180,6 +184,30 @@ label {
 }
 #configuration-section {
   background-color: white;
+  border-top: none;
+}
+#configuration-tabs-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+.config-tab:focus { outline:0; }
+.config-tab {
+  width: 100%;
+  background-color: rgb(73, 73, 73);
+  color: rgb(128, 128, 128);
+  padding: 1em;
+  border: none;
+  border-bottom: 3px solid white;
+  outline: none;
+  cursor: pointer;
+  margin: 0px;
+}
+.config-tab.active {
+  background-color: black;
+  color: white;
+  border-bottom: 3px solid #3cc3b2;
 }
 button.btn-contrast-plugin {
   border-radius: 3px;
@@ -209,10 +237,11 @@ button.btn-connect, button.btn-disconnect {
   width: 100%;
   float: right;
 }
-#gear-container {
-  margin: 5px;
-  display: block;
-
+#icon-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-end;
 }
 /* gear button in bottom right corner */
 .configure-gear {
@@ -221,12 +250,19 @@ button.btn-connect, button.btn-disconnect {
   outline: none;
   cursor: pointer;
   vertical-align: middle;
+  cursor: pointer;
+
+  margin-left: 3px;
+  margin-right: 3px;
+  /* border: 1px solid red; */
 }
 .configure-gear-rotate {
   animation: gear-spin 1s linear 1;
 }
 @keyframes gear-spin {
-  100% { transform: rotate(180deg); }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 /* Hide success/error message and show when user clicks configure button after installing extension */
 .configure-message {
@@ -285,7 +321,7 @@ button.btn-connect, button.btn-disconnect {
 .header-row, .footer-row {
   padding: 20px;
 }
-.header-row, #application-table-container-div {
+.header-row, #application-table-container-section {
   border-bottom: 1px solid rgb(220, 220, 220);
 }
 .footer-row {
@@ -300,12 +336,20 @@ button.btn-connect, button.btn-disconnect {
 }
 #contrast-url-input-label {
   color: black;
-  font-size: 16px;
+  font-size: 13px;
+}
+form {
+  width: 100%;
 }
 .user-inputs {
   margin-top: 5px;
   margin-bottom: 5px;
   border: 2px solid rgb(183, 183, 183);
+}
+.user-inputs:focus {
+  outline: 0 !important;
+  border: 1px solid #3cc3b2;
+  box-shadow: 0 0 5px #3cc3b2;
 }
 #configure-extension-button {
   float: right;

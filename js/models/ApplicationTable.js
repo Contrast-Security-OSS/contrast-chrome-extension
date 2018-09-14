@@ -39,34 +39,46 @@ ApplicationTable.DOWN_ARROW  = `<svg fill="currentColor" preserveAspectRatio="xM
 ApplicationTable.prototype.renderApplicationsMenu = function() {
   console.log("render app menu");
 
-  const tableElements = [
-    document.getElementById('applications-heading-container'),
-    document.getElementById('application-table-container-div'),
-  ];
-
-  const headings = [
-    document.getElementById('applications-heading'),
-    document.getElementById('applications-arrow'),
-  ];
-
-  headings.forEach(el => setElementDisplay(el, 'inline'));
-  tableElements.forEach(el => setElementDisplay(el, 'block'));
-
-  const arrow = document.getElementById('applications-arrow');
-  if (ApplicationTable.showApps) {
-    this._unrollApplications(arrow);
-  }
-
-  // NOTE: Used to prevent event listeners from being readded
-  if (ApplicationTable.listener.attached
-      && ApplicationTable.listener.url === this.url.href) {
-        return;
+  if (document.getElementsByTagName('tr').length < 2) {
+    getOrgApplications()
+    .then(json => {
+      if (!json) {
+        throw new Error("Error getting applications");
       }
-  for (let i = 0, len = headings.length; i < len; i++) {
-    headings[i].addEventListener('click', this.rollApplications, false);
+      console.log(json);
+      json.applications.forEach(app => this.createAppTableRow(app));
+    })
+    .catch(error => new Error(error));
   }
-  ApplicationTable.listener.attached = true;
-  ApplicationTable.listener.url = this.url.href;
+
+  // const tableElements = [
+  //   document.getElementById('applications-heading-container'),
+  //   document.getElementById('application-table-container-section'),
+  // ];
+  //
+  // const headings = [
+  //   document.getElementById('applications-heading'),
+  //   document.getElementById('applications-arrow'),
+  // ];
+  //
+  // headings.forEach(el => setElementDisplay(el, 'inline'));
+  // tableElements.forEach(el => setElementDisplay(el, 'block'));
+  //
+  // const arrow = document.getElementById('applications-arrow');
+  // if (ApplicationTable.showApps) {
+  //   this._unrollApplications(arrow);
+  // }
+  //
+  // // NOTE: Used to prevent event listeners from being readded
+  // if (ApplicationTable.listener.attached
+  //     && ApplicationTable.listener.url === this.url.href) {
+  //       return;
+  //     }
+  // for (let i = 0, len = headings.length; i < len; i++) {
+  //   headings[i].addEventListener('click', this.rollApplications, false);
+  // }
+  // ApplicationTable.listener.attached = true;
+  // ApplicationTable.listener.url = this.url.href;
 }
 
 
@@ -122,12 +134,10 @@ ApplicationTable.prototype.renderActivityFeed = function() {
   this.tableContainer.classList.remove('collapsed');
 
   chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
-    console.log("storedApps", storedApps);
     const host = getHostFromUrl(this.url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (_appIsConfigured(storedApps, host)) {
-      console.log("app configured");
-      const appTableContainer = document.getElementById('application-table-container-div');
+      const appTableContainer = document.getElementById('application-table-container-section');
       setElementDisplay(appTableContainer, "none");
       // if you don't need credentials, hide the signin functionality and don't render a table
     } else {
@@ -137,19 +147,18 @@ ApplicationTable.prototype.renderActivityFeed = function() {
 }
 
 ApplicationTable.prototype._showContrastApplications = function(storedApps) {
+  console.log("showing contrast apps");
   // transitions on these classes, not a simple display none/table
   // this._changeTableVisibility(true);
   const vulnsSection = document.getElementById("vulnerabilities-section");
-  const scanLibsText = document.getElementById('scan-libs-text');
-  const appHeading = document.getElementById('applications-heading-container');
+  // const scanLibsText = document.getElementById('scan-libs-text');
   setElementDisplay(vulnsSection, "none");
-  setElementDisplay(scanLibsText, "none");
-  setElementDisplay(appHeading, "none");
+  // setElementDisplay(scanLibsText, "none");
 
   // NOTE: Ugly but leave for now
   const vulnsHeaderText = document.getElementById('vulns-header-text');
   const vulnsHeader = vulnsHeaderText.parentElement.parentElement;
-  setElementDisplay(vulnsHeader.lastElementChild, "none");
+  // setElementDisplay(vulnsHeader.lastElementChild, "none");
   setElementText(vulnsHeaderText, "Connect Applications");
   vulnsHeaderText.style.fontSize = '4.5vw';
   vulnsHeader.style.border = 'none';

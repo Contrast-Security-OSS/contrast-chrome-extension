@@ -18,190 +18,88 @@ import {
   CONTRAST_USERNAME,
 } from '../util.js'
 
+import ApplicationTable from './ApplicationTable.js';
 import { indexFunction } from '../index.js';
 
-export default function Config(tab, url, credentialed, credentials) {
+export default function Config(tab, url, credentialed, credentials, hasApp) {
   this.tab = tab;
   this.url = url;
   this.credentialed = credentialed;
   this.credentials = credentials;
+  this.hasApp = hasApp;
 
   this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
+  this._handleAppsClick = this._handleAppsClick.bind(this);
+  this._handleGearClick = this._handleGearClick.bind(this);
 }
 
-const POPUP_STATES = {
-  notContrastNotConfigured: 0,
-  contrastNotConfigured: 1,
-  contrastYourAccountNotConfigured: 2,
-  contrastYourAccountConfigured: 3,
-  contrastConfigured: 4,
-  notContrastConfigured: 5,
+// NOTE: States
+// Show vulnerabilities
+// Show app list
+// Show config
+
+let POPUP_STATE = [];
+const POPUP_SCREENS = {
+  0: [ // Credentialed Config
+    document.getElementById('configuration-section'),
+    document.getElementById('vulnerabilities-header'),
+    document.getElementById('configured-footer'),
+  ],
+  1: [ // Not Credentialed Config
+    document.getElementById('configuration-section'),
+    document.getElementById('configuration-header'),
+    document.getElementById('configuration-footer'),
+  ],
+  2: [ // Vulns
+    document.getElementById('vulnerabilities-section'),
+    document.getElementById('vulnerabilities-header'),
+    document.getElementById('configured-footer'),
+  ],
+  3: [ // Apps
+    document.getElementById('application-table-container-section'),
+    document.getElementById('vulnerabilities-header'),
+    document.getElementById('configured-footer'),
+  ]
 }
-
-Config.prototype.popupState = function() {
-  // contrast and configured - 0
-  if (this._isTeamserverAccountPage() && !this.credentialed) {
-    return POPUP_STATES.contrastYourAccountNotConfigured;
+Config.prototype.popupScreen = function(state = null) {
+  console.log("Popup Screen Before State is ", state);
+  if (typeof state !== 'number') {
+    state = this.getPopupScreen();
   }
-  // teamserver page and configured - 3
-  else if (this._isTeamserverAccountPage() && this.credentialed) {
-    return POPUP_STATES.contrastYourAccountConfigured;
+  console.log("Popup Screen State After is ", state);
+  for (let key in POPUP_SCREENS) {
+    // console.log("key", key, typeof key);
+    if (key != state) {
+      POPUP_SCREENS[key].forEach(el => setElementDisplay(el, "none"));
+    }
   }
-  // contrast but not configured - 1
-  else if (this._isContrastPage() && !this.credentialed) {
-    return POPUP_STATES.contrastNotConfigured;
+  for (let key in POPUP_SCREENS) {
+    // console.log("key", key, typeof key);
+    if (key == state) {
+      POPUP_SCREENS[key].forEach(el => setElementDisplay(el, "flex")); // do these last
+    }
   }
-  // teamserver page but not configured - 2
-  else if (!this._isContrastPage() && !this.credentialed) {
-    return POPUP_STATES.notContrastNotConfigured;
+  // const vulnsHeader = document.getElementById('vulnerabilities-header');
+  const configTabs = document.getElementById('configuration-tabs-container');
+  if (state === 0 && this._isContrastPage()) {
+    setElementDisplay(configTabs, "flex");
+  } else {
+    setElementDisplay(configTabs, "none");
   }
-  // not a contrast page and not configured - 4
-  else if (this._isContrastPage() && this.credentialed) {
-     return POPUP_STATES.contrastConfigured;
-   }
-  // not a contrast page but configured - 5
-  else if (!this._isContrastPage() && this.credentialed) {
-    return POPUP_STATES.notContrastConfigured;
-  }
-  throw new Error("Whoops");
+  return state;
 }
-
-/**
- * getUserConfiguration - renders the elements/dialog for a user configuring the connection from the extension to teamserver
- *
- * @param  {Object} tab the current tab
- * @param  {URL<Object>} url a url object of the current tab
- * @return {void}
- */
-Config.prototype.getUserConfiguration = function() {
-  console.log("get user configuration");
-  const userEmail = document.getElementById('user-email');
-  const configSection = document.getElementById('configuration-section');
-  const configHeader = document.getElementById('configuration-header');
-  const configHeaderText = document.getElementById('config-header-text');
-  const configFooter = document.getElementById('configuration-footer');
-  const configFooterText = document.getElementById('config-footer-text');
-  const configuredFooter = document.getElementById('configured-footer');
-  const configContainer = document.getElementById('configure-extension');
-  const vulnsSection = document.getElementById('vulnerabilities-section');
-  const vulnsHeader = document.getElementById('vulnerabilities-header');
-  const vulnsHeaderText = document.getElementById('vulns-header-text');
-  const scanLibsText = document.getElementById('scan-libs-text');
-  const appTableContainer = document.getElementById('application-table-container-div');
-  const configButton = document.getElementById('configure-extension-button');
-  const configGear = document.getElementById('configure-gear');
-
-  const popupState = this.popupState();
-  console.log("This popupstate is ", popupState);
-  switch (popupState) {
-    case 0: {
-      console.log("case 0, notContrastNotConfigured");
-      setElementDisplay(vulnsSection, "none");
-      setElementDisplay(vulnsHeader, "none");
-      setElementDisplay(configuredFooter, "none");
-      setElementDisplay(configFooter, "block");
-      setElementDisplay(configContainer, "none");
-      setElementDisplay(appTableContainer, "none");
-      setElementDisplay(configHeader, "flex");
-      setElementText(configHeaderText, "Set Up Configuration");
-      setElementDisplay(configButton, "none");
-      setElementDisplay(configGear, "none");
-      break;
-    }
-    case 1: {
-      console.log("case 1 contrastNotConfigured");
-      setElementDisplay(vulnsSection, "none");
-      setElementDisplay(vulnsHeader, "none");
-      setElementDisplay(configFooter, "block");
-      setElementDisplay(configuredFooter, "none");
-      setElementDisplay(configContainer, "block");
-      setElementDisplay(appTableContainer, "none");
-      setElementDisplay(configHeader, "flex");
-      setElementDisplay(configButton, "none");
-      setElementText(configHeaderText, "Connection Settings");
-      setElementText(configFooterText, "Log into Contrast and go to Your Account so we can grab your keys.");
-      setElementDisplay(configGear, "block");
-      break;
-    }
-    case 2: {
-      console.log("case 2 contrastYourAccountNotConfigured");
-      setElementDisplay(vulnsSection, "none");
-      setElementDisplay(vulnsHeader, "none");
-      setElementDisplay(configFooter, "block");
-      setElementDisplay(configuredFooter, "none");
-      setElementDisplay(configContainer, "block");
-      setElementDisplay(appTableContainer, "none");
-      setElementDisplay(configHeader, "flex");
-      setElementDisplay(configButton, "block");
-      setElementText(configHeaderText, "Connection Settings");
-      setElementText(configFooterText, "Click the Connect button to get started.")
-      setElementDisplay(configGear, "block");
-      this._renderConfigButton(configButton);
-      configContainer.classList.toggle('collapsed');
-      break;
-    }
-    case 3: {
-      console.log("case 3 contrastYourAccountConfigured");
-      setElementDisplay(vulnsSection, "none");
-      setElementDisplay(vulnsHeader, "flex");
-      vulnsHeader.classList.remove('flex-row-space-between');
-      vulnsHeader.classList.add('flex-row-head');
-      setElementDisplay(configSection, "block");
-      setElementDisplay(configFooter, "none");
-      setElementDisplay(configuredFooter, "flex");
-      setElementDisplay(configContainer, "block");
-      setElementDisplay(configHeader, "none");
-      setElementDisplay(configButton, "block");
-      setElementDisplay(userEmail, "block");
-      // setElementDisplay(scanLibsText, "none");
-      setElementText(vulnsHeaderText, "Configured");
-      setElementDisplay(configGear, "block");
-      this.setCredentialsInSettings();
-      this._renderConfigButton(configButton);
-      configContainer.classList.toggle('collapsed');
-      break;
-    }
-    case 4: {
-      console.log("case 4 contrastConfigured");
-      setElementDisplay(vulnsSection, "none");
-      setElementDisplay(vulnsHeader, "flex");
-      vulnsHeader.classList.remove('flex-row-space-between');
-      vulnsHeader.classList.add('flex-row-head');
-      setElementDisplay(configuredFooter, "flex");
-      setElementDisplay(configFooter, "none");
-      setElementDisplay(configContainer, "block");
-      setElementDisplay(configHeader, "none");
-      setElementDisplay(configButton, "none");
-      setElementDisplay(userEmail, "block");
-      // setElementDisplay(scanLibsText, "none");
-      setElementDisplay(configGear, "block");
-      setElementText(vulnsHeaderText, "Configured");
-      this.setCredentialsInSettings();
-      configSection.classList.add('collapsed');
-      break;
-    }
-    case 5: {
-      console.log("case 5 notContrastConfigured");
-      setElementDisplay(vulnsSection, "flex");
-      setElementDisplay(vulnsHeader, "flex");
-      vulnsHeader.classList.add('flex-row-space-between');
-      vulnsHeader.classList.remove('flex-row-head');
-      vulnsHeaderText.style.fontSize = '3.75vw';
-      setElementDisplay(configFooter, "none");
-      setElementDisplay(configuredFooter, "flex");
-      setElementDisplay(configContainer, "none");
-      setElementDisplay(configHeader, "none");
-      setElementDisplay(configButton, "none");
-      setElementDisplay(userEmail, "block");
-      setElementDisplay(configGear, "none");
-      break;
-    }
-    default: {
-      console.log("Default Case");
-      break;
-    }
+Config.prototype.getPopupScreen = function() {
+  if (!this.credentialed) {
+    return 1; // Config
+  } else if (this._isContrastPage() && this.credentialed) {
+    return 0; // Credentialed Config
+  } else if (!this._isContrastPage() && this.hasApp) {
+    return 2; // Vulns
+  } else if (!this._isContrastPage() && this.credentialed) {
+    return 3; // Apps
   }
-  setElementDisplay(scanLibsText, "none");
+  console.error("getPopupScreen SHOULD NOT BE HERE!");
+  return 1;
 }
 
 Config.prototype.setCredentialsInSettings = function() {
@@ -323,8 +221,9 @@ Config.prototype._isContrastPage = function() {
   const conditions = [
     this.tab.url.startsWith("http"),
     VALID_TEAMSERVER_HOSTNAMES.includes(this.url.hostname),
-    this.tab.url.includes('Contrast'),
+    this.tab.url.includes('/Contrast/static/ng'),
   ];
+  console.log("IS CONTRAST?", conditions.every(c => !!c));
   return conditions.every(c => !!c);
 }
 
@@ -342,19 +241,40 @@ Config.prototype.setGearIcon = function() {
   // configure button opens up settings page in new tab
   const configureGearIcon = document.getElementById('configure-gear');
   configureGearIcon.addEventListener('click', this._handleGearClick, false);
+
+  const appIconContainer = document.getElementById('app-icon-container');
+  appIconContainer.addEventListener('click', this._handleAppsClick, false);
 }
 
 Config.prototype._handleGearClick = function() {
-  console.log("clicked gear");
-  const configureGearIcon = document.getElementById('gear-container');
-  console.log(configureGearIcon);
-  const configContainer = document.getElementById('configuration-section');
-  configureGearIcon.classList.add('configure-gear-rotate');
+  const configureGearContainer = document.getElementById('gear-container');
+
+  configureGearContainer.classList.add('configure-gear-rotate');
   setTimeout(() => {
-    configureGearIcon.classList.remove('configure-gear-rotate');
-    // configureGearIcon.removeEventListener('click', this._handleGearClick);
+    configureGearContainer.classList.remove('configure-gear-rotate');
   }, 1000);
-  configContainer.classList.toggle('collapsed');
+  console.log("POPUP_STATE before", POPUP_STATE);
+  if (POPUP_STATE[0] == null || (POPUP_STATE[0] !== 0 && POPUP_STATE.length === 1)) {
+    POPUP_STATE.push(this.getPopupScreen());
+    this.popupScreen(0);
+  } else {
+    this.popupScreen(POPUP_STATE.pop());
+  }
+  console.log("POPUP_STATE after", POPUP_STATE);
+}
+
+Config.prototype._handleAppsClick = function() {
+  const appIconContainer = document.getElementById('app-icon-container');
+
+  console.log("POPUP_STATE before", POPUP_STATE);
+  const previousState = POPUP_STATE[POPUP_STATE.length - 1];
+  if (POPUP_STATE[0] == null || (POPUP_STATE[0] !== 3 && POPUP_STATE.length === 1)) {
+    POPUP_STATE.push(this.getPopupScreen());
+    this.popupScreen(3);
+  } else {
+    this.popupScreen(POPUP_STATE.pop());
+  }
+  console.log("POPUP_STATE after", POPUP_STATE);
 }
 
 

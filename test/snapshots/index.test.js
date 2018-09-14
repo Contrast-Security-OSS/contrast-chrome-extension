@@ -96,6 +96,6 @@ describe('tests the popup index.html file for changes', () => {
 
     appTable._showContrastApplications(testData.storedApps);
     appTable.createAppTableRow(app, testData.storedApps);
-    snapshot(global.document.querySelector('#application-table-container-div').innerHTML);
+    snapshot(global.document.querySelector('#application-table-container-section').innerHTML);
   })
 })

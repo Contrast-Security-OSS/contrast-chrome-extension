@@ -6,13 +6,14 @@ document,
 // import {
 //   renderVulnerableLibraries,
 // } from './libraries/showLibraries.js'
-import { getStorageVulnsAndRender } from './popupMethods.js';
+import { getStorageVulnsAndRender, hideLoadingIcon } from './popupMethods.js';
 import {
   STORED_APPS_KEY,
   getStoredCredentials,
   isCredentialed,
   getHostFromUrl,
   isEmptyObject,
+  setElementDisplay,
 } from './util.js'
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const app   = store ? store.filter(a => a[host])[0] : store;
 
       if (app && !isEmptyObject(app)) {
+        console.log("here");
         getStoredCredentials()
         .then(items => {
           if (isCredentialed(items)) {
@@ -38,6 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         })
         .catch(error => new Error(error));
+      } else {
+        const vulnsFound = document.getElementById('vulnerabilities-found-on-page');
+        setElementDisplay(vulnsFound, "none");
+        hideLoadingIcon();
       }
     });
   });

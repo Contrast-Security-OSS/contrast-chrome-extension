@@ -46,6 +46,7 @@ export const SEVERITY_TEXT_COLORS = {
   [SEVERITY_CRITICAL]: 'white',
 }
 
+export const TEAMSERVER_BASE = "/Contrast/static/ng";
 export const TEAMSERVER_INDEX_PATH_SUFFIX   = "/Contrast/static/ng/index.html#/";
 export const TEAMSERVER_ACCOUNT_PATH_SUFFIX = "/account";
 export const TEAMSERVER_PROFILE_PATH_SUFFIX = "/account/profile";

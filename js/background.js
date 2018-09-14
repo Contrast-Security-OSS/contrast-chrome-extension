@@ -11,6 +11,7 @@ let QUEUE;
 
 import {
 	TEAMSERVER_INDEX_PATH_SUFFIX,
+	TEAMSERVER_BASE,
 	TEAMSERVER_ACCOUNT_PATH_SUFFIX,
 	VALID_TEAMSERVER_HOSTNAMES,
 	TEAMSERVER_PROFILE_PATH_SUFFIX,
@@ -320,6 +321,9 @@ function _tabIsReady(changeInfo, tab) {
 
 function _gatherFormsFromPage(tab) {
 	return new Promise((resolve) => {
+		if (isBlacklisted(tab.url)) {
+			return resolve([]);
+		}
 		chrome.tabs.sendMessage(tab.id, { action: GATHER_FORMS_ACTION }, (res) => {
 			if (res && res.formActions && Array.isArray(res.formActions)) {
 				resolve(res.formActions);

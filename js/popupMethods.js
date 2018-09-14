@@ -18,6 +18,11 @@ import {
   getVulnerabilityShort,
 } from './util.js';
 
+function hideLoadingIcon() {
+  const loading = document.getElementById('vulns-loading');
+  loading.style.display = 'none';
+}
+
 /**
  * populateVulnerabilitySection - Get details about each trace from teamserver and then render each of them as a list item in the extension popup
  *
@@ -31,8 +36,7 @@ function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, applicatio
     // NOTE: Elements set to display show in getStorageVulnsAndRender
     getShortVulnerabilities(traces, application.id)
     .then(sortedTraces => {
-      const loading = document.getElementById('vulns-loading');
-      loading.style.display = 'none';
+      hideLoadingIcon();
       sortedTraces.map(trace => renderListItem(trace, teamserverUrl, orgUuid, application));
     })
     .catch(new Error("Error rendering sorted traces into list items."));
@@ -114,6 +118,7 @@ function renderListItem(trace, teamserverUrl, orgUuid) {
 function getStorageVulnsAndRender(items, application, tab) {
   const noVulnsFound = document.getElementById("no-vulnerabilities-found");
   const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
+  console.log("getting stored vulns");
   chrome.runtime.sendMessage({ action: TRACES_REQUEST, application, tab }, (response) => {
     if (response && response.traces && response.traces.length > 0) {
       setElementDisplay(noVulnsFound, "none");
@@ -122,6 +127,7 @@ function getStorageVulnsAndRender(items, application, tab) {
       populateVulnerabilitySection(
         response.traces, items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], application);
     } else {
+      hideLoadingIcon();
       setElementDisplay(noVulnsFound, "block");
       setElementDisplay(vulnsOnPage, "none");
     }
@@ -145,6 +151,7 @@ const createBadge = (severity, li) => {
 
 
 export {
+  hideLoadingIcon,
   populateVulnerabilitySection,
   renderListItem,
   getStorageVulnsAndRender,
