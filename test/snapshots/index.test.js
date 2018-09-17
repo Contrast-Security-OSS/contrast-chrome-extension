@@ -25,13 +25,10 @@ const ApplicationTable = require("../../lib/models/ApplicationTable.js")
 // ).window;
 // global.document = global.window.document;
 
-fs.readFile("html/index.html", (err, file) => {
-  if (err) throw err;
-  file = file.toString();
-  global.window = new JSDOM(file, { url: "http://localhost" }).window;
-  console.log("SETTING DOCUMENT GLOBAL");
-  global.document = global.window.document;
-});
+const file = fs.readFileSync("html/index.html");
+const html = file.toString();
+global.window = new JSDOM(html, { url: "http://localhost" }).window;
+global.document = global.window.document;
 
 const Config = require("../../lib/models/Config.js").default;
 
@@ -44,17 +41,10 @@ describe("tests the popup index.html file for changes", () => {
     true
   );
 
-  // before(done => {
-  //   fs.readFile("html/index.html", (err, file) => {
-  //     if (err) throw err;
-  //     file = file.toString();
-  //     global.window = new JSDOM(file, { url: "http://localhost" }).window;
-  //     console.log("SETTING DOCUMENT GLOBAL");
-  //     global.document = global.window.document;
-  //
-  //     done();
-  //   });
-  // });
+  before(() => {
+    global.window = new JSDOM(html, { url: "http://localhost" }).window;
+    global.document = global.window.document;
+  });
 
   it("takes a snapshot of the base index.html file", async () => {
     snapshot(global.document.querySelector("html").innerHTML);

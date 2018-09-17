@@ -24,6 +24,9 @@ echo "$(tput setaf 2) Running Snapshot tests...$(tput sgr0)"
 mocha test/snapshots/*
 echo ""
 
+echo "$(tput setaf 2) Copying Snapshots back to test directory $(tput sgr0)"
+cp -r ${DIR}/${SNAP_DIR} ${DIR}/test/${SNAP_DIR}
+
 echo "$(tput setaf 2) Cleaning up snapshot directory in project root. $(tput sgr0)"
 rm -rf ${DIR}/${SNAP_DIR}
 echo ""
