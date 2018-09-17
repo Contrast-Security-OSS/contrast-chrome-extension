@@ -120,14 +120,14 @@ exports['tests the popup index.html file for changes takes a snapshot of the bas
   <footer class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
-        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
+        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Organization Settings &gt; API so we can grab your keys.</p>
       </div>
     </div>
     <div id="configured-footer" class="flex-row footer-row flex-row-foot">
       <div class="color-gray" id="user-email"></div>
       <!-- <div class="color-gray" id="config-message">
         <p>
-          You can always update your keys by logging into Contrast and going to Your Account.
+          You can always update your keys by logging into Contrast and going to Organization Settings > API.
         </p>
       </div> -->
       <div id="icon-container">
@@ -264,14 +264,14 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
   <footer class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
-        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
+        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Organization Settings &gt; API so we can grab your keys.</p>
       </div>
     </div>
     <div id="configured-footer" class="flex-row footer-row flex-row-foot">
       <div class="color-gray" id="user-email"></div>
       <!-- <div class="color-gray" id="config-message">
         <p>
-          You can always update your keys by logging into Contrast and going to Your Account.
+          You can always update your keys by logging into Contrast and going to Organization Settings > API.
         </p>
       </div> -->
       <div id="icon-container">
@@ -408,14 +408,14 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
   <footer class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
-        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
+        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Organization Settings &gt; API so we can grab your keys.</p>
       </div>
     </div>
     <div id="configured-footer" class="flex-row footer-row flex-row-foot">
       <div class="color-gray" id="user-email"></div>
       <!-- <div class="color-gray" id="config-message">
         <p>
-          You can always update your keys by logging into Contrast and going to Your Account.
+          You can always update your keys by logging into Contrast and going to Organization Settings > API.
         </p>
       </div> -->
       <div id="icon-container">
@@ -552,14 +552,14 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
   <footer class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
-        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
+        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Organization Settings &gt; API so we can grab your keys.</p>
       </div>
     </div>
     <div id="configured-footer" class="flex-row footer-row flex-row-foot">
       <div class="color-gray" id="user-email"></div>
       <!-- <div class="color-gray" id="config-message">
         <p>
-          You can always update your keys by logging into Contrast and going to Your Account.
+          You can always update your keys by logging into Contrast and going to Organization Settings > API.
         </p>
       </div> -->
       <div id="icon-container">
@@ -696,14 +696,14 @@ exports['tests the popup index.html file for changes takes a snapshot of the not
   <footer class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
-        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
+        <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Organization Settings &gt; API so we can grab your keys.</p>
       </div>
     </div>
     <div id="configured-footer" class="flex-row footer-row flex-row-foot">
       <div class="color-gray" id="user-email"></div>
       <!-- <div class="color-gray" id="config-message">
         <p>
-          You can always update your keys by logging into Contrast and going to Your Account.
+          You can always update your keys by logging into Contrast and going to Organization Settings > API.
         </p>
       </div> -->
       <div id="icon-container">

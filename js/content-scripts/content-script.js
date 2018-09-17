@@ -19,6 +19,7 @@ TEAMSERVER_API_PATH_SUFFIX,
 CONTRAST_WAPPALIZE,
 CONTRAST_INITIALIZE,
 CONTRAST_INITIALIZED,
+UUID_V4_REGEX,
 */
 "use strict";
 
@@ -91,7 +92,47 @@ function _dataQuery(key) {
     3: "contrast-service-key",
     4: "contrast-username"
   };
-  return document.querySelector(`[${dataAttr}=${keys[key]}]`).textContent;
+  document.querySelector('[key-status-rotated=""]');
+  const element = document.querySelector(`[${dataAttr}=${keys[key]}]`);
+  // ex. document.querySelector('data-contrast-scrape=contrast-username')
+  if (!element) return;
+
+  return element.textContent;
+}
+
+function _scrapeServiceKey() {
+  const key = "key-status-rotated";
+  const val = "userKeyStatus.rotated";
+  const element = document.querySelector(`[${key}="${val}"]`);
+  if (element) {
+    return element.innerText;
+  }
+  return null;
+}
+function _scrapeApiKey() {
+  const el = "span";
+  const classes = "break-word.org-key.ng-binding";
+  const element = document.querySelector(`${el}.${classes}`);
+  if (element) {
+    return element.innerText;
+  }
+  return null;
+}
+function _scrapeOrgUUID() {
+  const hash = document.location.hash;
+  const orgUUID = hash.split("/")[1];
+  if (UUID_V4_REGEX.test(orgUUID)) {
+    return orgUUID;
+  }
+  return null;
+}
+function _scrapeProfileEmail() {
+  const klass = "profile-email";
+  const element = document.querySelector(`.${klass}`);
+  if (element) {
+    return element.innerText;
+  }
+  return null;
 }
 
 function _initializeContrast(request, sendResponse) {
@@ -99,11 +140,16 @@ function _initializeContrast(request, sendResponse) {
   const teamServerUrl =
     request.url.substring(0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
 
-  const apiKey = _dataQuery(0);
-  const orgUuid = _dataQuery(1);
+  // const apiKey = _dataQuery(0);
+  // const orgUuid = _dataQuery(1);
   // const teamServerUrl = _dataQuery(2);
-  const serviceKey = _dataQuery(3);
-  const profileEmail = _dataQuery(4);
+  // const serviceKey = _dataQuery(3);
+  // const profileEmail = _dataQuery(4);
+
+  const apiKey = _scrapeApiKey();
+  const serviceKey = _scrapeServiceKey();
+  const orgUuid = _scrapeOrgUUID();
+  const profileEmail = _scrapeProfileEmail();
 
   const contrastObj = {
     [CONTRAST_USERNAME]: profileEmail,
@@ -112,11 +158,22 @@ function _initializeContrast(request, sendResponse) {
     [CONTRAST_ORG_UUID]: orgUuid,
     [TEAMSERVER_URL]: teamServerUrl
   };
+  Object.values(contrastObj).forEach(val => {
+    if (!val) {
+      sendResponse({
+        action: CONTRAST_INITIALIZED,
+        success: false,
+        message:
+          "Failed to configure extension. Try configuring the extension manually."
+      });
+      return;
+    }
+  });
   chrome.storage.local.set(contrastObj, () => {
     if (chrome.runtime.lastError) {
       throw new Error("Error setting configuration");
     }
-    sendResponse({ action: CONTRAST_INITIALIZED, contrastObj });
+    sendResponse({ action: CONTRAST_INITIALIZED, success: true, contrastObj });
   });
 }
 
@@ -244,12 +301,12 @@ function _getLibNameFromJSFile(jsFileName) {
   jsFileName = jsFileName.split(".min")[0];
   jsFileName = jsFileName.split("-min")[0];
   jsFileName = jsFileName.split("_min")[0];
-  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/) ?
-    jsFileName.match(/([a-zA-Z]+\W)+/)[0] :
-    jsFileName;
-  jsFileName = new RegExp(/\W/).test(jsFileName[jsFileName.length - 1]) ?
-    jsFileName.substr(0, jsFileName.length - 1) :
-    jsFileName;
+  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/)
+    ? jsFileName.match(/([a-zA-Z]+\W)+/)[0]
+    : jsFileName;
+  jsFileName = new RegExp(/\W/).test(jsFileName[jsFileName.length - 1])
+    ? jsFileName.substr(0, jsFileName.length - 1)
+    : jsFileName;
   return jsFileName;
 }
 

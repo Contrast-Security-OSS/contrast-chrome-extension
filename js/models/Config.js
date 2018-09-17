@@ -12,6 +12,7 @@ import {
   setElementDisplay,
   changeElementVisibility,
   hideElementAfterTimeout,
+  CONTRAST_ORG_UUID,
   TEAMSERVER_URL,
   CONTRAST_SERVICE_KEY,
   CONTRAST_API_KEY,
@@ -102,14 +103,6 @@ Config.prototype.popupScreen = function(state = null) {
   if (state === 0) {
     this.setCredentialsInSettings();
   }
-  // const vulnsHeader = document.getElementById('vulnerabilities-header');
-  const configTabs = document.getElementById("configuration-tabs-container");
-  // if ((state === 0 || state === 3) && this._isContrastPage()) {
-  //   setElementDisplay(configTabs, "flex");
-  //   document.querySelector("header").style.border = "none";
-  // } else {
-  setElementDisplay(configTabs, "none");
-  // }
   POPUP_STATE.add(state);
   SCREEN_STATE = state;
   return state;
@@ -134,16 +127,19 @@ Config.prototype.setCredentialsInSettings = function() {
   const serviceKeyInput = document.getElementById("contrast-service-key-input");
   const userNameInput = document.getElementById("contrast-username-input");
   const apiKeyInput = document.getElementById("contrast-api-key-input");
+  const orgUuidInput = document.getElementById("contrast-org-uuid-input");
 
   const teamServerUrl = this.credentials[TEAMSERVER_URL];
   const serviceKey = this.credentials[CONTRAST_SERVICE_KEY];
   const apiKey = this.credentials[CONTRAST_API_KEY];
   const profileEmail = this.credentials[CONTRAST_USERNAME];
+  const orgUuid = this.credentials[CONTRAST_ORG_UUID];
 
   urlInput.value = teamServerUrl;
   serviceKeyInput.value = serviceKey;
   userNameInput.value = profileEmail;
   apiKeyInput.value = apiKey;
+  orgUuidInput.value = orgUuid;
 };
 
 /**
@@ -168,7 +164,20 @@ Config.prototype._handleConfigButtonClick = function(e) {
     }
   });
 
-  if (this._isTeamserverAccountPage()) {
+  // NOTE: Don't scrape if user has input data
+  const inputs = document.getElementsByClassName("user-inputs");
+  let inputsWithValue = [];
+  for (let i = 0, len = inputs.length; i < len; i++) {
+    if (inputs[i].innerText && inputs[i].innerText.length > 0) {
+      inputsWithValue.push(true);
+    }
+    inputsWithValue.push(false);
+  }
+
+  if (
+    this._isTeamserverAccountPage() &&
+    inputsWithValue.every(i => i === false)
+  ) {
     this._configureUserByScrapingContrast();
   } else {
     this._storeCustomUserConfiguration();
@@ -319,13 +328,17 @@ Config.prototype._configureUserByScrapingContrast = function() {
       }
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
       if (response.action === CONTRAST_INITIALIZED) {
-        chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: "" });
-        this._renderSuccessMessage(response.contrastObj, indexFunction);
-        this.setCredentialsInSettings();
+        if (response.success) {
+          chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: "" });
+          this._renderSuccessMessage(response.contrastObj, indexFunction);
+          this.setCredentialsInSettings();
 
-        const section = document.getElementById("configuration-section");
-        section.display = "none";
-        hideElementAfterTimeout(section);
+          const section = document.getElementById("configuration-section");
+          section.display = "none";
+          hideElementAfterTimeout(section);
+        } else {
+          this._renderFailureMessage(response.message);
+        }
       } else {
         this._renderFailureMessage();
       }
@@ -340,7 +353,7 @@ Config.prototype._updateCredentials = function(credentialsObj) {
 };
 
 /**
- * _isTeamserverAccountPage - checks if we're on the teamserver Your Account page
+ * _isTeamserverAccountPage - checks if we're on the teamserver Organization Settings > API page
  *
  * @param  {Object} tab the current tab
  * @param  {URL<Object>} url url object of the current tab

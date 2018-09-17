@@ -38,10 +38,8 @@ ApplicationTable.DOWN_ARROW = `<svg fill="currentColor" preserveAspectRatio="xMi
  */
 ApplicationTable.prototype.renderApplicationsMenu = function() {
   if (document.getElementsByTagName("tr").length < 2) {
-    console.log("getting org apps");
     getOrgApplications()
       .then(json => {
-        console.log("JSON", json);
         if (!json) {
           throw new Error("Error getting applications");
         }
@@ -49,39 +47,10 @@ ApplicationTable.prototype.renderApplicationsMenu = function() {
       })
       .catch(error => new Error(error));
   }
-
-  // const tableElements = [
-  //   document.getElementById('applications-heading-container'),
-  //   document.getElementById('application-table-container-section'),
-  // ];
-  //
-  // const headings = [
-  //   document.getElementById('applications-heading'),
-  //   document.getElementById('applications-arrow'),
-  // ];
-  //
-  // headings.forEach(el => setElementDisplay(el, 'inline'));
-  // tableElements.forEach(el => setElementDisplay(el, 'block'));
-  //
-  // const arrow = document.getElementById('applications-arrow');
-  // if (ApplicationTable.showApps) {
-  //   this._unrollApplications(arrow);
-  // }
-  //
-  // // NOTE: Used to prevent event listeners from being readded
-  // if (ApplicationTable.listener.attached
-  //     && ApplicationTable.listener.url === this.url.href) {
-  //       return;
-  //     }
-  // for (let i = 0, len = headings.length; i < len; i++) {
-  //   headings[i].addEventListener('click', this.rollApplications, false);
-  // }
-  // ApplicationTable.listener.attached = true;
-  // ApplicationTable.listener.url = this.url.href;
 };
 
 /**
- * @description - ApplicationTable.prototype.rollApplications - only appears on contrast "Your Account" page. Need a roll of applications due to presence of config button.
+ * @description - ApplicationTable.prototype.rollApplications - only appears on contrast "Organization Settings > API" page. Need a roll of applications due to presence of config button.
  *
  * @return {type}  description
  */
@@ -171,7 +140,6 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
       if (!json) {
         throw new Error("Error getting applications");
       }
-      // console.log("json", json);
       const applications = this._filterApplications(
         storedApps,
         json.applications
@@ -227,7 +195,6 @@ ApplicationTable.prototype.createAppTableRow = function(
   application,
   appsInStorage
 ) {
-  console.log("Application and app name", application);
   if (!application || !application.name) return;
 
   const tr = new TableRow(application, this.url, this.table.tBodies[0]);

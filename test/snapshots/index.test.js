@@ -19,12 +19,6 @@ const testData = require("../testData.js");
 const ApplicationTable = require("../../lib/models/ApplicationTable.js")
   .default;
 
-// global.window = new JSDOM(
-//   `<!DOCTYPE html><html><head></head><body></body></html>`,
-//   { url: "http://localhost" }
-// ).window;
-// global.document = global.window.document;
-
 const file = fs.readFileSync("html/index.html");
 const html = file.toString();
 global.window = new JSDOM(html, { url: "http://localhost" }).window;

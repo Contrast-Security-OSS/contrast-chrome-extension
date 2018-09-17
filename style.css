@@ -1,26 +1,51 @@
 /******************/
 /* GENERAL STYLES */
 /******************/
-.contrast-green { color: #3cc3b2; }
-.color-gray { color: #999; }
-.wide-lines { line-height: 1.5em; }
-.scalable-subtext { font-size: 3.75vw; }
-.no-border { border: 0; }
-.visible { display: block; }
-.hidden { display: none; }
-.no-margin { margin: 0; }
+.contrast-green {
+  color: #3cc3b2;
+}
+.color-gray {
+  color: #999;
+}
+.wide-lines {
+  line-height: 1.5em;
+}
+.scalable-subtext {
+  font-size: 3.75vw;
+}
+.no-border {
+  border: 0;
+}
+.visible {
+  display: block;
+}
+.hidden {
+  display: none;
+}
+.no-margin {
+  margin: 0;
+}
 html {
   margin: 0;
   top: 0;
   margin-bottom: 10px;
 }
 body {
-  font-family: Lato, Helvetica, Neue, Arial, 'sans-serif';
+  font-family: Lato, Helvetica, Neue, Arial, "sans-serif";
   font-size: 14px;
   min-width: 350px;
   background-color: rgb(247, 247, 247);
 }
-h1, h2, h3, h4, h5, h6, span, p, td, th {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+p,
+td,
+th {
   font-family: "Roboto Condensed", "Lato", "Helvetica Neue", Arial, sans-serif;
   margin: 0;
 }
@@ -34,10 +59,6 @@ label {
 /******************/
 /* GENERAL STYLES */
 /******************/
-
-
-
-
 
 /*******************/
 /* SECTIONS STYLES */
@@ -59,14 +80,11 @@ label {
 /* SECTIONS STYLES */
 /*******************/
 
-
-
-
-
 /**************************/
 /* VULNERABILITIES STYLES */
 /**************************/
-#vulnerabilities-section, #libraries-section {
+#vulnerabilities-section,
+#libraries-section {
   width: 400px;
   padding: 0px;
   align-items: center;
@@ -82,11 +100,13 @@ label {
 #activity-feed input {
   width: 100%;
 }
-#vulnerabilities-found-on-page, #libs-vulnerabilities-found-on-page {
+#vulnerabilities-found-on-page,
+#libs-vulnerabilities-found-on-page {
   width: 100%;
   padding: 0px;
 }
-#vulnerabilities-found-on-page-list, #libs-vulnerabilities-found-on-page-list {
+#vulnerabilities-found-on-page-list,
+#libs-vulnerabilities-found-on-page-list {
   margin-top: 10px;
   margin-bottom: 10px;
 }
@@ -97,7 +117,8 @@ label {
   width: 99%;
   overflow: hidden;
 }
-.vulnerability-rule-name, .vulnerability-link {
+.vulnerability-rule-name,
+.vulnerability-link {
   color: black;
 }
 .vulnerability-link:hover {
@@ -110,10 +131,6 @@ label {
 /**************************/
 /* VULNERABILITIES STYLES */
 /**************************/
-
-
-
-
 
 /***********************/
 /* APPLICATIONS STYLES */
@@ -152,7 +169,8 @@ label {
   padding: 10px;
 }
 
-#applications-heading, #applications-arrow {
+#applications-heading,
+#applications-arrow {
   color: black;
   display: inline;
   cursor: pointer;
@@ -176,10 +194,6 @@ label {
 /* APPLICATIONS STYLES */
 /***********************/
 
-
-
-
-
 /************************/
 /* CONFIGURATION STYLES */
 /************************/
@@ -189,29 +203,6 @@ label {
 #configuration-section {
   background-color: white;
   border-top: none;
-}
-#configuration-tabs-container {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-}
-.config-tab:focus { outline:0; }
-.config-tab {
-  width: 100%;
-  background-color: rgb(73, 73, 73);
-  color: rgb(128, 128, 128);
-  padding: 1em;
-  border: none;
-  border-bottom: 3px solid white;
-  outline: none;
-  cursor: pointer;
-  margin: 0px;
-}
-.config-tab.active {
-  background-color: black;
-  color: white;
-  border-bottom: 3px solid #3cc3b2;
 }
 button.btn-contrast-plugin {
   border-radius: 3px;
@@ -223,21 +214,25 @@ button.btn-connect {
   background-color: #3cc3b2 !important;
   border-color: #3cc3b2;
 }
-button.btn-connect:hover, button.buttonTab:hover {
+button.btn-connect:hover,
+button.buttonTab:hover {
   background-color: #0da1a9 !important;
   border-color: #0da1a9;
 }
-button.btn-disconnect, #configure-extension-button {
+button.btn-disconnect,
+#configure-extension-button {
   color: black;
   background-color: rgb(247, 247, 247) !important;
   border-color: rgb(230, 230, 230);
 }
-button.btn-disconnect:hover, #configure-extension-button:hover {
+button.btn-disconnect:hover,
+#configure-extension-button:hover {
   color: #fff;
   background-color: rgb(168, 168, 168) !important;
   border-color: rgb(168, 168, 168);
 }
-button.btn-connect, button.btn-disconnect {
+button.btn-connect,
+button.btn-disconnect {
   width: 100%;
   float: right;
 }
@@ -277,7 +272,8 @@ button.btn-connect, button.btn-disconnect {
 #user-email {
   cursor: pointer;
 }
-#config-success, #config-failure {
+#config-success,
+#config-failure {
   color: gray;
   border: 1px solid rgb(180, 180, 180);
   border-radius: 3px;
@@ -286,9 +282,10 @@ button.btn-connect, button.btn-disconnect {
   font-size: 16px;
 }
 #success-check {
-  color: #65C0B2;
+  color: #65c0b2;
 }
-#success-check, #error-x {
+#success-check,
+#error-x {
   padding: 10px;
   font-size: 16px;
 }
@@ -319,7 +316,8 @@ button.btn-connect, button.btn-disconnect {
   margin: 5px;
   width: 100%;
 }
-.header-row, .footer-row {
+.header-row,
+.footer-row {
   padding: 20px;
 }
 /* , #application-table-container-section */
@@ -367,7 +365,7 @@ form {
   font-size: 5vw;
 }
 #scan-libs-text {
-  color: #65C0B2;
+  color: #65c0b2;
   margin-right: 5px;
 }
 #scan-libs-text:hover {
@@ -387,7 +385,7 @@ form {
   /* display: none; */
 }
 #found-libs-message {
-  color: #65C0B2;
+  color: #65c0b2;
   text-align: center;
   font-size: 4vw;
   padding-top: 10px;
@@ -396,11 +394,6 @@ form {
 /*********************************************/
 /* END CONFIGURATION AND POPUP HEADER/FOOTER */
 /*********************************************/
-
-
-
-
-
 
 /**********/
 /* BADGES */
