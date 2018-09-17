@@ -128,8 +128,11 @@ label {
   padding-right: 2em;
   vertical-align: middle;
   border-top: none;
+}
+.table tr:not(:last-child) {
   border-bottom: 1px solid rgb(230, 230, 230);
 }
+
 .app-host-span {
   color: rgb(160, 160, 160);
   display: block;
@@ -159,6 +162,7 @@ label {
   height: auto;
   background-color: white;
   border: none;
+  justify-content: center;
 }
 #applications-arrow {
   font-size: 10px;
@@ -212,7 +216,7 @@ label {
 button.btn-contrast-plugin {
   border-radius: 3px;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
 }
 button.btn-connect {
   color: #fff;
@@ -275,7 +279,7 @@ button.btn-connect, button.btn-disconnect {
 }
 #config-success, #config-failure {
   color: gray;
-  border: 1px solid gray;
+  border: 1px solid rgb(180, 180, 180);
   border-radius: 3px;
   background-color: rgb(247, 247, 247);
   padding: 10px;
@@ -283,9 +287,6 @@ button.btn-connect, button.btn-disconnect {
 }
 #success-check {
   color: #65C0B2;
-}
-#error-x {
-  color: #E63025;
 }
 #success-check, #error-x {
   padding: 10px;
@@ -321,11 +322,15 @@ button.btn-connect, button.btn-disconnect {
 .header-row, .footer-row {
   padding: 20px;
 }
-.header-row, #application-table-container-section {
+/* , #application-table-container-section */
+header {
   border-bottom: 1px solid rgb(220, 220, 220);
 }
-.footer-row {
+footer {
   border-top: 1px solid rgb(220, 220, 220);
+}
+#configured-footer {
+  align-items: center;
 }
 .logo-icon {
   display: inline;

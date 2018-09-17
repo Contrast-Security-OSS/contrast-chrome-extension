@@ -3,7 +3,7 @@ import {
   CONTRAST_RED,
   CONTRAST_GREEN,
   setElementText,
-  // setElementDisplay,
+  setElementDisplay,
   changeElementVisibility,
   hideElementAfterTimeout,
   APPLICATION_CONNECTED,
@@ -106,29 +106,34 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
 
 TableRow.prototype.removeDomainAndButton = function() {
   this.buttonTD.innerHTML = "";
-  // this.disconnectTD.innerHTML = "";
+  this.nameTD.innerHTML = this.application.name;
 }
 
 // HELPERS
 
 TableRow.prototype._showMessage = function(result, connect) {
   const message = document.getElementById("connected-domain-message");
+  const tableContainer = document.getElementById("table-container");
   changeElementVisibility(message);
   if (result && connect) {
     this._successConnect(message);
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+    setElementDisplay(tableContainer, "none");
     // hideElementAfterTimeout(message);
   } else if (!result && connect) {
     this._failConnect(message);
     message.setAttribute('style', `color: ${CONTRAST_GREEN}`);
+    setElementDisplay(tableContainer, "none");
     // hideElementAfterTimeout(message);
   }
   else if (!result && !connect) {
     this._failDisonnect(message);
     message.setAttribute('style', `color: ${CONTRAST_RED}`);
+    setElementDisplay(tableContainer, "none");
     // hideElementAfterTimeout(message);
   } else {
     changeElementVisibility(message);
+    setElementDisplay(tableContainer, "none");
   }
 }
 

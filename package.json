@@ -3,7 +3,8 @@
   "scripts": {
     "test": "scripts/test.sh",
     "bab": "scripts/bab.sh",
-    "lint": "eslint js/"
+    "lint": "eslint js/",
+    "prettier": "prettier --config .prettierrc.json js/*"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -16,6 +17,7 @@
     "jsdom": "^11.11.0",
     "node-fetch": "^2.1.2",
     "nyc": "^12.0.2",
+    "prettier": "1.14.2",
     "sinon": "^5.0.10",
     "sinon-chrome": "^2.3.2",
     "snap-shot-it": "^6.1.8"

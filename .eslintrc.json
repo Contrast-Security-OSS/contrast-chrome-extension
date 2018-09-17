@@ -17,13 +17,10 @@
   "rules": {
     "accessor-pairs": "error",
     "array-bracket-newline": "error",
-    "array-bracket-spacing": [
-      "error",
-      "never"
-    ],
+    "array-bracket-spacing": ["error", "never"],
     "no-console": "warn",
     "array-callback-return": "error",
-    "array-element-newline": "error",
+    "array-element-newline": "off",
     "arrow-body-style": "off",
     "arrow-parens": "off",
     "arrow-spacing": [
@@ -48,23 +45,14 @@
         "before": false
       }
     ],
-    "comma-style": [
-      "error",
-      "last"
-    ],
+    "comma-style": ["error", "last"],
     "complexity": "error",
-    "computed-property-spacing": [
-      "error",
-      "never"
-    ],
-    "consistent-return": "error",
+    "computed-property-spacing": ["error", "never"],
+    "consistent-return": "warn",
     "consistent-this": "error",
     "curly": "off",
     "default-case": "error",
-    "dot-location": [
-      "error",
-      "property"
-    ],
+    "dot-location": ["error", "property"],
     "dot-notation": [
       "error",
       {
@@ -76,13 +64,8 @@
     "for-direction": "error",
     "func-call-spacing": "error",
     "func-name-matching": "error",
-    "func-names": [
-      "error",
-      "never"
-    ],
-    "func-style": [
-      "off"
-    ],
+    "func-names": ["error", "never"],
+    "func-style": ["off"],
     "function-paren-newline": "off",
     "generator-star-spacing": "error",
     "getter-return": "error",
@@ -92,10 +75,7 @@
     "id-blacklist": "error",
     "id-length": "off",
     "id-match": "error",
-    "implicit-arrow-linebreak": [
-      "error",
-      "beside"
-    ],
+    "implicit-arrow-linebreak": ["error", "beside"],
     "indent": "off",
     "indent-legacy": "off",
     "init-declarations": "off",
@@ -109,10 +89,7 @@
       }
     ],
     "line-comment-position": "off",
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
+    "linebreak-style": ["error", "unix"],
     "lines-around-comment": "off",
     "lines-around-directive": "off",
     "lines-between-class-members": "error",
@@ -157,10 +134,7 @@
     "no-implicit-globals": "off",
     "no-implied-eval": "error",
     "no-inline-comments": "off",
-    "no-inner-declarations": [
-      "error",
-      "functions"
-    ],
+    "no-inner-declarations": ["error", "functions"],
     "no-invalid-this": "error",
     "no-iterator": "error",
     "no-label-var": "error",
@@ -234,23 +208,14 @@
     "no-warning-comments": "off",
     "no-whitespace-before-property": "error",
     "no-with": "error",
-    "nonblock-statement-body-position": "error",
+    "nonblock-statement-body-position": "warn",
     "object-curly-newline": "off",
-    "object-curly-spacing": [
-      "error",
-      "always"
-    ],
+    "object-curly-spacing": ["error", "always"],
     "object-shorthand": "error",
     "one-var": "off",
     "one-var-declaration-per-line": "off",
-    "operator-assignment": [
-      "error",
-      "always"
-    ],
-    "operator-linebreak": [
-      "error",
-      "before"
-    ],
+    "operator-assignment": ["error", "always"],
+    "operator-linebreak": ["warn", "after"],
     "padded-blocks": "off",
     "padding-line-between-statements": "error",
     "prefer-arrow-callback": "off",
@@ -276,19 +241,13 @@
         "before": false
       }
     ],
-    "semi-style": [
-      "error",
-      "last"
-    ],
+    "semi-style": ["error", "last"],
     "sort-imports": "off",
     "sort-keys": "off",
     "sort-vars": "off",
     "space-before-blocks": "error",
     "space-before-function-paren": "off",
-    "space-in-parens": [
-      "error",
-      "never"
-    ],
+    "space-in-parens": ["error", "never"],
     "space-infix-ops": "error",
     "space-unary-ops": "error",
     "spaced-comment": "off",
@@ -297,18 +256,12 @@
     "symbol-description": "error",
     "template-curly-spacing": "error",
     "template-tag-spacing": "error",
-    "unicode-bom": [
-      "error",
-      "never"
-    ],
+    "unicode-bom": ["error", "never"],
     "valid-jsdoc": "off",
     "vars-on-top": "off",
     "wrap-iife": "error",
     "wrap-regex": "error",
     "yield-star-spacing": "error",
-    "yoda": [
-      "error",
-      "never"
-    ]
+    "yoda": ["error", "never"]
   }
 }

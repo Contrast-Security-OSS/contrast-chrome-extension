@@ -14,7 +14,7 @@
 </head>
 
 <body>
-  <section class="headers-section section">
+  <header class="headers-section section">
     <div id="configuration-header" class="flex-row header-row flex-row-head">
       <img src="/img/icon.png" alt="" class="logo-icon flex-row-item">
       <div id="config-header-text" class="flex-row-item">
@@ -43,7 +43,7 @@
       <button class="config-tab active" type="button" name="button">Configuration</button>
       <button class="config-tab" type="button" name="button">Applications</button>
     </div>
-  </section>
+  </header>
 
   <section id="vulnerabilities-section" class="panel panel-default section">
     <div class="color-gray panel-body" id="no-vulnerabilities-found">
@@ -85,9 +85,10 @@
           <input placeholder="https://<domain>.contrastsecurity.com" class="form-control user-inputs" type="text" name="" value="" id="contrast-url-input" />
         </div>
         <div class="form-group">
+          <input id="contrast-api-key-input" placeholder="API Key" class="form-control user-inputs" type="text" name="" value="">
           <input id="contrast-service-key-input" placeholder="Service Key" class="form-control user-inputs" type="text" name="" value="">
           <input id="contrast-username-input" placeholder="Username" class="form-control user-inputs" type="text" name="" value="">
-          <input id="contrast-api-key-input" placeholder="API Key" class="form-control user-inputs" type="text" name="" value="">
+          <input id="contrast-org-uuid-input" placeholder="Organization UUID" class="form-control user-inputs" type="text" name="" value="">
           <button class="btn btn-primary btn-xs btn-contrast-plugin" type="button" name="button" id="configure-extension-button">Configure</button>
         </div>
       </form>
@@ -95,17 +96,18 @@
         <span id="success-check">
           <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
         </span>
-        Successfully Configured!
+        Successfully Configured! Please refresh the page.
       </h5>
       <h5 id="config-failure" class="configure-message hidden">
-        <span id="error-x">
-          <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
-        </span>Error Configuring, try reloading the page.
+        <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
+        <span id="config-failure-message">
+          Error Configuring, try reloading the page.
+        </span>
       </h5>
     </div>
   </section>
 
-  <section class="footers-section section">
+  <footer class="footers-section section">
     <div id="configuration-footer" class="flex-row footer-row">
       <div>
         <p id="config-footer-text" class="color-gray wide-lines scalable-subtext">Let's get you started. To configure the Contrast extension for Chrome, <a class="contrast-green" href="#">log into Contrast</a> and go to Your Account so we can grab your keys.</p>
@@ -135,7 +137,7 @@
         </div>
       </div>
     </div>
-  </section>
+  </footer>
 
 </body>
 
