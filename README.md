@@ -22,15 +22,7 @@ Hi! Thanks for checking out the extension. Please note that this is pre-alpha so
 Install Mocha and Babel CLI for testing and eslint for linting.
 `npm install -g mocha eslint babel-cli`
 
-Run `./setup.sh`, it installs a Git Hook that removes the below strings from all files in the `js` directory.
-
-```
-console.log
-debugger
-localhost
-```
-
-It also starts [Wappalyzer](https://www.wappalyzer.com/) as a node service in the background on port 5203, which is used for detecting libraries that your front-end application uses.
+Run `./setup.sh`, it installs a Git Hook which runs tests before any new commits are pushed to this repo.
 
 ### Run Tests
 

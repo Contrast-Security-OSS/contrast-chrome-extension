@@ -8,7 +8,7 @@ else
   chmod +x scripts/pre_push.sh
 fi
 
-echo "Installing Wappalyzer service..."
-cd wapp-service
-npm install
-node index.js &
+# echo "Installing Wappalyzer service..."
+# cd wapp-service
+# npm install
+# node index.js &
