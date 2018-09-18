@@ -2,24 +2,21 @@ import {
   STORED_APPS_KEY,
   setElementText,
   setElementDisplay,
-  isBlacklisted,
+  changeElementVisibility,
   getOrgApplications,
   getHostFromUrl,
   isContrastTeamserver,
-} from '../util.js';
+  hideElementAfterTimeout
+} from "../util.js";
 
-import Application from './Application.js';
-import TableRow from './PopupTableRow.js';
+import Application from "./Application.js";
+import TableRow from "./PopupTableRow.js";
 
 export default function ApplicationTable(url) {
-  this.table = document.getElementById('application-table');
-  this.url   = url;
+  this.table = document.getElementById("application-table");
+  this.tableContainer = this.table.parentElement;
+  this.url = url;
 }
-
-ApplicationTable.RIGHT_ARROW = ' ▶';
-ApplicationTable.DOWN_ARROW  = ' ▼';
-ApplicationTable.TABLE_VISIBLE_CLASS = 'application-table-visible';
-ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
 
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
@@ -27,56 +24,25 @@ ApplicationTable.TABLE_HIDDEN_CLASS  = 'application-table-hidden';
  * @param  {URL<Object>} url a url object of the current tab
  * @return {void}
  */
-ApplicationTable.prototype.renderApplicationsMenu = function() {
-  const headings = [
-    document.getElementById('applications-heading'),
-    document.getElementById('applications-arrow'),
-  ]
-
-  const container = document.getElementById('applications-heading-container');
-  setElementDisplay(container, "block");
-
-  for (let i = 0, len = headings.length; i < len; i++) {
-    headings[i].addEventListener('click', () => this.rollApplications());
+ApplicationTable.prototype.renderApplicationsMenu = async function() {
+  if (document.getElementsByTagName("tr").length < 2) {
+    const json = await getOrgApplications();
+    if (!json || json instanceof Error) {
+      renderFailureMessage(
+        "Error Getting Applications. Make sure your credentials are correct."
+      );
+      return;
+    }
+    const storedApps = await this._getStoredApplications();
+    const applications = this._filterApplications(
+      storedApps,
+      json.applications
+    );
+    if (storedApps) {
+      applications.forEach(app => this.createAppTableRow(app, storedApps));
+    }
   }
-}
-
-
-/**
- * @description - ApplicationTable.prototype.rollApplications - only appears on contrast "Your Account" page. Need a roll of applications due to presence of config button.
- *
- * @return {type}  description
- */
-ApplicationTable.prototype.rollApplications = function() {
-  const arrow = document.getElementById('applications-arrow');
-  if (arrow.innerText === ApplicationTable.RIGHT_ARROW) {
-    this._unrollApplications(arrow);
-  } else {
-    this._rollupApplications(arrow);
-  }
-}
-
-ApplicationTable.prototype._unrollApplications = function(arrow) {
-  setElementText(arrow, ApplicationTable.DOWN_ARROW);
-  this._changeTableVisibility(true);
-
-  // if less than 2 then only the heading row has been rendered
-  if (document.getElementsByTagName('tr').length < 2) {
-    getOrgApplications()
-    .then(json => {
-      if (!json) {
-        throw new Error("Error getting applications");
-      }
-      json.applications.forEach(app => this.createAppTableRow(app));
-    })
-    .catch(error => new Error(error));
-  }
-}
-
-ApplicationTable.prototype._rollupApplications = function(arrow) {
-  this._changeTableVisibility(false);
-  setElementText(arrow, ApplicationTable.RIGHT_ARROW);
-}
+};
 
 /**
  * renderActivityFeed - logic to render either the vulnerabilities in an app or the list of applications to connect to a domain. A user must connect a domain before the vulnerabilities section will be shown
@@ -85,43 +51,88 @@ ApplicationTable.prototype._rollupApplications = function(arrow) {
  * @param  {URL<Object>} url - URL object of current tab
  * @return {type}
  */
-ApplicationTable.prototype.renderActivityFeed = function() {
-  if (isBlacklisted(this.url.host)) return;
+ApplicationTable.prototype.renderActivityFeed = async function() {
+  // if (isBlacklisted(this.url.host)) {
+  //   return;
+  // }
+  this.tableContainer.classList.remove("collapsed");
 
-  chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
+  const storedApps = await this._getStoredApplications();
+  if (storedApps) {
     const host = getHostFromUrl(this.url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (_appIsConfigured(storedApps, host)) {
+      const appTableContainer = document.getElementById(
+        "application-table-container-section"
+      );
+      setElementDisplay(appTableContainer, "none");
       // if you don't need credentials, hide the signin functionality and don't render a table
-      _hideConfigurationElements();
     } else {
       this._showContrastApplications(storedApps);
     }
+  }
+};
+
+ApplicationTable.prototype._getStoredApplications = function() {
+  return new Promise(resolve => {
+    chrome.storage.local.get(STORED_APPS_KEY, storedApps => {
+      if (!chrome.runtime.lastError) {
+        return resolve(storedApps);
+      }
+      return resolve(null);
+    });
   });
-}
+};
 
 ApplicationTable.prototype._showContrastApplications = function(storedApps) {
-  // transitions on these classes, not a simple display none/table
-  this._changeTableVisibility(true);
+  const vulnsSection = document.getElementById("vulnerabilities-section");
+  // const scanLibsText = document.getElementById('scan-libs-text');
+  setElementDisplay(vulnsSection, "none");
+  // setElementDisplay(scanLibsText, "none");
 
-  const vulnsFound = document.getElementById("vulnerabilities-found-on-page");
-  setElementDisplay(vulnsFound, "none");
+  // NOTE: Ugly but leave for now
+  const vulnsHeaderText = document.getElementById("vulns-header-text");
+  const vulnsHeader = vulnsHeaderText.parentElement.parentElement;
+  // setElementDisplay(vulnsHeader.lastElementChild, "none");
+  setElementText(vulnsHeaderText, "Connect Applications");
+  vulnsHeaderText.style.fontSize = "4.5vw";
+  vulnsHeader.style.border = "none";
+
+  const configuredFooter = document.getElementById("configured-footer");
+  configuredFooter.style.border = "none";
 
   // if app is not stored, render the table with buttons to add the domain
   getOrgApplications()
-  .then(json => {
-    if (!json) {
-      throw new Error("Error getting applications");
-    }
-    const applications = this._filterApplications(storedApps, json.applications);
+    .then(json => {
+      if (!json || json instanceof Error) {
+        renderFailureMessage(
+          "Error Getting Applications. Make sure your credentials are correct.",
+          5000
+        );
+        return;
+      }
+      const applications = this._filterApplications(
+        storedApps,
+        json.applications
+      );
 
-    // create a row for each application
-    applications.forEach(app => this.createAppTableRow(app));
-  })
-  .catch(() => {
-    throw new Error("Error getting applications");
-  });
-}
+      // create a row for each application
+      this.createTableRows(applications, storedApps);
+    })
+    .catch(() => {
+      renderFailureMessage(
+        "Error Getting Applications. Make sure your credentials are correct.",
+        5000
+      );
+    });
+};
+
+ApplicationTable.prototype.createTableRows = function(
+  applications,
+  storedApps
+) {
+  applications.forEach(app => this.createAppTableRow(app, storedApps));
+};
 
 /**
  * @description - Filters an Organization's applications returning only those ones that have NOT been connected to a domain.
@@ -130,16 +141,23 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
  * @param {Array<Object>} applications    - organization's applications from TS
  * @return {Array<Application>}           - connected applications
  */
-ApplicationTable.prototype._filterApplications = function(storedApps, applications) {
+ApplicationTable.prototype._filterApplications = function(
+  storedApps,
+  applications
+) {
   // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
-  if (!!storedApps[STORED_APPS_KEY] && !isContrastTeamserver(this.url.href)) {
+  if (storedApps[STORED_APPS_KEY] && !isContrastTeamserver(this.url.href)) {
     const appIds = storedApps[STORED_APPS_KEY].map(app => app.id).flatten();
 
     // include in applications if it's not in storage
-    return applications.filter(app => !appIds.includes(app.app_id));
+    // return applications.filter(app => !appIds.includes(app.app_id));
+    return applications.map(app => {
+      app.connectedAlready = appIds.includes(app.app_id);
+      return app;
+    });
   }
   return applications;
-}
+};
 
 /**
  * @description - renders a table row, either with a button if it's not a contrast url, or with a domain (or blank) if it's a contrast url showing in tab
@@ -147,23 +165,34 @@ ApplicationTable.prototype._filterApplications = function(storedApps, applicatio
  * @param  {Object} application the contrast application from TS
  * @return {void} - adds rows to a table
  */
-ApplicationTable.prototype.createAppTableRow = function(application) {
+ApplicationTable.prototype.createAppTableRow = function(
+  application,
+  appsInStorage
+) {
+  if (!application || !application.name) return;
+
   const tr = new TableRow(application, this.url, this.table.tBodies[0]);
   tr.appendChildren();
-  tr.setAppId(application);
-  this._changeTableVisibility(true);
+  // tr.setAppId(application);
   // if the url is not a contrast url then show a collection of app name buttons that will let a user connect an app to a domain
   if (!isContrastTeamserver(this.url.href)) {
-    tr.setHost(getHostFromUrl(this.url));
-    tr.createConnectButton();
-  } else {
+    if (application.connectedAlready) {
+      const storedApp = Application.getStoredApp(appsInStorage, application);
+      setElementText(tr.nameTD, application.name);
+      tr.setHost(storedApp.host);
+      tr.renderDisconnect(appsInStorage, storedApp);
+    } else {
+      tr.setHost(getHostFromUrl(this.url));
+      tr.createConnectButton();
+    }
+  } else if (!appsInStorage) {
     // on a contrast page - render the full collection of apps in a user org with respective domains
-    chrome.storage.local.get(STORED_APPS_KEY, (storedApps) => {
+    chrome.storage.local.get(STORED_APPS_KEY, storedApps => {
       if (chrome.runtime.lastError) return;
 
       // storedApps has not been defined yet
       if (!storedApps || !storedApps[STORED_APPS_KEY]) {
-        storedApps = { [STORED_APPS_KEY]: [] }
+        storedApps = { [STORED_APPS_KEY]: [] };
       }
       const storedApp = Application.getStoredApp(storedApps, application);
       setElementText(tr.nameTD, application.name);
@@ -173,28 +202,37 @@ ApplicationTable.prototype.createAppTableRow = function(application) {
         tr.renderDisconnect(storedApps, storedApp);
       }
     });
-  }
-}
-
-ApplicationTable.prototype._changeTableVisibility = function(show) {
-  if (!show) {
-    this.table.classList.remove(ApplicationTable.TABLE_VISIBLE_CLASS);
-    this.table.classList.add(ApplicationTable.TABLE_HIDDEN_CLASS);
   } else {
-    this.table.classList.add(ApplicationTable.TABLE_VISIBLE_CLASS);
-    this.table.classList.remove(ApplicationTable.TABLE_HIDDEN_CLASS);
+    const storedApp = Application.getStoredApp(appsInStorage, application);
+    setElementText(tr.nameTD, application.name);
+
+    if (!!storedApp) {
+      tr.setHost(storedApp.host);
+      tr.renderDisconnect(appsInStorage, storedApp);
+    }
   }
-}
+};
 
 function _appIsConfigured(result, host) {
-  return result[STORED_APPS_KEY] && result[STORED_APPS_KEY].filter(app => app[host])[0]
+  return (
+    result[STORED_APPS_KEY] &&
+    result[STORED_APPS_KEY].filter(app => app[host])[0]
+  );
 }
 
-function _hideConfigurationElements() {
-  const elements = [
-    document.getElementById('not-configured'),
-    document.getElementById('configure-extension'),
-  ]
-
-  elements.forEach(el => setElementDisplay(el, "none"));
+function renderFailureMessage(message, timeout) {
+  const configButton = document.getElementById("configure-extension-button");
+  const failure = document.getElementById("config-failure");
+  const failureMessage = document.getElementById("config-failure-message");
+  if (message) setElementText(failureMessage, message.toString());
+  changeElementVisibility(failure);
+  setElementDisplay(configButton, "none");
+  hideElementAfterTimeout(
+    failure,
+    () => {
+      configButton.removeAttribute("disabled");
+      setElementDisplay(configButton, "block");
+    },
+    timeout
+  );
 }

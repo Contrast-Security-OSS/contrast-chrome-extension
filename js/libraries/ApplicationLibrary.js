@@ -71,9 +71,9 @@ class ApplicationLibrary {
         libraries[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID] = libsToAdd;
       }
 
-      else if (isEmptyObject(libraries[CONTRAST__STORED_APP_LIBS])
-               || !currentLibs
-               || !Array.isArray(currentLibs)) {
+      else if (isEmptyObject(libraries[CONTRAST__STORED_APP_LIBS]) ||
+               !currentLibs ||
+               !Array.isArray(currentLibs)) {
 
         libraries[CONTRAST__STORED_APP_LIBS][STORED_APP_LIBS_ID] = libsToAdd;
       }

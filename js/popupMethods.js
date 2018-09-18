@@ -15,8 +15,13 @@ import {
   TRACES_REQUEST,
   getVulnerabilityTeamserverUrl,
   setElementDisplay,
-  getVulnerabilityShort,
-} from './util.js';
+  getVulnerabilityShort
+} from "./util.js";
+
+function hideLoadingIcon() {
+  const loading = document.getElementById("vulns-loading");
+  loading.style.display = "none";
+}
 
 /**
  * populateVulnerabilitySection - Get details about each trace from teamserver and then render each of them as a list item in the extension popup
@@ -26,25 +31,33 @@ import {
  * @param  {String} orgUuid       The uuid of our org
  * @return {void}                 Renders a list of vulnerabilities
  */
-function populateVulnerabilitySection(traces, teamserverUrl, orgUuid, application) {
+function populateVulnerabilitySection(
+  traces,
+  teamserverUrl,
+  orgUuid,
+  application
+) {
   if (traces.length > 0) {
     // NOTE: Elements set to display show in getStorageVulnsAndRender
     getShortVulnerabilities(traces, application.id)
-    .then(sortedTraces => {
-      sortedTraces.map(trace => renderListItem(trace, teamserverUrl, orgUuid, application));
-    })
-    .catch(new Error("Error rendering sorted traces into list items."));
+      .then(sortedTraces => {
+        hideLoadingIcon();
+        sortedTraces.map(trace => {
+          return renderListItem(trace, teamserverUrl, orgUuid, application);
+        });
+      })
+      .catch(new Error("Error rendering sorted traces into list items."));
   }
 }
 
 function getShortVulnerabilities(traces, appID) {
   return Promise.all(traces.map(t => getVulnerabilityShort(t, appID)))
-  .then(shortTraces => {
-    return shortTraces.map(t => t.trace).sort((a, b) => {
-      return SEVERITY[b.severity] - SEVERITY[a.severity];
-    });
-  })
-  .catch(new Error("Error getting and rendering vulnerabilities"));
+    .then(shortTraces => {
+      return shortTraces.map(t => t.trace).sort((a, b) => {
+        return SEVERITY[b.severity] - SEVERITY[a.severity];
+      });
+    })
+    .catch(new Error("Error getting and rendering vulnerabilities"));
 }
 
 /**
@@ -56,13 +69,12 @@ function getShortVulnerabilities(traces, appID) {
  * @return {void}                 a new list item
  */
 function renderListItem(trace, teamserverUrl, orgUuid) {
-
   if (!trace) return;
 
-  let ul = document.getElementById('vulnerabilities-found-on-page-list');
-  let li = document.createElement('li');
-  li.classList.add('no-border');
-  li.classList.add('vulnerability-li');
+  let ul = document.getElementById("vulnerabilities-found-on-page-list");
+  let li = document.createElement("li");
+  li.classList.add("no-border");
+  li.classList.add("vulnerability-li");
 
   switch (trace.severity) {
     case SEVERITY_NOTE:
@@ -87,16 +99,16 @@ function renderListItem(trace, teamserverUrl, orgUuid) {
   // Teamserver returns camelCase vs snake_case depending on endpoint
   // const ruleName = trace.ruleName || trace.rule_name;
 
-  const anchor = document.createElement('a');
-  anchor.classList.add('vulnerability-link');
-  anchor.classList.add('vulnerability-rule-name');
+  const anchor = document.createElement("a");
+  anchor.classList.add("vulnerability-link");
+  anchor.classList.add("vulnerability-rule-name");
   anchor.innerText = trace.title; //" " + ruleName.split('-').join(' ').titleize();
   anchor.onclick = function() {
     chrome.tabs.create({
       url: getVulnerabilityTeamserverUrl(teamserverUrl, orgUuid, trace.uuid),
       active: false
     });
-  }
+  };
   li.appendChild(anchor);
 
   // append li last to load content smootly (is the way it works?)
@@ -111,27 +123,35 @@ function renderListItem(trace, teamserverUrl, orgUuid) {
  */
 function getStorageVulnsAndRender(items, application, tab) {
   const noVulnsFound = document.getElementById("no-vulnerabilities-found");
-  const vulnsOnPage  = document.getElementById("vulnerabilities-found-on-page");
-  chrome.runtime.sendMessage({ action: TRACES_REQUEST, application, tab }, (response) => {
-    if (response && response.traces && response.traces.length > 0) {
-      setElementDisplay(noVulnsFound, "none");
-      setElementDisplay(vulnsOnPage, "block");
+  const vulnsOnPage = document.getElementById("vulnerabilities-found-on-page");
+  chrome.runtime.sendMessage(
+    { action: TRACES_REQUEST, application, tab },
+    response => {
+      if (response && response.traces && response.traces.length > 0) {
+        setElementDisplay(noVulnsFound, "none");
+        setElementDisplay(vulnsOnPage, "block");
 
-      populateVulnerabilitySection(
-        response.traces, items[TEAMSERVER_URL], items[CONTRAST_ORG_UUID], application);
-    } else {
-      setElementDisplay(noVulnsFound, "block");
-      setElementDisplay(vulnsOnPage, "none");
+        populateVulnerabilitySection(
+          response.traces,
+          items[TEAMSERVER_URL],
+          items[CONTRAST_ORG_UUID],
+          application
+        );
+      } else {
+        hideLoadingIcon();
+        setElementDisplay(noVulnsFound, "block");
+        setElementDisplay(vulnsOnPage, "none");
+      }
     }
-  });
+  );
 }
 
 const createBadge = (severity, li) => {
-  let parent = document.createElement('div');
-  parent.classList.add('parent-badge');
+  let parent = document.createElement("div");
+  parent.classList.add("parent-badge");
 
-  let child = document.createElement('div');
-  child.classList.add('child-badge');
+  let child = document.createElement("div");
+  child.classList.add("child-badge");
   child.innerText = severity;
   child.style.color = SEVERITY_TEXT_COLORS[severity];
 
@@ -139,12 +159,12 @@ const createBadge = (severity, li) => {
 
   parent.appendChild(child);
   li.appendChild(parent);
-}
-
+};
 
 export {
+  hideLoadingIcon,
   populateVulnerabilitySection,
   renderListItem,
   getStorageVulnsAndRender,
-  getShortVulnerabilities,
-}
+  getShortVulnerabilities
+};

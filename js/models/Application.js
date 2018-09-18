@@ -1,31 +1,32 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   STORED_APPS_KEY,
-  CONTRAST_CONFIGURE_TEXT,
-  CONTRAST_YELLOW,
+  // CONTRAST_CONFIGURE_TEXT,
+  // CONTRAST_YELLOW,
   CONTRAST_GREEN,
   getHostFromUrl,
   isBlacklisted,
   updateTabBadge,
-} from '../util.js'
+  updateExtensionIcon
+} from "../util.js";
 
 export default function Application(host, teamserverApplication) {
-  this[host]  = teamserverApplication.app_id;
-  this.id     = teamserverApplication.app_id;
-  this.name   = teamserverApplication.name;
+  this[host] = teamserverApplication.app_id;
+  this.id = teamserverApplication.app_id;
+  this.name = teamserverApplication.name;
   this.domain = host;
-  this.host   = host;
+  this.host = host;
 }
 
 /**
-* retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
-*
-* @param  {Object} tab           - the active tab in the active window
-* @return {Promise<Application>} - a connected application
-*/
+ * retrieveApplicationFromStorage - get the name of an application from storage by using those host/domain name of the current tab url
+ *
+ * @param  {Object} tab           - the active tab in the active window
+ * @return {Promise<Application>} - a connected application
+ */
 Application.retrieveApplicationFromStorage = function(tab) {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+    chrome.storage.local.get(STORED_APPS_KEY, result => {
       if (chrome.runtime.lastError) {
         reject(new Error("Error retrieving stored applications"));
       }
@@ -34,7 +35,7 @@ Application.retrieveApplicationFromStorage = function(tab) {
         result = { [STORED_APPS_KEY]: [] };
       }
 
-      const url  = new URL(tab.url);
+      const url = new URL(tab.url);
       const host = getHostFromUrl(url);
 
       const application = result[STORED_APPS_KEY].filter(app => {
@@ -45,15 +46,18 @@ Application.retrieveApplicationFromStorage = function(tab) {
       if (!application) {
         if (!isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
-            updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+            updateExtensionIcon(tab, 1);
+            updateTabBadge(tab, "");
+            // updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
           } catch (e) {
-            reject(new Error("Error updating tab badge"))
+            reject(new Error("Error updating tab badge"));
           }
         } else if (isBlacklisted(tab.url) && !chrome.runtime.lastError) {
           try {
-            updateTabBadge(tab, '', CONTRAST_GREEN);
+            updateExtensionIcon(tab, 1);
+            updateTabBadge(tab, "", CONTRAST_GREEN);
           } catch (e) {
-            reject(new Error("Error updating tab badge"))
+            reject(new Error("Error updating tab badge"));
           }
         }
         resolve(null);
@@ -62,8 +66,7 @@ Application.retrieveApplicationFromStorage = function(tab) {
       }
     });
   });
-}
-
+};
 
 /**
  * @description - filters an array of storedapps to get a single application
@@ -72,12 +75,13 @@ Application.retrieveApplicationFromStorage = function(tab) {
  * @param  {Object} application            - an application from an Org
  * @return {Array<Application>}            - array of 1 connected app
  */
-Application.getStoredApp = function(storedApps, application) {
+Application.getStoredApp = function(appsInStorage, application) {
   if (!application) throw new Error("application must be defined");
-  return storedApps[STORED_APPS_KEY].filter(app => {
+  const storedApps = appsInStorage[STORED_APPS_KEY] || appsInStorage;
+  return storedApps.filter(app => {
     return app.id === application.app_id;
   })[0];
-}
+};
 
 /**
  * @description - can't use a colon in app name (because objects), sub colon for an underscore. Needed when dealing with ports in app name like localhost:8080
@@ -91,7 +95,7 @@ Application.subDomainColonForUnderscore = function(storedApp) {
   }
   // storedApp is a string
   return this._subColonOrUnderscore(storedApp);
-}
+};
 
 /**
  * @description - Replaces all colons with underscores or all underscores with colons
@@ -106,4 +110,4 @@ Application._subColonOrUnderscore = function(string) {
     return string.replace(":", "_"); // local dev stuff
   }
   return string;
-}
+};

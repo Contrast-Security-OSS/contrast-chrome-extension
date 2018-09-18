@@ -15,7 +15,7 @@ Hi! Thanks for checking out the extension. Please note that this is pre-alpha so
 5. Click the 'load unpacked extension' button
 6. Navigate to the cloned repo and select the top level directory
 7. View chrome extension in top right corner of chrome
-8. Navigate to `Your Account` in Teamserver and load configuration.
+8. Navigate to `Organization Settings > API` in Teamserver and load configuration.
 
 ### Setup
 
@@ -23,6 +23,7 @@ Install Mocha and Babel CLI for testing and eslint for linting.
 `npm install -g mocha eslint babel-cli`
 
 Run `./setup.sh`, it installs a Git Hook that removes the below strings from all files in the `js` directory.
+
 ```
 console.log
 debugger
@@ -43,6 +44,7 @@ npm run test # run tests without transpiling
 We're running on Travis here: https://travis-ci.org/Contrast-Security-OSS/contrast-chrome-extension
 
 ### Linting
-* Linting is done by eslint (https://eslint.org/).
-* Travis build includes eslint task, so there should be no warnings for the build to succeed.
-* To run eslint on all files in the js folder of the project: ``` eslint js ```.
+
+- Linting is done by eslint (https://eslint.org/).
+- Travis build includes eslint task, so there should be no warnings for the build to succeed.
+- To run eslint on all files in the js folder of the project: `eslint js`.
