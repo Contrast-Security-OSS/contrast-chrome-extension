@@ -19,74 +19,57 @@ function ContrastForm(forms) {
 ContrastForm.MESSAGE_SENT = false;
 
 /**
-* extractActionsFromForm - gets the form actions from each form in a collection
-*
-* @param  {HTMLCollection} forms collection of forms extracted from DOM
-* @return {Array<String>} array of form actions
-*/
+ * extractActionsFromForm - gets the form actions from each form in a collection
+ *
+ * @param  {HTMLCollection} forms collection of forms extracted from DOM
+ * @return {Array<String>} array of form actions
+ */
 ContrastForm._extractActionsFromForm = function(forms) {
   let actions = [];
   for (let i = 0; i < forms.length; i++) {
     let form = forms[i];
-    let conditions = [
-      form,
-      !!form.action && form.action.length > 0,
-    ];
+    let conditions = [form, !!form.action && form.action.length > 0];
     if (conditions.every(Boolean)) {
       actions.push(form.action);
     }
   }
   return actions;
-}
+};
 
 /**
-* collectFormActions - scrapes DOM for forms and collects their actions, uses a mutation observer for SPAs and only for a connected application
-*
-* @return {void}
-*/
+ * collectFormActions - scrapes DOM for forms and collects their actions, uses a mutation observer for SPAs and only for a connected application
+ *
+ * @return {void}
+ */
 ContrastForm.collectFormActions = function(sendResponse) {
-  chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+  chrome.storage.local.get(STORED_APPS_KEY, result => {
     if (chrome.runtime.lastError) return;
     if (!result || !result[STORED_APPS_KEY]) return;
 
-    const url         = new URL(window.location.href);
-    const host        = getHostFromUrl(url);
-    const application = result[STORED_APPS_KEY].filter(app => app.host === host)[0];
+    const url = new URL(window.location.href);
+    const host = getHostFromUrl(url);
+    const application = result[STORED_APPS_KEY].filter(
+      app => app.host === host
+    )[0];
 
     if (!application) return;
 
     // don't run this when page has been refreshed, rely on mutation observer instead, use === false to prevent running on undefine
-    // if (window.CONTRAST__REFRESHED === false) {
-      console.log("window.CONTRAST__REFRESHED === false, scraping for forms");
-      const actions = this._scrapeDOMForForms() || [];
-      this.MESSAGE_SENT = true;
-      console.log("sending forms", actions);
-      this._sendFormActionsToBackground(actions, sendResponse);
-      return;
-    // }
-
-    // MutationObserver watches for changes in DOM elements
-    // takes a callback reporting on mutations observed
-    // else if (!this.MESSAGE_SENT) {
-    //   console.log("using mutation observer");
-    //   const obs = new MutationObserver((mutations, observer) => {
-    //     this._collectMutatedForms(mutations, observer, sendResponse);
-    //   });
-    //   obs.observe(document.body, {
-    //     subtree: true,
-    //     attributes: true,
-    //     attributeOldValue: true,
-    //     childList: true,
-    //   });
-    // }
+    const actions = this._scrapeDOMForForms() || [];
+    this.MESSAGE_SENT = true;
+    this._sendFormActionsToBackground(actions, sendResponse);
+    return;
   });
-}
-
+};
 
 /**
  *
  */
-ContrastForm._collectMutatedForms = function(mutations, observer, sendResponse) {
+ContrastForm._collectMutatedForms = function(
+  mutations,
+  observer,
+  sendResponse
+) {
   const formActions = this._getFormsFromMutations(mutations);
 
   // send formActions to background and stop observation
@@ -108,23 +91,24 @@ ContrastForm._getFormsFromMutations = function(mutations) {
   let formActions = [];
 
   // go through each mutation, looking for elements that have changed in a specific manner
-  return mutations.map(mutation => {
-    let mutatedForms;
-    if (mutation.target.tagName === "FORM") {
-      mutatedForms = mutation.target;
-    } else {
-      mutatedForms = mutation.target.getElementsByTagName("form");
-    }
+  return mutations
+    .map(mutation => {
+      let mutatedForms;
+      if (mutation.target.tagName === "FORM") {
+        mutatedForms = mutation.target;
+      } else {
+        mutatedForms = mutation.target.getElementsByTagName("form");
+      }
 
-    // if the mutated element has child forms
-    if (!!mutatedForms && mutatedForms.length > 0) {
-      let actions = this._extractActionsFromForm(mutatedForms);
-      return formActions.concat(actions);
-    }
-    return null;
-  }).filter(Boolean);
-}
-
+      // if the mutated element has child forms
+      if (!!mutatedForms && mutatedForms.length > 0) {
+        let actions = this._extractActionsFromForm(mutatedForms);
+        return formActions.concat(actions);
+      }
+      return null;
+    })
+    .filter(Boolean);
+};
 
 /**
  * _scrapeDOMForForms - retrieve forms directly from the DOM
@@ -132,9 +116,9 @@ ContrastForm._getFormsFromMutations = function(mutations) {
  * @return {Array<String>} - an array of actions from forms
  */
 ContrastForm._scrapeDOMForForms = function() {
-  let forms       = [];
+  let forms = [];
   let formActions = [];
-  let domForms    = document.getElementsByTagName("form");
+  let domForms = document.getElementsByTagName("form");
   for (let i = 0; i < domForms.length; i++) {
     // highlightForm(domForms[i])
     // only collect forms that are shown on DOM
@@ -147,34 +131,36 @@ ContrastForm._scrapeDOMForForms = function() {
     formActions = formActions.concat(this._extractActionsFromForm(forms));
   }
   return formActions;
-}
+};
 
 /**
-* _sendFormActionsToBackground - sends the array for form actions to background
-*
-* @param  {Array<String>} formActions - actions from forms, scraped from DOM
-* @return {void}
-*/
-ContrastForm._sendFormActionsToBackground = function(formActions, sendResponse) {
+ * _sendFormActionsToBackground - sends the array for form actions to background
+ *
+ * @param  {Array<String>} formActions - actions from forms, scraped from DOM
+ * @return {void}
+ */
+ContrastForm._sendFormActionsToBackground = function(
+  formActions,
+  sendResponse
+) {
   sendResponse({
     sender: GATHER_FORMS_ACTION,
-    formActions: deDupeArray(formActions.flatten()),
+    formActions: deDupeArray(formActions.flatten())
   });
-}
-
+};
 
 /**
-* highlightForm - description
-*
-* @param  {Node} form - A form on the DOM
-* @return {void}
-*/
+ * highlightForm - description
+ *
+ * @param  {Node} form - A form on the DOM
+ * @return {void}
+ */
 ContrastForm.highlightForms = function(traceUrls) {
   // only want the trace path names
   // traceUrls = traceUrls.map(t => new URL(t).pathname)
   if (!traceUrls || traceUrls.length === 0) return false;
 
-  const forms = document.getElementsByTagName('form')
+  const forms = document.getElementsByTagName("form");
   for (let i = 0; i < forms.length; i++) {
     let form = forms[i];
 
@@ -186,7 +172,7 @@ ContrastForm.highlightForms = function(traceUrls) {
     }
   }
   return false;
-}
+};
 
 /**
  * ContrastForm - description
@@ -195,7 +181,7 @@ ContrastForm.highlightForms = function(traceUrls) {
  * @return {Boolean}
  */
 ContrastForm._highlightSubmitInput = function(form) {
-  let inputs = form.getElementsByTagName('input');
+  let inputs = form.getElementsByTagName("input");
   let input;
   for (let j = 0, len = inputs.length; j < len; j++) {
     if (!input && inputs[j].type === "submit") {
@@ -205,7 +191,8 @@ ContrastForm._highlightSubmitInput = function(form) {
 
   // highlight with contrast aquamarine color
   if (input) {
-    input.setAttribute("style",
+    input.setAttribute(
+      "style",
       `border-radius: 5px;
       border: 3px solid ${CONTRAST_GREEN}`
     );
@@ -213,8 +200,7 @@ ContrastForm._highlightSubmitInput = function(form) {
     return true;
   }
   return false;
-}
-
+};
 
 /**
  * parentHasDisplayNone - checks if any parent elements of a node has display: none styling

@@ -46,8 +46,8 @@ ConnectedDomain.prototype._addDomainToStorage = function() {
 }
 
 
-ConnectedDomain.prototype.disconnectDomain = function(storedApps, tableRow) {
-  return this._removeDomainFromStorage(storedApps, tableRow)
+ConnectedDomain.prototype.disconnectDomain = function() {
+  return this._removeDomainFromStorage()
 }
 
 /**
@@ -59,16 +59,18 @@ ConnectedDomain.prototype.disconnectDomain = function(storedApps, tableRow) {
  * @param  {Node} disconnectButton     button user clicks remove an application
  * @return {Promise}                   if the removal succeeded
  */
-ConnectedDomain.prototype._removeDomainFromStorage = function(storedApps, tableRow) {
+ConnectedDomain.prototype._removeDomainFromStorage = function() {
   return new Promise((resolve, reject) => {
-    const updatedStoredApps = this._filterOutApp(storedApps);
 
-    chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError));
-      }
-      tableRow.removeDomainAndButton();
-      resolve(!chrome.runtime.lastError);
+    chrome.storage.local.get(STORED_APPS_KEY, (result) => {
+      const updatedStoredApps = this._filterOutApp(result);
+
+      chrome.storage.local.set({ [STORED_APPS_KEY]: updatedStoredApps }, () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError));
+        }
+        resolve(!chrome.runtime.lastError);
+      });
     });
   });
 }

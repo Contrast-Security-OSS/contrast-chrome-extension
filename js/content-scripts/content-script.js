@@ -19,6 +19,7 @@ TEAMSERVER_API_PATH_SUFFIX,
 CONTRAST_WAPPALIZE,
 CONTRAST_INITIALIZE,
 CONTRAST_INITIALIZED,
+UUID_V4_REGEX,
 */
 "use strict";
 
@@ -38,10 +39,8 @@ window.addEventListener("load", function() {
   }, 1000);
 });
 
-
 // sender is tabId
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-
   if (request.action === GATHER_FORMS_ACTION) {
     // in a SPA, forms can linger on the page as in chrome will notice them before all the new elements have been updated on the DOM
     // the setTimeout ensures that all JS updating has been completed before it checks the page for form elements
@@ -50,18 +49,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       ContrastForm.collectFormActions(sendResponse);
     }
-  }
-
-  else if (request.action === HIGHLIGHT_VULNERABLE_FORMS) {
+  } else if (request.action === HIGHLIGHT_VULNERABLE_FORMS) {
     sendResponse(ContrastForm.highlightForms(request.formActions));
-  }
-
-  else if (request.url !== undefined && request.action === CONTRAST_INITIALIZE) {
+  } else if (
+    request.url !== undefined &&
+    request.action === CONTRAST_INITIALIZE
+  ) {
     _initializeContrast(request, sendResponse);
-  }
-
-  else if (request.action === "GET_LIB_VERSION" && request.library) {
-    const library    = request.library.parsedLibName.replace('-', '_');
+  } else if (request.action === "GET_LIB_VERSION" && request.library) {
+    const library = request.library.parsedLibName.replace("-", "_");
     const libElement = document.getElementById(`__script_res_${library}`);
     let extractedLibraryVersion;
     try {
@@ -70,76 +66,131 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse(null);
     }
     if (extractedLibraryVersion) {
-      let versionArray = extractedLibraryVersion.split('_');
+      let versionArray = extractedLibraryVersion.split("_");
       sendResponse(versionArray[versionArray.length - 1]);
     } else {
-      sendResponse(null)
+      sendResponse(null);
     }
-  }
-
-  else if (request.action === GATHER_SCRIPTS) {
+  } else if (request.action === GATHER_SCRIPTS) {
     _collectScripts(request.tab)
-    .then(sharedLibraries => sendResponse(sharedLibraries))
-    .catch(error => { error });
+      .then(sharedLibraries => sendResponse(sharedLibraries))
+      .catch(error => {
+        error;
+      });
   }
 
   // This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until sendResponse is called).
   return true; // NOTE: Keep this
 });
 
-function _dataQuery(key) {
-  const dataAttr = 'data-contrast-scrape';
-  const keys = {
-    0: 'contrast-api-key',
-    1: 'contrast-organization-uuid',
-    2: 'contrast-contrast-url',
-    3: 'contrast-service-key',
-    4: 'contrast-username',
+// function _dataQuery(key) {
+//   const dataAttr = "data-contrast-scrape";
+//   const keys = {
+//     0: "contrast-api-key",
+//     1: "contrast-organization-uuid",
+//     2: "contrast-contrast-url",
+//     3: "contrast-service-key",
+//     4: "contrast-username"
+//   };
+//   document.querySelector('[key-status-rotated=""]');
+//   const element = document.querySelector(`[${dataAttr}=${keys[key]}]`);
+//   // ex. document.querySelector('data-contrast-scrape=contrast-username')
+//   if (!element) return;
+//
+//   return element.textContent;
+// }
+
+function _scrapeServiceKey() {
+  const key = "key-status-rotated";
+  const val = "userKeyStatus.rotated";
+  const element = document.querySelector(`[${key}="${val}"]`);
+  if (element) {
+    return element.innerText;
   }
-  return document.querySelector(`[${dataAttr}=${keys[key]}]`).textContent;
+  return null;
+}
+function _scrapeApiKey() {
+  const el = "span";
+  const classes = "break-word.org-key.ng-binding";
+  const element = document.querySelector(`${el}.${classes}`);
+  if (element) {
+    return element.innerText;
+  }
+  return null;
+}
+function _scrapeOrgUUID() {
+  const hash = document.location.hash;
+  const orgUUID = hash.split("/")[1];
+  if (UUID_V4_REGEX.test(orgUUID)) {
+    return orgUUID;
+  }
+  return null;
+}
+function _scrapeProfileEmail() {
+  const klass = "profile-email";
+  const element = document.querySelector(`.${klass}`);
+  if (element) {
+    return element.innerText;
+  }
+  return null;
 }
 
 function _initializeContrast(request, sendResponse) {
-
   const tsIndex = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
-  const teamServerUrl = request.url.substring(
-    0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
+  const teamServerUrl =
+    request.url.substring(0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
 
-  const apiKey        = _dataQuery(0);
-  const orgUuid       = _dataQuery(1);
+  // const apiKey = _dataQuery(0);
+  // const orgUuid = _dataQuery(1);
   // const teamServerUrl = _dataQuery(2);
-  const serviceKey    = _dataQuery(3);
-  const profileEmail  = _dataQuery(4);
+  // const serviceKey = _dataQuery(3);
+  // const profileEmail = _dataQuery(4);
+
+  const apiKey = _scrapeApiKey();
+  const serviceKey = _scrapeServiceKey();
+  const orgUuid = _scrapeOrgUUID();
+  const profileEmail = _scrapeProfileEmail();
 
   const contrastObj = {
     [CONTRAST_USERNAME]: profileEmail,
     [CONTRAST_SERVICE_KEY]: serviceKey,
     [CONTRAST_API_KEY]: apiKey,
     [CONTRAST_ORG_UUID]: orgUuid,
-    [TEAMSERVER_URL]: teamServerUrl,
+    [TEAMSERVER_URL]: teamServerUrl
   };
+  Object.values(contrastObj).forEach(val => {
+    if (!val) {
+      sendResponse({
+        action: CONTRAST_INITIALIZED,
+        success: false,
+        message:
+          "Failed to configure extension. Try configuring the extension manually."
+      });
+      return;
+    }
+  });
   chrome.storage.local.set(contrastObj, () => {
     if (chrome.runtime.lastError) {
       throw new Error("Error setting configuration");
     }
-    sendResponse(CONTRAST_INITIALIZED);
+    sendResponse({ action: CONTRAST_INITIALIZED, success: true, contrastObj });
   });
 }
 
-
 function _getLibraryVulnerabilities() {
-  const retireJSURL = "https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json"
+  const retireJSURL =
+    "https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json";
   const fetchOptions = {
-    method: "GET",
-  }
-	return fetch(retireJSURL, fetchOptions)
-	.then(response => {
-    if (response.ok && response.status === 200) {
-      return response.json();
-    }
-    return null;
-  })
-	.catch(new Error("Error getting js lib vulnerabilities"))
+    method: "GET"
+  };
+  return fetch(retireJSURL, fetchOptions)
+    .then(response => {
+      if (response.ok && response.status === 200) {
+        return response.json();
+      }
+      return null;
+    })
+    .catch(new Error("Error getting js lib vulnerabilities"));
 }
 
 async function _collectScripts(tab) {
@@ -154,7 +205,10 @@ async function _collectScripts(tab) {
   });
 
   const sharedLibraries = _compareAppAndVulnerableLibraries(
-    docScripts, wapplibraries, vulnerableLibraries);
+    docScripts,
+    wapplibraries,
+    vulnerableLibraries
+  );
 
   if (!sharedLibraries || sharedLibraries.length === 0) {
     return null;
@@ -163,31 +217,44 @@ async function _collectScripts(tab) {
 }
 
 function _compareAppAndVulnerableLibraries(
-  docScripts, wapplibraries, vulnerableLibraries) {
+  docScripts,
+  wapplibraries,
+  vulnerableLibraries
+) {
   wapplibraries = wapplibraries.map(wL => {
     let name = wL.name.toLowerCase();
-    wL.jsFileName      = name;
-    wL.parsedLibName   = name;
+    wL.jsFileName = name;
+    wL.parsedLibName = name;
     wL.parsedLibNameJS = name + ".js";
     return wL;
   });
-  let filteredDocScripts = docScripts.map(s => {
-    if (s && s[0] && ((/[a-z]/).test(s[0]))) {
-      let jsFileName      = s;
-      let parsedLibName   = _getLibNameFromJSFile(s);
-      let parsedLibNameJS = parsedLibName + ".js";
-      return { jsFileName, parsedLibName, parsedLibNameJS };
-    }
-    return false;
-  }).filter(Boolean);
-  return _findCommonLibraries(vulnerableLibraries, filteredDocScripts, wapplibraries);
+  let filteredDocScripts = docScripts
+    .map(s => {
+      if (s && s[0] && new RegExp(/[a-z]/).test(s[0])) {
+        let jsFileName = s;
+        let parsedLibName = _getLibNameFromJSFile(s);
+        let parsedLibNameJS = parsedLibName + ".js";
+        return { jsFileName, parsedLibName, parsedLibNameJS };
+      }
+      return false;
+    })
+    .filter(Boolean);
+  return _findCommonLibraries(
+    vulnerableLibraries,
+    filteredDocScripts,
+    wapplibraries
+  );
 }
 
-function _findCommonLibraries(vulnerableLibraries, documentScripts, wapplibraries) {
+function _findCommonLibraries(
+  vulnerableLibraries,
+  documentScripts,
+  wapplibraries
+) {
   let sharedLibraries = [];
   for (let key in vulnerableLibraries) {
     if (Object.prototype.hasOwnProperty.call(vulnerableLibraries, key)) {
-      let vulnLib      = vulnerableLibraries[key];
+      let vulnLib = vulnerableLibraries[key];
       let vulnLibNames = [];
       vulnLibNames.push(key);
 
@@ -199,27 +266,27 @@ function _findCommonLibraries(vulnerableLibraries, documentScripts, wapplibrarie
       let sharedWappLibs = wapplibraries.filter(wL => {
         wL.name = wL.name.toLowerCase();
         return (
-          vulnLibNames.includes(wL.parsedLibName)
-          || vulnLibNames.includes(wL.parsedLibNameJS)
+          vulnLibNames.includes(wL.parsedLibName) ||
+          vulnLibNames.includes(wL.parsedLibNameJS)
         );
       });
-      let sharedScriptLibs = documentScripts.filter(script  => {
+      let sharedScriptLibs = documentScripts.filter(script => {
         return (
-          vulnLibNames.includes(script.jsFileName)
-          || vulnLibNames.includes(script.parsedLibName)
-          || vulnLibNames.includes(script.parsedLibNameJS)
+          vulnLibNames.includes(script.jsFileName) ||
+          vulnLibNames.includes(script.parsedLibName) ||
+          vulnLibNames.includes(script.parsedLibNameJS)
         );
-      })
+      });
       let shared = sharedWappLibs.concat(sharedScriptLibs);
       if (shared[0]) {
         let duplicate = sharedLibraries.find(script => {
           return shared[0].parsedLibName === script.parsedLibName;
         });
         if (!duplicate) {
-          const library           = shared[0];
-          const extractors        = vulnLib.extractors;
-          library.name            = key;
-          library.extractors      = extractors;
+          const library = shared[0];
+          const extractors = vulnLib.extractors;
+          library.name = key;
+          library.extractors = extractors;
           library.vulnerabilities = vulnLib.vulnerabilities;
           sharedLibraries.push(library);
         }
@@ -234,15 +301,22 @@ function _getLibNameFromJSFile(jsFileName) {
   jsFileName = jsFileName.split(".min")[0];
   jsFileName = jsFileName.split("-min")[0];
   jsFileName = jsFileName.split("_min")[0];
-  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/) ? jsFileName.match(/([a-zA-Z]+\W)+/)[0] : jsFileName;
-  jsFileName = (/\W/).test(jsFileName[jsFileName.length - 1]) ? jsFileName.substr(0, jsFileName.length - 1) : jsFileName;
+  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/) ?
+    jsFileName.match(/([a-zA-Z]+\W)+/)[0] :
+    jsFileName;
+  jsFileName = new RegExp(/\W/).test(jsFileName[jsFileName.length - 1]) ?
+    jsFileName.substr(0, jsFileName.length - 1) :
+    jsFileName;
   return jsFileName;
 }
 
 function wappalzye(tab) {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: CONTRAST_WAPPALIZE, tab }, (response) => {
-      resolve(response);
-    })
+  return new Promise(resolve => {
+    chrome.runtime.sendMessage(
+      { action: CONTRAST_WAPPALIZE, tab },
+      response => {
+        resolve(response);
+      }
+    );
   });
 }
