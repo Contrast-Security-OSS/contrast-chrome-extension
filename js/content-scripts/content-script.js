@@ -301,12 +301,12 @@ function _getLibNameFromJSFile(jsFileName) {
   jsFileName = jsFileName.split(".min")[0];
   jsFileName = jsFileName.split("-min")[0];
   jsFileName = jsFileName.split("_min")[0];
-  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/)
-    ? jsFileName.match(/([a-zA-Z]+\W)+/)[0]
-    : jsFileName;
-  jsFileName = new RegExp(/\W/).test(jsFileName[jsFileName.length - 1])
-    ? jsFileName.substr(0, jsFileName.length - 1)
-    : jsFileName;
+  jsFileName = jsFileName.match(/([a-zA-Z]+\W)+/) ?
+    jsFileName.match(/([a-zA-Z]+\W)+/)[0] :
+    jsFileName;
+  jsFileName = new RegExp(/\W/).test(jsFileName[jsFileName.length - 1]) ?
+    jsFileName.substr(0, jsFileName.length - 1) :
+    jsFileName;
   return jsFileName;
 }
 

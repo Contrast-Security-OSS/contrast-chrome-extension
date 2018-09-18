@@ -612,12 +612,16 @@ function changeElementVisibility(element) {
  * @param  {Node} element HTML Element to show for 2 seconds
  * @return {void}
  */
-function hideElementAfterTimeout(element, callback = () => null) {
+function hideElementAfterTimeout(
+  element,
+  callback = () => null,
+  timeout = 2000
+) {
   setTimeout(() => {
     // eslint-disable-line consistent-return
     changeElementVisibility(element);
     return callback();
-  }, 2000); // let the element linger
+  }, timeout); // let the element linger
 }
 
 function loadingBadge(tab) {

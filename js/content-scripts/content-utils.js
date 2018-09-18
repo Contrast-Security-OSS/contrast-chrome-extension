@@ -530,13 +530,11 @@ function changeElementVisibility(element) {
  * @param  {Node} element HTML Element to show for 2 seconds
  * @return {void}
  */
-function hideElementAfterTimeout(element, callback) {
+function hideElementAfterTimeout(element, callback = () => null) {
   setTimeout(() => {
     // eslint-disable-line consistent-return
     changeElementVisibility(element);
-    if (callback) {
-      return callback();
-    }
+    return callback();
   }, 2000); // let the element linger
 }
 

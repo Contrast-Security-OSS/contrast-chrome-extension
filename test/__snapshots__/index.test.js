@@ -98,19 +98,22 @@ exports['tests the popup index.html file for changes takes a snapshot of the bas
           <button class="btn btn-primary btn-xs btn-contrast-plugin" type="button" name="button" id="configure-extension-button">Configure</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message hidden">
-        <span id="success-check">
-          <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
-        </span>
-        Successfully Configured! Please refresh the page.
-      </h5>
-      <h5 id="config-failure" class="configure-message hidden">
-        <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
-        <span id="config-failure-message">
-          Error Configuring, try reloading the page.
-        </span>
-      </h5>
     </div>
+  </section>
+
+  <section id="messages" class="section">
+    <h5 id="config-success" class="configure-message hidden">
+      <span id="success-check">
+        <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
+      </span>
+      Successfully Configured! Please refresh the page.
+    </h5>
+    <h5 id="config-failure" class="configure-message hidden">
+      <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
+      <span id="config-failure-message">
+        Error Configuring, try reloading the page.
+      </span>
+    </h5>
   </section>
 
   <footer class="footers-section section">
@@ -238,19 +241,22 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
           <button class="btn btn-primary btn-xs btn-contrast-plugin" type="button" name="button" id="configure-extension-button">Configure</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message hidden">
-        <span id="success-check">
-          <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
-        </span>
-        Successfully Configured! Please refresh the page.
-      </h5>
-      <h5 id="config-failure" class="configure-message hidden">
-        <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
-        <span id="config-failure-message">
-          Error Configuring, try reloading the page.
-        </span>
-      </h5>
     </div>
+  </section>
+
+  <section id="messages" class="section">
+    <h5 id="config-success" class="configure-message hidden">
+      <span id="success-check">
+        <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
+      </span>
+      Successfully Configured! Please refresh the page.
+    </h5>
+    <h5 id="config-failure" class="configure-message hidden">
+      <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
+      <span id="config-failure-message">
+        Error Configuring, try reloading the page.
+      </span>
+    </h5>
   </section>
 
   <footer class="footers-section section">
@@ -378,19 +384,22 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
           <button class="btn btn-primary btn-xs btn-contrast-plugin" type="button" name="button" id="configure-extension-button">Configure</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message hidden">
-        <span id="success-check">
-          <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
-        </span>
-        Successfully Configured! Please refresh the page.
-      </h5>
-      <h5 id="config-failure" class="configure-message hidden">
-        <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
-        <span id="config-failure-message">
-          Error Configuring, try reloading the page.
-        </span>
-      </h5>
     </div>
+  </section>
+
+  <section id="messages" class="section">
+    <h5 id="config-success" class="configure-message hidden">
+      <span id="success-check">
+        <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
+      </span>
+      Successfully Configured! Please refresh the page.
+    </h5>
+    <h5 id="config-failure" class="configure-message hidden">
+      <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
+      <span id="config-failure-message">
+        Error Configuring, try reloading the page.
+      </span>
+    </h5>
   </section>
 
   <footer class="footers-section section">
@@ -518,19 +527,22 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
           <button class="btn btn-primary btn-xs btn-contrast-plugin" type="button" name="button" id="configure-extension-button">Configure</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message hidden">
-        <span id="success-check">
-          <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
-        </span>
-        Successfully Configured! Please refresh the page.
-      </h5>
-      <h5 id="config-failure" class="configure-message hidden">
-        <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
-        <span id="config-failure-message">
-          Error Configuring, try reloading the page.
-        </span>
-      </h5>
     </div>
+  </section>
+
+  <section id="messages" class="section">
+    <h5 id="config-success" class="configure-message hidden">
+      <span id="success-check">
+        <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
+      </span>
+      Successfully Configured! Please refresh the page.
+    </h5>
+    <h5 id="config-failure" class="configure-message hidden">
+      <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
+      <span id="config-failure-message">
+        Error Configuring, try reloading the page.
+      </span>
+    </h5>
   </section>
 
   <footer class="footers-section section">
@@ -658,19 +670,22 @@ exports['tests the popup index.html file for changes takes a snapshot of the not
           <button class="btn btn-primary btn-xs btn-contrast-plugin" type="button" name="button" id="configure-extension-button">Configure</button>
         </div>
       </form>
-      <h5 id="config-success" class="configure-message hidden">
-        <span id="success-check">
-          <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
-        </span>
-        Successfully Configured! Please refresh the page.
-      </h5>
-      <h5 id="config-failure" class="configure-message hidden">
-        <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
-        <span id="config-failure-message">
-          Error Configuring, try reloading the page.
-        </span>
-      </h5>
     </div>
+  </section>
+
+  <section id="messages" class="section">
+    <h5 id="config-success" class="configure-message hidden">
+      <span id="success-check">
+        <svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M954.857 332.572q0 22.857-16 38.857L447.428 862.858q-16 16-38.857 16t-38.857-16L85.143 578.287q-16-16-16-38.857t16-38.857l77.714-77.714q16-16 38.857-16t38.857 16l168 168.571 374.857-375.429q16-16 38.857-16t38.857 16l77.714 77.714q16 16 16 38.857z"></path></g></svg>
+      </span>
+      Successfully Configured! Please refresh the page.
+    </h5>
+    <h5 id="config-failure" class="configure-message hidden">
+      <svg fill="#E63025" preserveAspectRatio="xMidYMid meet" height="22" width="22" viewBox="0 0 1204 1204" style="vertical-align: middle;"><g><path d="M640 512l327.111-327.111-128-128L512 384 184.889 56.889l-128 128L384 512 56.889 839.111l128 128L512 640l327.111 327.111 128-128L640 512z"></path></g></svg>
+      <span id="config-failure-message">
+        Error Configuring, try reloading the page.
+      </span>
+    </h5>
   </section>
 
   <footer class="footers-section section">

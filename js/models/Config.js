@@ -103,7 +103,6 @@ Config.prototype.popupScreen = function(state = null) {
   if (state === 0) {
     this.setCredentialsInSettings();
   }
-  console.log("STATE", state);
   POPUP_STATE.add(state);
   SCREEN_STATE = state;
   return state;
@@ -205,15 +204,7 @@ Config.prototype._storeCustomUserConfiguration = function() {
     teamServerUrl = this._getContrastURL();
     urlInput.value = teamServerUrl;
   } else {
-    teamServerUrl = urlInput.value;
-    if (teamServerUrl.split("http://")[1]) {
-      teamServerUrl = teamServerUrl.split("http://")[1]; // split on http(s) and take the domain
-    }
-    if (teamServerUrl.split("https://")[1]) {
-      teamServerUrl = teamServerUrl.split("https://")[1]; // split on http(s) and take the domain
-    }
-    teamServerUrl = teamServerUrl.split("/")[0]; // split on / and take base url user has input
-    teamServerUrl += "/Contrast/api";
+    teamServerUrl = this._buildContrastUrl(urlInput.value);
   }
   try {
     if (!apiKeyInput.value || apiKeyInput.value.length === 0) {
@@ -228,7 +219,7 @@ Config.prototype._storeCustomUserConfiguration = function() {
       throw new Error("Organization UUID cannot be blank.");
     }
   } catch (e) {
-    return this._renderFailureMessage(e);
+    return this.renderFailureMessage(e);
   }
 
   const contrastObj = new ContrastCredentials({
@@ -242,41 +233,56 @@ Config.prototype._storeCustomUserConfiguration = function() {
     this._storeContrastCredentials(contrastObj);
     return true;
   } catch (e) {
-    this._renderFailureMessage(e);
+    this.renderFailureMessage(e);
     return false;
   }
 };
 
 Config.prototype._getContrastURL = function(urlInput) {
   if (urlInput && urlInput.value && urlInput.value.length > 0) {
-    return urlInput.value;
+    return this._buildContrastUrl(urlInput.value);
   } else if (this._isContrastPage()) {
     const url = new URL(this.url);
     let origin = url.origin;
-    // if (url.hostname === 'localhost') {
-    //   origin = origin.replace('19090', '19080');
-    // }
     return origin + "/Contrast/api";
   }
   return "";
 };
 
-Config.prototype._renderFailureMessage = function(error) {
+Config.prototype._buildContrastUrl = function(url) {
+  if (url.split("http://").length === 1 && url.split("https://").length === 1) {
+    if (url.includes("localhost")) {
+      url = "http://" + url;
+    } else {
+      url = "https://" + url;
+    }
+  }
+  url = new URL(url);
+  url = url.origin + "/Contrast/api";
+  return url;
+};
+
+Config.prototype.renderFailureMessage = function(error, timeout) {
   const configButton = document.getElementById("configure-extension-button");
   const failure = document.getElementById("config-failure");
   const failureMessage = document.getElementById("config-failure-message");
   if (error) setElementText(failureMessage, error.toString());
   changeElementVisibility(failure);
   setElementDisplay(configButton, "none");
-  hideElementAfterTimeout(failure, () => {
-    configButton.removeAttribute("disabled");
-    setElementDisplay(configButton, "block");
-  });
+  hideElementAfterTimeout(
+    failure,
+    () => {
+      configButton.removeAttribute("disabled");
+      setElementDisplay(configButton, "block");
+    },
+    timeout
+  );
 };
 
-Config.prototype._renderSuccessMessage = function(
+Config.prototype.renderSuccessMessage = function(
   contrastObj,
-  callback = () => null
+  callback = () => null,
+  timeout
 ) {
   // recurse on indexFunction, credentials should have been set in content-script so this part of indexFunction will not be evaluated again
   const configButton = document.getElementById("configure-extension-button");
@@ -287,14 +293,18 @@ Config.prototype._renderSuccessMessage = function(
   configFooterText.innerText = "";
   configFooterText.innerHTML = loadingIconHTML();
   this._updateCredentials(contrastObj);
-  hideElementAfterTimeout(successMessage, () => {
-    configButton.removeAttribute("disabled");
-    setElementDisplay(configButton, "block");
-    configFooterText.innerHTML = "";
-    configButton.removeEventListener("click", this._handleConfigButtonClick);
+  hideElementAfterTimeout(
+    successMessage,
+    () => {
+      configButton.removeAttribute("disabled");
+      setElementDisplay(configButton, "block");
+      configFooterText.innerHTML = "";
+      configButton.removeEventListener("click", this._handleConfigButtonClick);
 
-    return callback();
-  });
+      return callback();
+    },
+    timeout
+  );
 };
 
 Config.prototype._storeContrastCredentials = function(contrastObj) {
@@ -302,7 +312,7 @@ Config.prototype._storeContrastCredentials = function(contrastObj) {
     if (chrome.runtime.lastError) {
       throw new Error("Error setting configuration");
     } else {
-      this._renderSuccessMessage(contrastObj, indexFunction);
+      this.renderSuccessMessage(contrastObj, indexFunction);
     }
   });
 };
@@ -324,24 +334,24 @@ Config.prototype._configureUserByScrapingContrast = function() {
     { url: this.tab.url, action: CONTRAST_INITIALIZE },
     response => {
       if (!response || !response.action) {
-        this._renderFailureMessage();
+        this.renderFailureMessage();
         return;
       }
       // NOTE: In development if the extension is reloaded and the web page is not response will be undefined and throw an error. The solution is to reload the webpage.
       if (response.action === CONTRAST_INITIALIZED) {
         if (response.success) {
           chrome.browserAction.setBadgeText({ tabId: this.tab.id, text: "" });
-          this._renderSuccessMessage(response.contrastObj, indexFunction);
+          this.renderSuccessMessage(response.contrastObj, indexFunction);
           this.setCredentialsInSettings();
 
           const section = document.getElementById("configuration-section");
           section.display = "none";
           hideElementAfterTimeout(section);
         } else {
-          this._renderFailureMessage(response.message);
+          this.renderFailureMessage(response.message);
         }
       } else {
-        this._renderFailureMessage();
+        this.renderFailureMessage();
       }
       return;
     }

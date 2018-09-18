@@ -2,11 +2,11 @@ import {
   STORED_APPS_KEY,
   setElementText,
   setElementDisplay,
-  // isBlacklisted,
+  changeElementVisibility,
   getOrgApplications,
   getHostFromUrl,
-  isContrastTeamserver
-  // changeElementVisibility,
+  isContrastTeamserver,
+  hideElementAfterTimeout
 } from "../util.js";
 
 import Application from "./Application.js";
@@ -18,16 +18,6 @@ export default function ApplicationTable(url) {
   this.url = url;
 }
 
-// NOTE: Used to prevent event listeners from being readded
-ApplicationTable.listener = {
-  attached: false,
-  url: ""
-};
-
-ApplicationTable.showApps = false;
-ApplicationTable.RIGHT_ARROW = `<svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M826.2 654.6l-3.6-4.2-272-313c-9.2-10.6-23-17.2-38.4-17.2s-29.2 6.8-38.4 17.2L197.4 655c-3.4 5-5.4 11-5.4 17.4 0 17.4 14.8 31.6 33.2 31.6h573.6c18.4 0 33.2-14.2 33.2-31.6 0-6.6-2.2-12.8-5.8-17.8z"></path></g></svg>`;
-ApplicationTable.DOWN_ARROW = `<svg fill="currentColor" preserveAspectRatio="xMidYMid meet" height="22" width="22" class="cs-react-icon css-1ovp8yv e1db9b1o0" viewBox="0 0 1024 1024" style="vertical-align: middle;"><g><path d="M197.8 369.4l3.6 4.2 272 313c9.2 10.6 23 17.2 38.4 17.2s29.2-6.8 38.4-17.2L826.6 369c3.4-5 5.4-11 5.4-17.4 0-17.4-14.8-31.6-33.2-31.6H225.2c-18.4 0-33.2 14.2-33.2 31.6 0 6.6 2.2 12.8 5.8 17.8z"></path></g></svg>`;
-
 /**
  * renderApplicationsMenu - renders a toggle for showing/hiding the table/menu listing all the applications in an organization
  *
@@ -37,7 +27,10 @@ ApplicationTable.DOWN_ARROW = `<svg fill="currentColor" preserveAspectRatio="xMi
 ApplicationTable.prototype.renderApplicationsMenu = async function() {
   if (document.getElementsByTagName("tr").length < 2) {
     const json = await getOrgApplications();
-    if (!json) {
+    if (!json || json instanceof Error) {
+      renderFailureMessage(
+        "Error Getting Applications. Make sure your credentials are correct."
+      );
       return;
     }
     const storedApps = await this._getStoredApplications();
@@ -60,7 +53,6 @@ ApplicationTable.prototype.renderApplicationsMenu = async function() {
  */
 ApplicationTable.prototype.renderActivityFeed = async function() {
   // if (isBlacklisted(this.url.host)) {
-  //   console.log("blacklisted domain");
   //   return;
   // }
   this.tableContainer.classList.remove("collapsed");
@@ -93,8 +85,6 @@ ApplicationTable.prototype._getStoredApplications = function() {
 };
 
 ApplicationTable.prototype._showContrastApplications = function(storedApps) {
-  // transitions on these classes, not a simple display none/table
-  // this._changeTableVisibility(true);
   const vulnsSection = document.getElementById("vulnerabilities-section");
   // const scanLibsText = document.getElementById('scan-libs-text');
   setElementDisplay(vulnsSection, "none");
@@ -114,8 +104,12 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
   // if app is not stored, render the table with buttons to add the domain
   getOrgApplications()
     .then(json => {
-      if (!json) {
-        throw new Error("Error getting applications");
+      if (!json || json instanceof Error) {
+        renderFailureMessage(
+          "Error Getting Applications. Make sure your credentials are correct.",
+          5000
+        );
+        return;
       }
       const applications = this._filterApplications(
         storedApps,
@@ -126,7 +120,10 @@ ApplicationTable.prototype._showContrastApplications = function(storedApps) {
       this.createTableRows(applications, storedApps);
     })
     .catch(() => {
-      return new Error("Error getting applications");
+      renderFailureMessage(
+        "Error Getting Applications. Make sure your credentials are correct.",
+        5000
+      );
     });
 };
 
@@ -216,20 +213,26 @@ ApplicationTable.prototype.createAppTableRow = function(
   }
 };
 
-ApplicationTable.prototype._changeTableVisibility = function() {
-  this.table.classList.toggle("collapsed");
-  // if (!show) {
-  //   this.table.classList.remove(ApplicationTable.TABLE_VISIBLE_CLASS);
-  //   this.table.classList.add(ApplicationTable.TABLE_HIDDEN_CLASS);
-  // } else {
-  //   this.table.classList.add(ApplicationTable.TABLE_VISIBLE_CLASS);
-  //   this.table.classList.remove(ApplicationTable.TABLE_HIDDEN_CLASS);
-  // }
-};
-
 function _appIsConfigured(result, host) {
   return (
     result[STORED_APPS_KEY] &&
     result[STORED_APPS_KEY].filter(app => app[host])[0]
+  );
+}
+
+function renderFailureMessage(message, timeout) {
+  const configButton = document.getElementById("configure-extension-button");
+  const failure = document.getElementById("config-failure");
+  const failureMessage = document.getElementById("config-failure-message");
+  if (message) setElementText(failureMessage, message.toString());
+  changeElementVisibility(failure);
+  setElementDisplay(configButton, "none");
+  hideElementAfterTimeout(
+    failure,
+    () => {
+      configButton.removeAttribute("disabled");
+      setElementDisplay(configButton, "block");
+    },
+    timeout
   );
 }
