@@ -103,6 +103,7 @@ Config.prototype.popupScreen = function(state = null) {
   if (state === 0) {
     this.setCredentialsInSettings();
   }
+  console.log("STATE", state);
   POPUP_STATE.add(state);
   SCREEN_STATE = state;
   return state;

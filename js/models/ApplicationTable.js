@@ -16,8 +16,6 @@ export default function ApplicationTable(url) {
   this.table = document.getElementById("application-table");
   this.tableContainer = this.table.parentElement;
   this.url = url;
-
-  this.rollApplications = this.rollApplications.bind(this);
 }
 
 // NOTE: Used to prevent event listeners from being readded
@@ -36,54 +34,21 @@ ApplicationTable.DOWN_ARROW = `<svg fill="currentColor" preserveAspectRatio="xMi
  * @param  {URL<Object>} url a url object of the current tab
  * @return {void}
  */
-ApplicationTable.prototype.renderApplicationsMenu = function() {
+ApplicationTable.prototype.renderApplicationsMenu = async function() {
   if (document.getElementsByTagName("tr").length < 2) {
-    getOrgApplications()
-      .then(json => {
-        if (!json) {
-          throw new Error("Error getting applications");
-        }
-        json.applications.forEach(app => this.createAppTableRow(app));
-      })
-      .catch(error => new Error(error));
+    const json = await getOrgApplications();
+    if (!json) {
+      return;
+    }
+    const storedApps = await this._getStoredApplications();
+    const applications = this._filterApplications(
+      storedApps,
+      json.applications
+    );
+    if (storedApps) {
+      applications.forEach(app => this.createAppTableRow(app, storedApps));
+    }
   }
-};
-
-/**
- * @description - ApplicationTable.prototype.rollApplications - only appears on contrast "Organization Settings > API" page. Need a roll of applications due to presence of config button.
- *
- * @return {type}  description
- */
-ApplicationTable.prototype.rollApplications = function() {
-  ApplicationTable.showApps = !ApplicationTable.showApps;
-  const arrow = document.getElementById("applications-arrow");
-  if (ApplicationTable.showApps) {
-    this._unrollApplications(arrow);
-  } else {
-    this._rollupApplications(arrow);
-  }
-};
-
-ApplicationTable.prototype._unrollApplications = function(arrow) {
-  arrow.innerHTML = ApplicationTable.DOWN_ARROW;
-
-  // if less than 2 then only the heading row has been rendered
-  if (document.getElementsByTagName("tr").length < 2) {
-    getOrgApplications()
-      .then(json => {
-        if (!json) {
-          throw new Error("Error getting applications");
-        }
-        json.applications.forEach(app => this.createAppTableRow(app));
-      })
-      .catch(error => new Error(error));
-  }
-  this.tableContainer.classList.remove("collapsed");
-};
-
-ApplicationTable.prototype._rollupApplications = function(arrow) {
-  arrow.innerHTML = ApplicationTable.RIGHT_ARROW;
-  this.tableContainer.classList.add("collapsed");
 };
 
 /**
@@ -93,14 +58,15 @@ ApplicationTable.prototype._rollupApplications = function(arrow) {
  * @param  {URL<Object>} url - URL object of current tab
  * @return {type}
  */
-ApplicationTable.prototype.renderActivityFeed = function() {
+ApplicationTable.prototype.renderActivityFeed = async function() {
   // if (isBlacklisted(this.url.host)) {
   //   console.log("blacklisted domain");
   //   return;
   // }
   this.tableContainer.classList.remove("collapsed");
 
-  chrome.storage.local.get(STORED_APPS_KEY, storedApps => {
+  const storedApps = await this._getStoredApplications();
+  if (storedApps) {
     const host = getHostFromUrl(this.url);
     // look in stored apps array for app tied to host, if we are a site/domain tied to an app in contrast, render the vulnerabilities for that app
     if (_appIsConfigured(storedApps, host)) {
@@ -112,6 +78,17 @@ ApplicationTable.prototype.renderActivityFeed = function() {
     } else {
       this._showContrastApplications(storedApps);
     }
+  }
+};
+
+ApplicationTable.prototype._getStoredApplications = function() {
+  return new Promise(resolve => {
+    chrome.storage.local.get(STORED_APPS_KEY, storedApps => {
+      if (!chrome.runtime.lastError) {
+        return resolve(storedApps);
+      }
+      return resolve(null);
+    });
   });
 };
 
@@ -172,7 +149,7 @@ ApplicationTable.prototype._filterApplications = function(
   applications
 ) {
   // if there are apps in storage and we aren't on a contrast page, filter apps so that we only show ones that have NOT been connected to a domain
-  if (!!storedApps[STORED_APPS_KEY] && !isContrastTeamserver(this.url.href)) {
+  if (storedApps[STORED_APPS_KEY] && !isContrastTeamserver(this.url.href)) {
     const appIds = storedApps[STORED_APPS_KEY].map(app => app.id).flatten();
 
     // include in applications if it's not in storage

@@ -51,20 +51,22 @@ export function indexFunction() {
         config.popupScreen();
         if (!credentialed) {
           console.log("Please Configure the Extension");
-        } else if (
-          (credentialed && config._isContrastPage()) ||
-          !config.hasApp
-        ) {
+        } else if (credentialed && config._isContrastPage()) {
+          console.log("1");
           const table = new ApplicationTable(url);
-          config.setGearIcon();
           table.renderApplicationsMenu();
+          config.setGearIcon();
           config.renderContrastUsername(credentials);
         } else {
+          console.log("2");
           config.setGearIcon();
           config.renderContrastUsername(credentials);
           if (!config._isContrastPage()) {
             const table = new ApplicationTable(url);
             table.renderActivityFeed();
+            if (config.hasApp) {
+              table.renderApplicationsMenu();
+            }
           }
         }
       })

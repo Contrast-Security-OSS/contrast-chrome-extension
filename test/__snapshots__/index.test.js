@@ -49,10 +49,6 @@ exports['tests the popup index.html file for changes takes a snapshot of the bas
         </div>
       </div> -->
     </div>
-    <div id="configuration-tabs-container" class="">
-      <button class="config-tab active" type="button" name="button">Configuration</button>
-      <button class="config-tab" type="button" name="button">Applications</button>
-    </div>
   </header>
 
   <section id="vulnerabilities-section" class="panel panel-default section">
@@ -192,10 +188,6 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
           <span id="scan-libs-text" class="scalable-subtext">Scan Libraries</span>
         </div>
       </div> -->
-    </div>
-    <div id="configuration-tabs-container" class="" style="display: none;">
-      <button class="config-tab active" type="button" name="button">Configuration</button>
-      <button class="config-tab" type="button" name="button">Applications</button>
     </div>
   </header>
 
@@ -337,10 +329,6 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
         </div>
       </div> -->
     </div>
-    <div id="configuration-tabs-container" class="" style="display: none;">
-      <button class="config-tab active" type="button" name="button">Configuration</button>
-      <button class="config-tab" type="button" name="button">Applications</button>
-    </div>
   </header>
 
   <section id="vulnerabilities-section" class="panel panel-default section">
@@ -481,10 +469,6 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
         </div>
       </div> -->
     </div>
-    <div id="configuration-tabs-container" class="" style="display: none;">
-      <button class="config-tab active" type="button" name="button">Configuration</button>
-      <button class="config-tab" type="button" name="button">Applications</button>
-    </div>
   </header>
 
   <section id="vulnerabilities-section" class="panel panel-default section">
@@ -624,10 +608,6 @@ exports['tests the popup index.html file for changes takes a snapshot of the not
           <span id="scan-libs-text" class="scalable-subtext">Scan Libraries</span>
         </div>
       </div> -->
-    </div>
-    <div id="configuration-tabs-container" class="" style="display: none;">
-      <button class="config-tab active" type="button" name="button">Configuration</button>
-      <button class="config-tab" type="button" name="button">Applications</button>
     </div>
   </header>
 
