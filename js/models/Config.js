@@ -407,7 +407,7 @@ Config.prototype.renderContrastUsername = function() {
   );
 };
 
-Config.prototype._addListenerToUsername = function(e) {
+Config.prototype._addListenerToUsername = function() {
   const contrastIndex = this.credentials[TEAMSERVER_URL].indexOf("/api");
   const teamserverUrl = this.credentials[TEAMSERVER_URL].substring(
     0,
