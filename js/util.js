@@ -81,7 +81,7 @@ export const CONTRAST_INITIALIZE = "contrast__initialize_user";
 export const CONTRAST_INITIALIZED = "contrast__user_initialized";
 export const CONTRAST__STORED_APP_LIBS = "contrast__stored_libraries";
 export const CONTRAST_WAPPALIZE = "contrast__wappalzye";
-export const WAPPALYZER_SERVICE = "http://localhost:5203";
+// export const WAPPALYZER_SERVICE = "http://localhost:5203";
 
 // don't look for vulnerabilities on these domains
 const BLACKLISTED_DOMAINS = [

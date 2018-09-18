@@ -76,7 +76,6 @@ TableRow.prototype.createConnectButton = function() {
 };
 
 // REMOVE DOMAIN
-
 TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
   // const domain           = connected._getDomainFromApplication();
   const disconnectButton = document.createElement("button");
@@ -87,7 +86,6 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
   appHostSpan.setAttribute("class", HOST_SPAN_CLASS);
   this.nameTD.appendChild(appHostSpan);
 
-  // setElementText(this.buttonTD, Application.subDomainColonForUnderscore(this.host));
   setElementText(disconnectButton, DISCONNECT_BUTTON_TEXT);
 
   disconnectButton.setAttribute("class", CONTRAST_BUTTON_DISCONNECT_CLASS);
@@ -109,7 +107,7 @@ TableRow.prototype.renderDisconnect = function(storedApps, storedApp) {
 
 TableRow.prototype.removeDomainAndButton = function() {
   this.buttonTD.innerHTML = "";
-  this.nameTD.innerHTML = this.application.name;
+  this.nameTD.innerHTML = encodeURIComponent(this.application.name);
 };
 
 // HELPERS

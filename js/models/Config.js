@@ -79,7 +79,6 @@ Config.prototype.popupScreen = function(state = null) {
   if (typeof state !== "number") {
     state = this.getPopupScreen();
   }
-  // console.log("DOCUMENT", document.getElementById("configuration-section"));
   for (let key in POPUP_SCREENS) {
     if (Object.prototype.hasOwnProperty.call(POPUP_SCREENS, key)) {
       if (parseInt(key, 10) !== state) {

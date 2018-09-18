@@ -32,7 +32,7 @@ import {
   updateExtensionIcon
 } from "./util.js";
 
-import { wappalzye } from "./libraries/wappalyzer.js";
+// import { wappalzye } from "./libraries/wappalyzer.js";
 
 import Application from "./models/Application.js";
 import Vulnerability from "./models/Vulnerability.js";
@@ -186,11 +186,11 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
       break;
     }
 
-    case CONTRAST_WAPPALIZE: {
-      const wappalyzedLibraries = await wappalzye(tab);
-      sendResponse(wappalyzedLibraries);
-      break;
-    }
+    // case CONTRAST_WAPPALIZE: {
+    //   const wappalyzedLibraries = await wappalzye(tab);
+    //   sendResponse(wappalyzedLibraries);
+    //   break;
+    // }
 
     default: {
       return request;

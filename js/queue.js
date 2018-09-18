@@ -1,39 +1,35 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
-import {
-	isBlacklisted,
-	removeLoadingBadge,
-  deDupeArray,
-} from './util.js';
+import { isBlacklisted, removeLoadingBadge, deDupeArray } from "./util.js";
 
-import Vulnerability from './models/Vulnerability.js';
+import Vulnerability from "./models/Vulnerability.js";
 
 class Queue {
   constructor() {
-    this.xhrRequests    = [];
-    this.gatheredForms  = [];
-    this.traceIDs       = [];
-    this.xhrReady       = false;
-    this.formsReady     = false;
+    this.xhrRequests = [];
+    this.gatheredForms = [];
+    this.traceIDs = [];
+    this.xhrReady = false;
+    this.formsReady = false;
     this.isCredentialed = false;
-    this.tab            = null;
-    this.application    = null;
-    this.tabUrl         = "";
-		this.executionCount = 0;
+    this.tab = null;
+    this.application = null;
+    this.tabUrl = "";
+    this.executionCount = 0;
   }
 
   addXHRequests(requests, xhrReady) {
-    this.xhrReady    = xhrReady;
+    this.xhrReady = xhrReady;
     this.xhrRequests = this.xhrRequests.concat(requests);
   }
 
   addForms(forms, formsReady) {
-    this.formsReady    = formsReady;
+    this.formsReady = formsReady;
     this.gatheredForms = this.gatheredForms.concat(forms);
   }
 
   setTab(tab) {
     if (!tab.url) throw new Error("Tab URL is falsey, received", tab.url);
-    this.tab    = tab;
+    this.tab = tab;
     this.tabUrl = tab.url;
   }
 
@@ -49,15 +45,15 @@ class Queue {
     this.executionCount += 1;
   }
 
-	resetExecutionCount() {
-		this.executionCount = 0;
-	}
+  resetExecutionCount() {
+    this.executionCount = 0;
+  }
 
   /**
    * NOTE: Not using, doesn't reset *this*, only resets instance
    */
   // resetQueue() {
-	// 	this.xhrRequests    = [];
+  // 	this.xhrRequests    = [];
   //   this.gatheredForms  = [];
   //   this.traceIDs       = [];
   //   this.xhrReady       = false;
@@ -69,20 +65,25 @@ class Queue {
   //   this.executionCount = 0;
   // }
 
-	_highLightVulnerableForms(formTraces) {
-		const highlightActions = formTraces.map(ft => {
-			if (ft.traces && ft.traces.length > 0) {
-				return ft.action;
-			}
-			return false;
-		}).filter(Boolean);
-		Vulnerability.highlightForms(this.tab, highlightActions);
-	}
+  _highLightVulnerableForms(formTraces) {
+    const highlightActions = formTraces
+      .map(ft => {
+        if (ft.traces && ft.traces.length > 0) {
+          return ft.action;
+        }
+        return false;
+      })
+      .filter(Boolean);
+    Vulnerability.highlightForms(this.tab, highlightActions);
+  }
 
-	_evaluateForms() {
-		return Vulnerability.evaluateFormActions(
-			this.gatheredForms, this.tab, this.application);
-	}
+  _evaluateForms() {
+    return Vulnerability.evaluateFormActions(
+      this.gatheredForms,
+      this.tab,
+      this.application
+    );
+  }
 
   async executeQueue(resetXHRRequests) {
     // NOTE: At start loading badge still true
@@ -100,36 +101,34 @@ class Queue {
       this.tab,
       this.tabUrl,
       this.isCredentialed,
-      this.application,
+      this.application
     ];
 
     if (!conditions.every(Boolean)) {
-      console.log("Queue not ready to execute!", conditions);
-			return;
+      // console.log("Queue not ready to execute!", conditions);
+      return;
     }
 
-  	await Vulnerability.removeVulnerabilitiesFromStorage(this.tab); //eslint-disable-line
+    await Vulnerability.removeVulnerabilitiesFromStorage(this.tab); //eslint-disable-line
 
-		// NOTE: In order to highlight vulnerable forms, form actions must be evaluated separately
-		const formTraces = await this._evaluateForms();
+    // NOTE: In order to highlight vulnerable forms, form actions must be evaluated separately
+    const formTraces = await this._evaluateForms();
 
-
-		if (formTraces && formTraces.length > 0) {
-			this._highLightVulnerableForms(formTraces);
-		}
+    if (formTraces && formTraces.length > 0) {
+      this._highLightVulnerableForms(formTraces);
+    }
 
     let traceUrls = this.xhrRequests.concat([this.tabUrl]);
-        traceUrls = traceUrls.filter(tu => !isBlacklisted(tu));
-        traceUrls = traceUrls.map(trace => (new URL(trace)).pathname);
-
+    traceUrls = traceUrls.filter(tu => !isBlacklisted(tu));
+    traceUrls = traceUrls.map(trace => new URL(trace).pathname);
 
     Vulnerability.evaluateVulnerabilities(
-      this.isCredentialed,    // if credentialed already
-      this.tab, 					    // current tab
+      this.isCredentialed, // if credentialed already
+      this.tab, // current tab
       deDupeArray(traceUrls), // gathered xhr requests from page load
-      this.application, 	    // current app
-			(formTraces ? formTraces.map(f => f.traces).flatten() : []),
-			resetXHRRequests
+      this.application, // current app
+      formTraces ? formTraces.map(f => f.traces).flatten() : [],
+      resetXHRRequests
     );
 
     this._increaseExecutionCount();
@@ -138,7 +137,6 @@ class Queue {
 }
 
 export default Queue;
-
 
 /**
  * 1. Check that application for tab URL has been connected
