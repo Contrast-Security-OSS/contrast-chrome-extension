@@ -36,6 +36,7 @@ export default function Config(tab, url, credentialed, credentials, hasApp) {
   this._handleGearClick = this._handleGearClick.bind(this);
   this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
   this._addListenerToUsername = this._addListenerToUsername.bind(this);
+  this._handleBackButtonClick = this._handleBackButtonClick.bind(this);
 }
 
 // NOTE: States
@@ -436,20 +437,18 @@ Config.prototype._handleGearClick = function() {
   if (SCREEN_STATE !== CREDENTIALED_CONFIG_SCREEN) {
     this.popupScreen(CREDENTIALED_CONFIG_SCREEN);
     if (this.hasApp) {
-      this._setBackButton(true, this._handleGearClick);
+      this._setBackButton(true);
     }
   } else if (
     SCREEN_STATE === CREDENTIALED_CONFIG_SCREEN &&
     POPUP_STATE.has(VULNS_SCREEN)
   ) {
     this.popupScreen(VULNS_SCREEN);
-    if (this.hasApp) {
-      this._setBackButton(false, this._handleGearClick);
-    }
+    this._setBackButton(false);
   } else {
     this.popupScreen(CREDENTIALED_CONFIG_SCREEN);
     if (this.hasApp) {
-      this._setBackButton(true, this._handleGearClick);
+      this._setBackButton(true);
     }
   }
 };
@@ -458,32 +457,35 @@ Config.prototype._handleAppsClick = function() {
   if (SCREEN_STATE !== APPS_SCREEN) {
     this.popupScreen(APPS_SCREEN);
     if (this.hasApp) {
-      this._setBackButton(true, this._handleAppsClick);
+      this._setBackButton(true);
     }
   } else if (SCREEN_STATE === APPS_SCREEN && POPUP_STATE.has(VULNS_SCREEN)) {
     this.popupScreen(VULNS_SCREEN);
-    if (this.hasApp) {
-      this._setBackButton(false, this._handleAppsClick);
-    }
+    this._setBackButton(false);
   } else {
     this.popupScreen(APPS_SCREEN);
     if (this.hasApp) {
-      this._setBackButton(true, this._handleAppsClick);
+      this._setBackButton(true);
     }
   }
 };
 
-Config.prototype._setBackButton = function(set, callback) {
+Config.prototype._setBackButton = function(set) {
   const username = document.getElementById('user-email');
   username.removeEventListener('click', this._addListenerToUsername);
-  username.removeEventListener('click', callback);
+  username.removeEventListener('click', this._handleBackButtonClick);
   if (set) {
     setElementText(username, "Back");
-    username.addEventListener('click', callback);
+    username.addEventListener('click', this._handleBackButtonClick);
   } else {
     setElementText(username, this.credentials[CONTRAST_USERNAME]);
     this.renderContrastUsername();
   }
+}
+
+Config.prototype._handleBackButtonClick = function() {
+  this.popupScreen(VULNS_SCREEN);
+  this._setBackButton(false);
 }
 
 function loadingIconHTML() {
