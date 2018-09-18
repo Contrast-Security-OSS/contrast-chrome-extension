@@ -22,7 +22,6 @@ import {
   LOADING_DONE,
   APPLICATION_CONNECTED,
   APPLICATION_DISCONNECTED,
-  CONTRAST_WAPPALIZE,
   getStoredCredentials,
   isCredentialed,
   isBlacklisted,

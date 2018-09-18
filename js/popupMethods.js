@@ -42,9 +42,9 @@ function populateVulnerabilitySection(
     getShortVulnerabilities(traces, application.id)
       .then(sortedTraces => {
         hideLoadingIcon();
-        sortedTraces.map(trace =>
-          renderListItem(trace, teamserverUrl, orgUuid, application)
-        );
+        sortedTraces.map(trace => {
+          return renderListItem(trace, teamserverUrl, orgUuid, application);
+        });
       })
       .catch(new Error("Error rendering sorted traces into list items."));
   }
