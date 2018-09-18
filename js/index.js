@@ -51,10 +51,10 @@ export function indexFunction() {
           const table = new ApplicationTable(url);
           table.renderApplicationsMenu();
           config.setGearIcon();
-          config.renderContrastUsername(credentials);
+          config.renderContrastUsername();
         } else {
           config.setGearIcon();
-          config.renderContrastUsername(credentials);
+          config.renderContrastUsername();
           if (!config._isContrastPage()) {
             const table = new ApplicationTable(url);
             table.renderActivityFeed();

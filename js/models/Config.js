@@ -35,6 +35,7 @@ export default function Config(tab, url, credentialed, credentials, hasApp) {
   this._handleAppsClick = this._handleAppsClick.bind(this);
   this._handleGearClick = this._handleGearClick.bind(this);
   this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
+  this._addListenerToUsername = this._addListenerToUsername.bind(this);
 }
 
 // NOTE: States
@@ -396,22 +397,24 @@ Config.prototype._isContrastPage = function() {
   return conditions.every(c => !!c);
 };
 
-Config.prototype.renderContrastUsername = function(credentials) {
+Config.prototype.renderContrastUsername = function() {
   const userEmail = document.getElementById("user-email");
-  setElementText(userEmail, credentials[CONTRAST_USERNAME]);
+  setElementText(userEmail, this.credentials[CONTRAST_USERNAME]);
   userEmail.addEventListener(
     "click",
-    () => {
-      const contrastIndex = credentials.teamserver_url.indexOf("/api");
-      const teamserverUrl = credentials.teamserver_url.substring(
-        0,
-        contrastIndex
-      );
-      chrome.tabs.create({ url: teamserverUrl });
-    },
+    this._addListenerToUsername,
     false
   );
 };
+
+Config.prototype._addListenerToUsername = function(e) {
+  const contrastIndex = this.credentials[TEAMSERVER_URL].indexOf("/api");
+  const teamserverUrl = this.credentials[TEAMSERVER_URL].substring(
+    0,
+    contrastIndex
+  );
+  chrome.tabs.create({ url: teamserverUrl });
+}
 
 Config.prototype.setGearIcon = function() {
   // configure button opens up settings page in new tab
@@ -432,25 +435,44 @@ Config.prototype._handleGearClick = function() {
 
   if (SCREEN_STATE !== CREDENTIALED_CONFIG_SCREEN) {
     this.popupScreen(CREDENTIALED_CONFIG_SCREEN);
+    this._setBackButton(true, this._handleGearClick);
   } else if (
     SCREEN_STATE === CREDENTIALED_CONFIG_SCREEN &&
     POPUP_STATE.has(VULNS_SCREEN)
   ) {
     this.popupScreen(VULNS_SCREEN);
+    this._setBackButton(false, this._handleGearClick);
   } else {
     this.popupScreen(CREDENTIALED_CONFIG_SCREEN);
+    this._setBackButton(true, this._handleGearClick);
   }
 };
 
 Config.prototype._handleAppsClick = function() {
   if (SCREEN_STATE !== APPS_SCREEN) {
     this.popupScreen(APPS_SCREEN);
+    this._setBackButton(true, this._handleAppsClick);
   } else if (SCREEN_STATE === APPS_SCREEN && POPUP_STATE.has(VULNS_SCREEN)) {
     this.popupScreen(VULNS_SCREEN);
+    this._setBackButton(false, this._handleAppsClick);
   } else {
     this.popupScreen(APPS_SCREEN);
+    this._setBackButton(true, this._handleAppsClick);
   }
 };
+
+Config.prototype._setBackButton = function(set, callback) {
+  const username = document.getElementById('user-email');
+  username.removeEventListener('click', this._addListenerToUsername);
+  username.removeEventListener('click', callback);
+  if (set) {
+    setElementText(username, "Back");
+    username.addEventListener('click', callback);
+  } else {
+    setElementText(username, this.credentials[CONTRAST_USERNAME]);
+    this.renderContrastUsername();
+  }
+}
 
 function loadingIconHTML() {
   return `<img style="float: right; padding-bottom: 20px; width: 50px;" id="config-loading-icon" class="loading-icon" src="/img/ring-alt.gif" alt="loading">`;
