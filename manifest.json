@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Contrast Extension",
+  "name": "Contrast",
   "description": "Allows the user to get information from Contrast conveniently in a Chrome extension",
   "version": "0.1",
   "browser_action": {

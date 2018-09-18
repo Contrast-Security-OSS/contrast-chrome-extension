@@ -1,13 +1,12 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import {
   STORED_APPS_KEY,
-  // CONTRAST_CONFIGURE_TEXT,
-  // CONTRAST_YELLOW,
   CONTRAST_GREEN,
   getHostFromUrl,
   isBlacklisted,
   updateTabBadge,
-  updateExtensionIcon
+  updateExtensionIcon,
+  isEmptyObject
 } from "../util.js";
 
 export default function Application(host, teamserverApplication) {
@@ -77,6 +76,8 @@ Application.retrieveApplicationFromStorage = function(tab) {
  */
 Application.getStoredApp = function(appsInStorage, application) {
   if (!application) throw new Error("application must be defined");
+  console.log("APPS IN STORAGE", appsInStorage);
+  if (isEmptyObject(appsInStorage)) return;
   const storedApps = appsInStorage[STORED_APPS_KEY] || appsInStorage;
   return storedApps.filter(app => {
     return app.id === application.app_id;
