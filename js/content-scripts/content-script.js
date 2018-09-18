@@ -83,22 +83,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true; // NOTE: Keep this
 });
 
-function _dataQuery(key) {
-  const dataAttr = "data-contrast-scrape";
-  const keys = {
-    0: "contrast-api-key",
-    1: "contrast-organization-uuid",
-    2: "contrast-contrast-url",
-    3: "contrast-service-key",
-    4: "contrast-username"
-  };
-  document.querySelector('[key-status-rotated=""]');
-  const element = document.querySelector(`[${dataAttr}=${keys[key]}]`);
-  // ex. document.querySelector('data-contrast-scrape=contrast-username')
-  if (!element) return;
-
-  return element.textContent;
-}
+// function _dataQuery(key) {
+//   const dataAttr = "data-contrast-scrape";
+//   const keys = {
+//     0: "contrast-api-key",
+//     1: "contrast-organization-uuid",
+//     2: "contrast-contrast-url",
+//     3: "contrast-service-key",
+//     4: "contrast-username"
+//   };
+//   document.querySelector('[key-status-rotated=""]');
+//   const element = document.querySelector(`[${dataAttr}=${keys[key]}]`);
+//   // ex. document.querySelector('data-contrast-scrape=contrast-username')
+//   if (!element) return;
+//
+//   return element.textContent;
+// }
 
 function _scrapeServiceKey() {
   const key = "key-status-rotated";

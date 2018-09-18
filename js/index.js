@@ -12,11 +12,7 @@ URL,
 // import Application from './models/Application.js';
 // import ApplicationLibrary from './libraries/ApplicationLibrary.js';
 
-import {
-  getStoredCredentials,
-  isCredentialed,
-  setElementDisplay
-} from "./util.js";
+import { getStoredCredentials, isCredentialed } from "./util.js";
 
 import Application from "./models/Application.js";
 import ApplicationTable from "./models/ApplicationTable.js";
@@ -52,13 +48,11 @@ export function indexFunction() {
         if (!credentialed) {
           console.log("Please Configure the Extension");
         } else if (credentialed && config._isContrastPage()) {
-          console.log("1");
           const table = new ApplicationTable(url);
           table.renderApplicationsMenu();
           config.setGearIcon();
           config.renderContrastUsername(credentials);
         } else {
-          console.log("2");
           config.setGearIcon();
           config.renderContrastUsername(credentials);
           if (!config._isContrastPage()) {
@@ -80,10 +74,10 @@ export function indexFunction() {
 document.addEventListener("DOMContentLoaded", indexFunction, false);
 // document.addEventListener('DOMContentLoaded', showRefreshButton, false);
 
-const CONFIG_TAB_FUNCTIONS = {
-  Configuration: () => renderCredentials(),
-  Applications: () => renderApplications()
-};
+// const CONFIG_TAB_FUNCTIONS = {
+//   Configuration: () => renderCredentials(),
+//   Applications: () => renderApplications()
+// };
 
 // function showRefreshButton() {
 //   const refreshLibsButton = document.getElementById('scan-libs-text');
