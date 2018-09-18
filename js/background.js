@@ -365,7 +365,8 @@ function notifyUserToConfigure(tab) {
     !chrome.runtime.lastError
   ];
   if (!TAB_CLOSED && conditions.some(c => !!c)) {
-    updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
+    updateExtensionIcon(tab, 2);
+    // updateTabBadge(tab, CONTRAST_CONFIGURE_TEXT, CONTRAST_YELLOW);
     TAB_CLOSED = false;
   }
 }

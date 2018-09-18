@@ -18,7 +18,6 @@ global.window = new JSDOM(
 global.window.localStorage = storageMock;
 global.document = global.window.document;
 
-
 const VulnerableTab = require('../../lib/models/VulnerableTab.js');
 
 const util       = require('../../lib/util.js');
@@ -28,9 +27,9 @@ const Application = ApplicationModel.default;
 
 const {
   _handleRuntimeOnMessage,
-  APPLICATION_CONNECTED,
-  APPLICATION_DISCONNECTED,
-  LOADING_DONE,
+  resetXHRRequests,
+  TAB_CLOSED,
+  notifyUserToConfigure,
 } = background;
 
 describe('tests for background methods', function() {
@@ -91,6 +90,21 @@ describe('tests for background methods', function() {
 
     expect(spy.calledOnce).equal(true);
     expect(spy.calledWith(params)).equal(true);
+  });
+
+  it('resets xhr requests', function() {
+    window.XHR_REQUESTS = ["a", "b", "c", "d"];
+    resetXHRRequests();
+    expect(window.XHR_REQUESTS.length).equal(0);
+  });
+
+  it('notifies a user to config', function() {
+    let tab = {
+      url: "http://app.contrastsecurity.com/Contrast/static/ng/index.html#/account"
+    }
+    let spy = sinon.spy(util, 'updateExtensionIcon');
+    updateExtensionIcon(tab, 2);
+    expect(spy.calledOnce).equal(true);
   });
 
   // it('directs the runtime message to the correct method', function() {

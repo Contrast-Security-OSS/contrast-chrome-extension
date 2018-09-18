@@ -22,7 +22,7 @@ import {
 
 // import ApplicationTable from './ApplicationTable.js';
 import { indexFunction } from "../index.js";
-import ContrastCredentials from "./contrastCredentials.js";
+import ContrastCredentials from "./ContrastCredentials.js";
 
 export default function Config(tab, url, credentialed, credentials, hasApp) {
   this.tab = tab;
@@ -34,7 +34,6 @@ export default function Config(tab, url, credentialed, credentials, hasApp) {
   this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
   this._handleAppsClick = this._handleAppsClick.bind(this);
   this._handleGearClick = this._handleGearClick.bind(this);
-  this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
   this._addListenerToUsername = this._addListenerToUsername.bind(this);
   this._handleBackButtonClick = this._handleBackButtonClick.bind(this);
 }
@@ -388,7 +387,7 @@ Config.prototype._isTeamserverAccountPage = function() {
 
 Config.prototype._isContrastPage = function() {
   if (!this.tab || !this.url) {
-    throw new Error("_isTeamserverAccountPage expects tab or url");
+    throw new Error("_isContrastPage expects tab or url");
   }
   const conditions = [
     this.tab.url.startsWith("http"),

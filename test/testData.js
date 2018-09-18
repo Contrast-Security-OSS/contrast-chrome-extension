@@ -1,5 +1,13 @@
 const ApplicationModel = require('../lib/models/Application.js');
 const Application = ApplicationModel.default;
+const util       = require('../lib/util.js');
+const {
+  CONTRAST_USERNAME,
+  CONTRAST_SERVICE_KEY,
+  CONTRAST_API_KEY,
+  CONTRAST_ORG_UUID,
+  TEAMSERVER_URL,
+} = util;
 
 const returnShortTraceData = {
   success: true,
@@ -334,10 +342,26 @@ const organizationApps = [
   }
 ];
 
-const url = "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/ddac16d8-e915-47b1-a8c9-0c142ab17beb/ids?urls=aHR0cDovL2xvY2FsaG9zdDozMDAwL3VzZXJzL3NpZ25pbg==,L3VzZXJzL3NpZ25pbg==,Y2hyb21lLWV4dGVuc2lvbjovL3BjampubGZjZmFmaG9taWJvaG5lbGdjam5ibmxob3BuL2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4=,L2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4="
+const teamserverURL = "http://localhost:19080/Contrast/api/ng/04bfd6c5-b24e-4610-b8b9-bcbde09f8e15/traces/ddac16d8-e915-47b1-a8c9-0c142ab17beb/ids?urls=aHR0cDovL2xvY2FsaG9zdDozMDAwL3VzZXJzL3NpZ25pbg==,L3VzZXJzL3NpZ25pbg==,Y2hyb21lLWV4dGVuc2lvbjovL3BjampubGZjZmFmaG9taWJvaG5lbGdjam5ibmxob3BuL2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4=,L2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMC91c2Vycy9zaWduaW4="
+
+const fakeTab = {
+  id: 1,
+  url: "http://localhost:8080/WebGoat"
+}
+
+const fakeCreds = {
+  [CONTRAST_USERNAME]: "userMcUserson",
+  [CONTRAST_SERVICE_KEY]: "serviceKey123",
+  [CONTRAST_API_KEY]: "apiKey123",
+  [CONTRAST_ORG_UUID]: "820b994a-c848-4e50-9f9c-23b6305a8b24",
+  [TEAMSERVER_URL]: "http://localhost:19090/Contrast/api",
+}
 
 module.exports = {
-  url,
+  fakeCreds,
+  fakeTab,
+  teamserverURL,
+  url: teamserverURL,
   traceUrls,
   returnShortTraceData,
   returnShortTraceDataLowSeverity,
