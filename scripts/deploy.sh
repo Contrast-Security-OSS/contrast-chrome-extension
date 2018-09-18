@@ -14,3 +14,10 @@ cp -r html $DIST_DIR
 cp -r scripts $DIST_DIR
 cp style.css $DIST_DIR
 cp manifest.json $DIST_DIR
+
+rm -rfv $DIST_DIR/scripts/*.sh
+
+timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+
+mkdir -p $PROJECT_ROOT/builds
+zip -r $PROJECT_ROOT/builds/contrast-${timestamp}.zip $DIST_DIR
