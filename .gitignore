@@ -3,8 +3,8 @@
 node_modules/
 tests_output
 
-dist/
+dist/*
 !dist/.keep
 
-builds/
+builds/*
 !builds/.keep
