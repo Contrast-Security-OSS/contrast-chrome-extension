@@ -435,29 +435,41 @@ Config.prototype._handleGearClick = function() {
 
   if (SCREEN_STATE !== CREDENTIALED_CONFIG_SCREEN) {
     this.popupScreen(CREDENTIALED_CONFIG_SCREEN);
-    this._setBackButton(true, this._handleGearClick);
+    if (this.hasApp) {
+      this._setBackButton(true, this._handleGearClick);
+    }
   } else if (
     SCREEN_STATE === CREDENTIALED_CONFIG_SCREEN &&
     POPUP_STATE.has(VULNS_SCREEN)
   ) {
     this.popupScreen(VULNS_SCREEN);
-    this._setBackButton(false, this._handleGearClick);
+    if (this.hasApp) {
+      this._setBackButton(false, this._handleGearClick);
+    }
   } else {
     this.popupScreen(CREDENTIALED_CONFIG_SCREEN);
-    this._setBackButton(true, this._handleGearClick);
+    if (this.hasApp) {
+      this._setBackButton(true, this._handleGearClick);
+    }
   }
 };
 
 Config.prototype._handleAppsClick = function() {
   if (SCREEN_STATE !== APPS_SCREEN) {
     this.popupScreen(APPS_SCREEN);
-    this._setBackButton(true, this._handleAppsClick);
+    if (this.hasApp) {
+      this._setBackButton(true, this._handleAppsClick);
+    }
   } else if (SCREEN_STATE === APPS_SCREEN && POPUP_STATE.has(VULNS_SCREEN)) {
     this.popupScreen(VULNS_SCREEN);
-    this._setBackButton(false, this._handleAppsClick);
+    if (this.hasApp) {
+      this._setBackButton(false, this._handleAppsClick);
+    }
   } else {
     this.popupScreen(APPS_SCREEN);
-    this._setBackButton(true, this._handleAppsClick);
+    if (this.hasApp) {
+      this._setBackButton(true, this._handleAppsClick);
+    }
   }
 };
 
