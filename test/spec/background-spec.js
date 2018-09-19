@@ -29,6 +29,7 @@ const util       = require('../../lib/util.js');
 const background = require('../../lib/background.js');
 const ApplicationModel = require('../../lib/models/Application.js');
 const Application = ApplicationModel.default;
+const DomainStorage = require('../../lib/models/DomainStorage.js').default;
 
 const VulnerableTab = require('../../lib/models/VulnerableTab.js').default;
 
@@ -38,6 +39,7 @@ const {
   APPLICATION_CONNECTED,
   APPLICATION_DISCONNECTED,
   LOADING_DONE,
+  CONNECTED_APP_DOMAINS,
 } = util;
 
 let {
@@ -48,8 +50,14 @@ let {
 } = background;
 
 describe('tests for background methods', function() {
+
+  let XHRDomainsStub = sinon.stub(DomainStorage.prototype, 'constructor');
+  XHRDomainsStub.returns({ domains: ["http://localhost:*/*"] });
+  // let XHRDomainsAddDomainStub;
+  // let XHRDomainsRemoveDomainStub;
   beforeEach(function() {
     global.fetch = fetch;
+    window.localStorage.setItem(CONNECTED_APP_DOMAINS, [])
     chrome.flush();
     chrome.reset();
     chrome.runtime.sendMessage.flush();
@@ -142,30 +150,36 @@ describe('tests for background methods', function() {
 
     it('returns null because the request is null', function(done) {
       let req = null;
-      let res = _handleRuntimeOnMessage(req, () => null, fakeTab);
+      let spy = sinon.spy();
+      let res = _handleRuntimeOnMessage(req, spy, fakeTab);
       expect(res instanceof Promise).equal(true);
       res.then(ret => {
         expect(ret).equal(req);
+        expect(spy.calledOnce).equal(false);
         done();
       }).catch(done);
     });
 
     it('returns the request because there is no action', function(done) {
       let req = {};
-      let res = _handleRuntimeOnMessage(req, () => null, fakeTab);
+      let spy = sinon.spy();
+      let res = _handleRuntimeOnMessage(req, spy, fakeTab);
       expect(res instanceof Promise).equal(true);
       res.then(ret => {
         expect(JSON.stringify(ret)).equal(JSON.stringify(req));
+        expect(spy.calledOnce).equal(false);
         done();
       }).catch(done);
     });
 
     it('returns the request because the action is not a case', function(done) {
+      let spy = sinon.spy();
       let req = { action: "ACTION" };
-      let res = _handleRuntimeOnMessage(req, () => null, fakeTab);
+      let res = _handleRuntimeOnMessage(req, spy, fakeTab);
       expect(res instanceof Promise).equal(true);
       res.then(ret => {
         expect(JSON.stringify(ret)).equal(JSON.stringify(req));
+        expect(spy.calledOnce).equal(false);
         done();
       }).catch(done);
     });
@@ -205,40 +219,67 @@ describe('tests for background methods', function() {
         done();
       }).catch(done);
     });
+
+    it('adds domains to storage', function() {
+      let domains = ["contrastsecurity", "localhost:8080"];
+      let req = {
+        action: APPLICATION_CONNECTED,
+        data: {
+          domains,
+        },
+      };
+      let spy = sinon.spy();
+      let res = _handleRuntimeOnMessage(req, spy, fakeTab);
+      expect(res instanceof Promise).equal(true);
+      expect(spy.calledOnce).equal(false);
+      expect(window.localStorage.getItem(CONNECTED_APP_DOMAINS)).equal(JSON.stringify(domains));
+    });
+
+    it('removes domains from storage', function() {
+      let domains = ["contrastsecurity", "localhost:8080"];
+      let req = {
+        action: APPLICATION_CONNECTED,
+        data: {
+          domains,
+        },
+      };
+      let spy = sinon.spy();
+      let res = _handleRuntimeOnMessage(req, spy, fakeTab);
+      expect(window.localStorage.getItem(CONNECTED_APP_DOMAINS)).equal(JSON.stringify(domains));
+      expect(res instanceof Promise).equal(true);
+      expect(spy.calledOnce).equal(false);
+      req = {
+        action: APPLICATION_DISCONNECTED,
+        data: {
+          domains: ["contrastsecurity"],
+        },
+      }
+
+      res = _handleRuntimeOnMessage(req, spy, fakeTab);
+      expect(res instanceof Promise).equal(true);
+      expect(spy.calledOnce).equal(false);
+      expect(window.localStorage.getItem(CONNECTED_APP_DOMAINS))
+        .equal(JSON.stringify(["localhost:8080"]));
+
+      req.data.domains = ["localhost:8080"];
+      res = _handleRuntimeOnMessage(req, spy, fakeTab);
+      expect(res instanceof Promise).equal(true);
+      expect(spy.calledOnce).equal(false);
+      expect(window.localStorage.getItem(CONNECTED_APP_DOMAINS))
+        .equal(JSON.stringify([]));
+    });
+
+    it('indicates that the page has finished loading', function() {
+      let spy = sinon.spy();
+      req = {
+        action: LOADING_DONE,
+      }
+      expect(window.PAGE_FINISHED_LOADING).equal(false);
+      res = _handleRuntimeOnMessage(req, spy, fakeTab);
+      expect(res instanceof Promise).equal(true);
+      expect(spy.calledOnce).equal(false);
+      expect(window.PAGE_FINISHED_LOADING).equal(true);
+    });
   });
-  // it('directs the runtime message to the correct method', function() {
-  //   const spy = sinon.spy();
-  //   const vulnSpy = sinon.spy(VulnerableTab.default);
-  //   const tab = {
-  //     id: 1,
-  //     url: "http://www.example.com/abc"
-  //   };
-  //
-  // //   APPLICATION_CONNECTED
-  // // APPLICATION_DISCONNECTED
-  // // LOADING_DONE
-  // // TRACES_REQUEST
-  //
-  //   const request = {
-  //     application: {
-  //       id    : "123",
-  //       name  : "name",
-  //       domain: "example.com",
-  //       host  : "example.com",
-  //     }
-  //   }
-  //
-  //   let hand;
-  //   request.action = TRACES_REQUEST;
-  //
-  //   _handleRuntimeOnMessage(request, spy, tab)
-  //   expect(vulnSpy.called).equal(true);
-  //
-  //   // expect(chrome.storage.local.get.calledOnce).equal(true);
-  //   // hand = _handleRuntimeOnMessage(TRACES_REQUEST, spy, tab);
-  //   // expect(chrome.storage.local.get.calledTwice).equal(true);
-  //   //
-  //   // hand = _handleRuntimeOnMessage("not a thing", spy, tab);
-  //   // expect(hand).equal("not a thing");
-  // });
+
 });

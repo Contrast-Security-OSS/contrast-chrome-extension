@@ -140,9 +140,9 @@ function fetchTeamserver(url, params, authHeader, apiKey, method = "GET") {
   const fetchOptions = {
     method,
     headers: new Headers({
-      Authorization: authHeader,
+      "Authorization": authHeader,
       "API-Key": apiKey,
-      Accept: "application/json"
+      "Accept": "application/json"
     })
   };
   if (method !== "GET") {
@@ -262,7 +262,6 @@ function getStoredCredentials() {
 function getOrganizationVulnerabilityIds(urls, appId) {
   return getStoredCredentials().then(items => {
     if (!items) throw new Error("Error retrieving credentials from storage");
-
     const url = getOrganizationVulnerabilitiesIdsUrl(
       items[TEAMSERVER_URL],
       items[CONTRAST_ORG_UUID],
@@ -272,7 +271,6 @@ function getOrganizationVulnerabilityIds(urls, appId) {
       items[CONTRAST_USERNAME],
       items[CONTRAST_SERVICE_KEY]
     );
-
     const params = "?urls=" + urls;
     return fetchTeamserver(url, params, authHeader, items[CONTRAST_API_KEY]);
   });

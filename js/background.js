@@ -155,11 +155,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @param  {Object} 	tab
  */
 async function _handleRuntimeOnMessage(request, sendResponse, tab) {
-  console.log("REQUEST", request);
   if (request) {
     switch (request.action) {
       case TRACES_REQUEST: {
-        console.log("TRACES_REQUEST");
         const tabPath = VulnerableTab.buildTabPath(tab.url);
         const vulnerableTab = new VulnerableTab(
           tabPath,
@@ -172,19 +170,16 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
       }
 
       case APPLICATION_CONNECTED: {
-        console.log("APPLICATION_CONNECTED");
         XHRDomains.addDomainsToStorage(request.data.domains);
         break;
       }
 
       case APPLICATION_DISCONNECTED: {
-        console.log("APPLICATION_DISCONNECTED");
         XHRDomains.removeDomainsFromStorage(request.data.domains);
         break;
       }
 
       case LOADING_DONE: {
-        console.log("LOADING DONE");
         window.PAGE_FINISHED_LOADING = true;
         break;
       }
@@ -196,12 +191,10 @@ async function _handleRuntimeOnMessage(request, sendResponse, tab) {
       // }
 
       default: {
-        console.log("RETURNING DEFAULT", request);
         return request;
       }
     }
   }
-  console.log("RETURNING REQUEST", request);
   return request;
 }
 
@@ -339,7 +332,7 @@ function _gatherFormsFromPage(tab) {
         if (res && res.formActions && Array.isArray(res.formActions)) {
           return resolve(res.formActions);
         }
-        console.error("Error Gathering Forms");
+        // console.error("Error Gathering Forms");
         return resolve([]);
       }
     );
