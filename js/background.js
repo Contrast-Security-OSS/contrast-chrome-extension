@@ -157,44 +157,53 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @param  {Object} 	tab
  */
 async function _handleRuntimeOnMessage(request, sendResponse, tab) {
-  switch (request.action) {
-    case TRACES_REQUEST: {
-      const tabPath = VulnerableTab.buildTabPath(tab.url);
-      const vulnerableTab = new VulnerableTab(
-        tabPath,
-        request.application.name
-      );
-      const storedTabs = await vulnerableTab.getStoredTab();
-      sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
-      removeLoadingBadge(tab);
-      break;
-    }
+  console.log("REQUEST", request);
+  if (request) {
+    switch (request.action) {
+      case TRACES_REQUEST: {
+        console.log("TRACES_REQUEST");
+        const tabPath = VulnerableTab.buildTabPath(tab.url);
+        const vulnerableTab = new VulnerableTab(
+          tabPath,
+          request.application.name
+        );
+        const storedTabs = await vulnerableTab.getStoredTab();
+        sendResponse({ traces: storedTabs[vulnerableTab.vulnTabId] });
+        removeLoadingBadge(tab);
+        break;
+      }
 
-    case APPLICATION_CONNECTED: {
-      XHRDomains.addDomainsToStorage(request.data.domains);
-      break;
-    }
+      case APPLICATION_CONNECTED: {
+        console.log("APPLICATION_CONNECTED");
+        XHRDomains.addDomainsToStorage(request.data.domains);
+        break;
+      }
 
-    case APPLICATION_DISCONNECTED: {
-      XHRDomains.removeDomainsFromStorage(request.data.domains);
-      break;
-    }
+      case APPLICATION_DISCONNECTED: {
+        console.log("APPLICATION_DISCONNECTED");
+        XHRDomains.removeDomainsFromStorage(request.data.domains);
+        break;
+      }
 
-    case LOADING_DONE: {
-      window.PAGE_FINISHED_LOADING = true;
-      break;
-    }
+      case LOADING_DONE: {
+        console.log("LOADING DONE");
+        window.PAGE_FINISHED_LOADING = true;
+        break;
+      }
 
-    // case CONTRAST_WAPPALIZE: {
-    //   const wappalyzedLibraries = await wappalzye(tab);
-    //   sendResponse(wappalyzedLibraries);
-    //   break;
-    // }
+      // case CONTRAST_WAPPALIZE: {
+      //   const wappalyzedLibraries = await wappalzye(tab);
+      //   sendResponse(wappalyzedLibraries);
+      //   break;
+      // }
 
-    default: {
-      return request;
+      default: {
+        console.log("RETURNING DEFAULT", request);
+        return request;
+      }
     }
   }
+  console.log("RETURNING REQUEST", request);
   return request;
 }
 
@@ -355,7 +364,6 @@ chrome.tabs.onRemoved.addListener(() => {
  */
 function notifyUserToConfigure(tab) {
   if (chrome.runtime.lastError) return;
-
   const url = new URL(tab.url);
   const conditions = [
     VALID_TEAMSERVER_HOSTNAMES.includes(url.hostname) &&
