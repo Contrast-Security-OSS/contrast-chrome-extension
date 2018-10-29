@@ -127,7 +127,7 @@ TableRow.prototype._showMessage = function(result, connect) {
     setElementDisplay(tableContainer, "none");
     // hideElementAfterTimeout(message);
   } else if (!result && !connect) {
-    this._failDisonnect(message);
+    this._failDisconnect(message);
     message.setAttribute("style", `color: ${CONTRAST_RED}`);
     setElementDisplay(tableContainer, "none");
     // hideElementAfterTimeout(message);
@@ -138,10 +138,14 @@ TableRow.prototype._showMessage = function(result, connect) {
 };
 
 TableRow.prototype._handleConnectError = function(error) {
-  const message = document.getElementById("connected-domain-message");
-  this._failDisonnect(message);
-  hideElementAfterTimeout(message);
-  throw new Error(error);
+  const errorElement = document.getElementById('error-message-footer');
+  setElementDisplay(errorElement, "block");
+  setElementText(errorElement, `${error.toString()}`);
+  setTimeout(() => setElementDisplay(errorElement, "none"), 10000);
+  // const message = document.getElementById("connected-domain-message");
+  // this._failConnect(message);
+  // hideElementAfterTimeout(message);
+  // throw new Error(error);
 };
 
 TableRow.prototype._successConnect = function(message) {
@@ -160,7 +164,7 @@ TableRow.prototype._failConnect = function(message) {
   message.setAttribute("style", `color: ${CONTRAST_RED}`);
 };
 
-TableRow.prototype._failDisonnect = function(message) {
+TableRow.prototype._failDisconnect = function(message) {
   setElementText(message, DISCONNECT_FAILURE_MESSAGE);
   message.setAttribute("style", `color: ${CONTRAST_RED}`);
 };

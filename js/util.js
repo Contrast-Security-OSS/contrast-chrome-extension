@@ -581,10 +581,10 @@ function setElementDisplay(element, display) {
 }
 
 function setElementText(element, text) {
-  if (!element || typeof text !== "string") {
-    throw new Error(
-      "Either no element or text received when setting element text"
-    );
+  if (!element) {
+    throw new Error("No element received");
+  } else if (typeof text !== "string") {
+    throw new Error("Text must be a string, received " + typeof text);
   }
   try {
     element.innerText = text;

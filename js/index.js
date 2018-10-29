@@ -24,7 +24,7 @@ import Config from "./models/Config.js";
  * @return {void}
  */
 export function indexFunction() {
-  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
     const url = new URL(tab.url);
     getStoredCredentials()

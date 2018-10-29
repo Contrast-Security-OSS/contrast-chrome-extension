@@ -56,7 +56,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === CONTRAST_INITIALIZE
   ) {
     _initializeContrast(request, sendResponse);
-  } else if (request.action === "GET_LIB_VERSION" && request.library) {
+  } else if (request.action === 'GET_LIB_VERSION' && request.library) {
     const library = request.library.parsedLibName.replace("-", "_");
     const libElement = document.getElementById(`__script_res_${library}`);
     let extractedLibraryVersion;
@@ -83,22 +83,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true; // NOTE: Keep this
 });
 
-// function _dataQuery(key) {
-//   const dataAttr = "data-contrast-scrape";
-//   const keys = {
-//     0: "contrast-api-key",
-//     1: "contrast-organization-uuid",
-//     2: "contrast-contrast-url",
-//     3: "contrast-service-key",
-//     4: "contrast-username"
-//   };
-//   document.querySelector('[key-status-rotated=""]');
-//   const element = document.querySelector(`[${dataAttr}=${keys[key]}]`);
-//   // ex. document.querySelector('data-contrast-scrape=contrast-username')
-//   if (!element) return;
-//
-//   return element.textContent;
-// }
+/**
+ * _dataQuery - description
+ *
+ * @param  {String} key  key to search for
+ * @returns {String}     description
+ */
+function _dataQuery(key) {
+  const dataAttr = "data-contrast-scrape";
+  const keys = {
+    0: "contrast-api-key",
+    1: "contrast-organization-uuid",
+    2: "contrast-contrast-url",
+    3: "contrast-service-key",
+    4: "contrast-username"
+  };
+  document.querySelector('[key-status-rotated=""]');
+  const element = document.querySelector(`[${dataAttr}=${keys[key]}]`);
+  // ex. document.querySelector('data-contrast-scrape=contrast-username')
+  if (!element) return;
+
+  return element.textContent;
+}
 
 function _scrapeServiceKey() {
   const key = "key-status-rotated";
@@ -137,19 +143,12 @@ function _scrapeProfileEmail() {
 
 function _initializeContrast(request, sendResponse) {
   const tsIndex = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
-  const teamServerUrl =
-    request.url.substring(0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
+  const teamServerUrl = _dataQuery(2) || request.url.substring(0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
 
-  // const apiKey = _dataQuery(0);
-  // const orgUuid = _dataQuery(1);
-  // const teamServerUrl = _dataQuery(2);
-  // const serviceKey = _dataQuery(3);
-  // const profileEmail = _dataQuery(4);
-
-  const apiKey = _scrapeApiKey();
-  const serviceKey = _scrapeServiceKey();
-  const orgUuid = _scrapeOrgUUID();
-  const profileEmail = _scrapeProfileEmail();
+  const apiKey = _scrapeApiKey() || _dataQuery(0);
+  const serviceKey = _scrapeServiceKey() || _dataQuery(3);
+  const orgUuid = _scrapeOrgUUID() || _dataQuery(1);
+  const profileEmail = _scrapeProfileEmail() || _dataQuery(4);
 
   const contrastObj = {
     [CONTRAST_USERNAME]: profileEmail,
@@ -158,6 +157,7 @@ function _initializeContrast(request, sendResponse) {
     [CONTRAST_ORG_UUID]: orgUuid,
     [TEAMSERVER_URL]: teamServerUrl
   };
+
   Object.values(contrastObj).forEach(val => {
     if (!val) {
       sendResponse({

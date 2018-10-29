@@ -97,6 +97,9 @@ label {
   margin: 0 auto;
   padding: 20px;
 }
+#no-vulnerabilities-found h5 {
+  text-align: center;
+}
 #activity-feed input {
   width: 100%;
 }
@@ -390,6 +393,14 @@ form {
   font-size: 4vw;
   padding-top: 10px;
   padding-bottom: 20px;
+}
+
+#error-message-footer {
+  color: gray;
+  text-align: left;
+  padding: 10px;
+  padding-top: 0px;
+  display: none;
 }
 /*********************************************/
 /* END CONFIGURATION AND POPUP HEADER/FOOTER */

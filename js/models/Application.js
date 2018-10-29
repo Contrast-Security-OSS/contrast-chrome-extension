@@ -61,6 +61,12 @@ Application.retrieveApplicationFromStorage = function(tab) {
         }
         resolve(null);
       } else {
+        if (application && application.name) {
+          const appLibText = document.getElementById('scan-libs-text');
+          if (appLibText) {
+            appLibText.innerText = `Current Application: ${application.name}`;
+          }
+        }
         resolve(application);
       }
     });
@@ -76,7 +82,7 @@ Application.retrieveApplicationFromStorage = function(tab) {
  */
 Application.getStoredApp = function(appsInStorage, application) {
   if (!application) throw new Error("application must be defined");
-  console.log("APPS IN STORAGE", appsInStorage);
+
   if (isEmptyObject(appsInStorage)) return;
   const storedApps = appsInStorage[STORED_APPS_KEY] || appsInStorage;
   return storedApps.filter(app => {

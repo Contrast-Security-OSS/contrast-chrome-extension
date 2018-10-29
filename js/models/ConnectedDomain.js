@@ -28,12 +28,21 @@ ConnectedDomain.prototype._addDomainToStorage = function() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(STORED_APPS_KEY, (result) => {
       if (chrome.storage.lastError) {
-        reject(new Error("Error retrieving stored apps"));
+        return reject(new Error("Error retrieving stored apps"));
       }
 
       // no applications stored so result[STORED_APPS_KEY] is undefined
       if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
+      if (result[STORED_APPS_KEY].length > 0) {
+        for (let i = 0, len = result[STORED_APPS_KEY].length; i < len; i++) {
+          let app = result[STORED_APPS_KEY][i];
+          if (app.domain === host) {
+            return reject(new Error(`The Domain ${host} is already in use by another application: ${app.name}. Please either first disconnect that application or run this application on a different domain/port.`));
+          }
+        }
+      }
       const app = new Application(host, application);
+
       const updatedStoredApps = result[STORED_APPS_KEY].concat(app);
 
       const applicationTable = document.getElementById("application-table");

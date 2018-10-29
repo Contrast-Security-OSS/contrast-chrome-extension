@@ -166,20 +166,22 @@ Config.prototype._handleConfigButtonClick = function(e) {
 
   // NOTE: Don't scrape if user has input data
   const inputs = document.getElementsByClassName("user-inputs");
+
   let inputsWithValue = [];
   for (let i = 0, len = inputs.length; i < len; i++) {
-    if (inputs[i].innerText && inputs[i].innerText.length > 0) {
+    if (inputs[i].value && inputs[i].value.length > 0) {
       inputsWithValue.push(true);
     }
     inputsWithValue.push(false);
   }
 
-  if (
-    this._isTeamserverAccountPage() &&
-    inputsWithValue.every(i => i === false)
-  ) {
+  // NOTE: if any of the fields are filled in by user don't do this
+  if (this._isTeamserverAccountPage() && inputsWithValue.every(i => i === false)) {
     this._configureUserByScrapingContrast();
-  } else {
+  }
+
+  // NOTE: if some fields are filled in do this
+  else {
     this._storeCustomUserConfiguration();
   }
 };
