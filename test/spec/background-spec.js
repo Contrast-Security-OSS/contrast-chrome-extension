@@ -269,17 +269,17 @@ describe('tests for background methods', function() {
         .equal(JSON.stringify([]));
     });
 
-    it('indicates that the page has finished loading', function() {
-      let spy = sinon.spy();
-      req = {
-        action: LOADING_DONE,
-      }
-      expect(window.PAGE_FINISHED_LOADING).equal(false);
-      res = _handleRuntimeOnMessage(req, spy, fakeTab);
-      expect(res instanceof Promise).equal(true);
-      expect(spy.calledOnce).equal(false);
-      expect(window.PAGE_FINISHED_LOADING).equal(true);
-    });
+    // it('indicates that the page has finished loading', function() {
+    //   let spy = sinon.spy();
+    //   req = {
+    //     action: LOADING_DONE,
+    //   }
+    //   expect(window.PAGE_FINISHED_LOADING).equal(false);
+    //   res = _handleRuntimeOnMessage(req, spy, fakeTab);
+    //   expect(res instanceof Promise).equal(true);
+    //   expect(spy.calledOnce).equal(false);
+    //   expect(window.PAGE_FINISHED_LOADING).equal(true);
+    // });
   });
 
 });
