@@ -5,7 +5,6 @@ import {
   setElementText,
   setElementDisplay,
   changeElementVisibility,
-  hideElementAfterTimeout,
   APPLICATION_CONNECTED
 } from "../util.js";
 
