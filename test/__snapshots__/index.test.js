@@ -42,11 +42,9 @@ exports['tests the popup index.html file for changes takes a snapshot of the bas
         </h5>
         <p id="vulns-header-text" class="no-margin scalable-subtext">Vulnerabilities</p>
       </div>
-      <!-- <div class="flex-row-item">
-        <div class="flex-row">
-          <span id="scan-libs-text" class="scalable-subtext"></span>
-        </div>
-      </div> -->
+      <div class="flex-row-item">
+        <p id="scan-libs-text" class="scalable-subtext"></p>
+      </div>
       <!-- <div class="flex-row-item">
         <div class="flex-row">
           <img id="libs-loading" class="loading-icon" src="/img/ring-alt.gif" alt="loading">
@@ -191,11 +189,9 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
         </h5>
         <p id="vulns-header-text" class="no-margin scalable-subtext">Vulnerabilities</p>
       </div>
-      <!-- <div class="flex-row-item">
-        <div class="flex-row">
-          <span id="scan-libs-text" class="scalable-subtext"></span>
-        </div>
-      </div> -->
+      <div class="flex-row-item">
+        <p id="scan-libs-text" class="scalable-subtext"></p>
+      </div>
       <!-- <div class="flex-row-item">
         <div class="flex-row">
           <img id="libs-loading" class="loading-icon" src="/img/ring-alt.gif" alt="loading">
@@ -340,11 +336,9 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
         </h5>
         <p id="vulns-header-text" class="no-margin scalable-subtext">Vulnerabilities</p>
       </div>
-      <!-- <div class="flex-row-item">
-        <div class="flex-row">
-          <span id="scan-libs-text" class="scalable-subtext"></span>
-        </div>
-      </div> -->
+      <div class="flex-row-item">
+        <p id="scan-libs-text" class="scalable-subtext"></p>
+      </div>
       <!-- <div class="flex-row-item">
         <div class="flex-row">
           <img id="libs-loading" class="loading-icon" src="/img/ring-alt.gif" alt="loading">
@@ -489,11 +483,9 @@ exports['tests the popup index.html file for changes takes a snapshot of the con
         </h5>
         <p id="vulns-header-text" class="no-margin scalable-subtext">Vulnerabilities</p>
       </div>
-      <!-- <div class="flex-row-item">
-        <div class="flex-row">
-          <span id="scan-libs-text" class="scalable-subtext"></span>
-        </div>
-      </div> -->
+      <div class="flex-row-item">
+        <p id="scan-libs-text" class="scalable-subtext"></p>
+      </div>
       <!-- <div class="flex-row-item">
         <div class="flex-row">
           <img id="libs-loading" class="loading-icon" src="/img/ring-alt.gif" alt="loading">
@@ -638,11 +630,9 @@ exports['tests the popup index.html file for changes takes a snapshot of the not
         </h5>
         <p id="vulns-header-text" class="no-margin scalable-subtext">Vulnerabilities</p>
       </div>
-      <!-- <div class="flex-row-item">
-        <div class="flex-row">
-          <span id="scan-libs-text" class="scalable-subtext"></span>
-        </div>
-      </div> -->
+      <div class="flex-row-item">
+        <p id="scan-libs-text" class="scalable-subtext"></p>
+      </div>
       <!-- <div class="flex-row-item">
         <div class="flex-row">
           <img id="libs-loading" class="loading-icon" src="/img/ring-alt.gif" alt="loading">
