@@ -33,6 +33,8 @@ ConnectedDomain.prototype._addDomainToStorage = function() {
 
       // no applications stored so result[STORED_APPS_KEY] is undefined
       if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
+
+      // Verify that the domain of the app to be connected isn't already in use by the extension
       if (result[STORED_APPS_KEY].length > 0) {
         for (let i = 0, len = result[STORED_APPS_KEY].length; i < len; i++) {
           let app = result[STORED_APPS_KEY][i];
