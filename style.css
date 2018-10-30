@@ -368,8 +368,8 @@ form {
   font-size: 5vw;
 }
 #scan-libs-text {
-  color: #65c0b2;
-  margin-right: 5px;
+  color: #666;
+  text-align: right;
 }
 #scan-libs-text:hover {
   cursor: pointer;

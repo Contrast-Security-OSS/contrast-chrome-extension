@@ -35,8 +35,9 @@ ConnectedDomain.prototype._addDomainToStorage = function() {
       if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
 
       // Verify that the domain of the app to be connected isn't already in use by the extension
-      if (!this._verifyDomainNotInUse(result[STORED_APPS_KEY], host)) {
-        return reject(new Error(`The Domain ${host} is already in use by another application: ${app.name}. Please either first disconnect that application or run this application on a different domain/port.`));
+      const verified = this._verifyDomainNotInUse(result[STORED_APPS_KEY], host);
+      if (verified.constructor === Error) {
+        return reject(verified);
       }
 
       const app = new Application(host, application);
@@ -57,7 +58,7 @@ ConnectedDomain.prototype._verifyDomainNotInUse = function(storedApps, host) {
     for (let i = 0, len = storedApps.length; i < len; i++) {
       let app = storedApps[i];
       if (app.domain === host) {
-        return false;
+        return new Error(`The Domain ${Application._subColonOrUnderscore(host)} is already in use by another application: ${app.name}. Please either first disconnect ${app.name} or run this application on a different domain/port.`);
       }
     }
   }

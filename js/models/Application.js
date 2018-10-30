@@ -1,4 +1,4 @@
-/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
+
 import {
   STORED_APPS_KEY,
   CONTRAST_GREEN,
@@ -64,7 +64,7 @@ Application.retrieveApplicationFromStorage = function(tab) {
         if (application && application.name) {
           const appLibText = document.getElementById('scan-libs-text');
           if (appLibText) {
-            appLibText.innerText = `Current Application: ${application.name}`;
+            appLibText.innerText = `Current Application:\n${application.name.trim()}`;
           }
         }
         resolve(application);
