@@ -35,14 +35,10 @@ ConnectedDomain.prototype._addDomainToStorage = function() {
       if (!result[STORED_APPS_KEY]) result[STORED_APPS_KEY] = [];
 
       // Verify that the domain of the app to be connected isn't already in use by the extension
-      if (result[STORED_APPS_KEY].length > 0) {
-        for (let i = 0, len = result[STORED_APPS_KEY].length; i < len; i++) {
-          let app = result[STORED_APPS_KEY][i];
-          if (app.domain === host) {
-            return reject(new Error(`The Domain ${host} is already in use by another application: ${app.name}. Please either first disconnect that application or run this application on a different domain/port.`));
-          }
-        }
+      if (!this._verifyDomainNotInUse(result[STORED_APPS_KEY], host)) {
+        return reject(new Error(`The Domain ${host} is already in use by another application: ${app.name}. Please either first disconnect that application or run this application on a different domain/port.`));
       }
+
       const app = new Application(host, application);
 
       const updatedStoredApps = result[STORED_APPS_KEY].concat(app);
@@ -54,6 +50,18 @@ ConnectedDomain.prototype._addDomainToStorage = function() {
       });
     });
   });
+}
+
+ConnectedDomain.prototype._verifyDomainNotInUse = function(storedApps, host) {
+  if (storedApps.length > 0) {
+    for (let i = 0, len = storedApps.length; i < len; i++) {
+      let app = storedApps[i];
+      if (app.domain === host) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 
