@@ -71,7 +71,6 @@ label {
   overflow: hidden;
   transition: max-height 0.3s linear;
   height: auto;
-  max-height: 1000px;
 }
 .section.collapsed {
   max-height: 0px;
@@ -161,7 +160,6 @@ label {
   overflow: hidden;
   transition: max-height 0.3s linear;
   height: auto;
-  max-height: 1000px;
   width: 100%;
 }
 #table-container.collapsed {
@@ -329,9 +327,14 @@ header {
 }
 footer {
   border-top: 1px solid rgb(220, 220, 220);
+  position: sticky;
+  position: -webkit-sticky;
+  bottom: 0;
+  right: 0;
 }
 #configured-footer {
   align-items: center;
+  background-color: rgb(247, 247, 247);
 }
 .logo-icon {
   display: inline;
