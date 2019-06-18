@@ -62,6 +62,7 @@ export const VALID_TEAMSERVER_HOSTNAMES = [
   "eval.contratsecurity.com",
   "alpha.contrastsecurity.com",
   "localhost",
+  "teamserver-darpa.contsec.com",
 ];
 
 // Contrast stylings and configuration text

@@ -20,6 +20,7 @@
     "gulp-uglify-es": "^1.0.4",
     "jest-webextension-mock": "^3.4.0",
     "jsdom": "^11.11.0",
+    "mocha": "^6.1.4",
     "node-fetch": "^2.1.2",
     "nyc": "^12.0.2",
     "prettier": "1.14.2",
