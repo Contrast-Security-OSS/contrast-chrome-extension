@@ -15,6 +15,7 @@
     "babel-preset-env": "^1.7.0",
     "btoa": "^1.2.1",
     "chai": "^4.1.2",
+    "eslint": "^5.16.0",
     "gulp": "^3.9.1",
     "gulp-uglify": "^3.0.1",
     "gulp-uglify-es": "^1.0.4",
