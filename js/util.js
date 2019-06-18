@@ -1,4 +1,9 @@
-/*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
+/**
+ * /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }]
+ *
+ * @format
+ */
+
 // allow ununed vars in this file since they are used throughout other files
 /*eslint no-unused-vars: "off"*/
 /*global
@@ -27,7 +32,7 @@ export const SEVERITY = {
   [SEVERITY_LOW]: 1,
   [SEVERITY_MEDIUM]: 2,
   [SEVERITY_HIGH]: 3,
-  [SEVERITY_CRITICAL]: 4
+  [SEVERITY_CRITICAL]: 4,
 };
 
 export const SEVERITY_BACKGROUND_COLORS = {
@@ -35,7 +40,7 @@ export const SEVERITY_BACKGROUND_COLORS = {
   [SEVERITY_LOW]: "rgb(220, 220, 220)",
   [SEVERITY_MEDIUM]: "rgb(247, 182, 0)",
   [SEVERITY_HIGH]: "rgb(247, 138, 49)",
-  [SEVERITY_CRITICAL]: "rgb(230, 48, 37)"
+  [SEVERITY_CRITICAL]: "rgb(230, 48, 37)",
 };
 
 export const SEVERITY_TEXT_COLORS = {
@@ -43,7 +48,7 @@ export const SEVERITY_TEXT_COLORS = {
   [SEVERITY_LOW]: "rgb(41, 41, 41)",
   [SEVERITY_MEDIUM]: "white",
   [SEVERITY_HIGH]: "white",
-  [SEVERITY_CRITICAL]: "white"
+  [SEVERITY_CRITICAL]: "white",
 };
 
 export const TEAMSERVER_BASE = "/Contrast/static/ng";
@@ -56,7 +61,7 @@ export const VALID_TEAMSERVER_HOSTNAMES = [
   "apptwo.contrastsecurity.com",
   "eval.contratsecurity.com",
   "alpha.contrastsecurity.com",
-  "localhost"
+  "localhost",
 ];
 
 // Contrast stylings and configuration text
@@ -102,7 +107,7 @@ const BLACKLISTED_DOMAINS = [
   "cdn.sstatic.net",
   "reddit.com",
   "sockjs-node/info",
-  "socket.io"
+  "socket.io",
 ];
 const BLACKLIST_LENGTH = BLACKLISTED_DOMAINS.length;
 
@@ -131,7 +136,7 @@ String.prototype.titleize = function() {
   });
 };
 
-export const capitalize = s => s[0].toUpperCase() + s.substr(1);
+export const capitalize = (s) => s[0].toUpperCase() + s.substr(1);
 
 // --------- HELPER FUNCTIONS -------------
 
@@ -140,23 +145,23 @@ function fetchTeamserver(url, params, authHeader, apiKey, method = "GET") {
   const fetchOptions = {
     method,
     headers: new Headers({
-      "Authorization": authHeader,
+      Authorization: authHeader,
       "API-Key": apiKey,
-      "Accept": "application/json"
-    })
+      Accept: "application/json",
+    }),
   };
   if (method !== "GET") {
     fetchOptions.body = JSON.stringify(params);
     fetchOptions.headers.append("Content-Type", "application/json");
   }
   return fetch(requestUrl, fetchOptions)
-    .then(response => {
+    .then((response) => {
       if (response.status === 200 && response.ok) {
         return response.json();
       }
       throw new Error(response);
     })
-    .catch(error => new Error(error));
+    .catch((error) => new Error(error));
 }
 
 function getAuthorizationHeader(username, serviceKey) {
@@ -238,9 +243,9 @@ function getStoredCredentials() {
         CONTRAST_SERVICE_KEY,
         CONTRAST_API_KEY,
         CONTRAST_ORG_UUID,
-        TEAMSERVER_URL
+        TEAMSERVER_URL,
       ],
-      items => {
+      (items) => {
         if (!items) {
           reject(new Error("Error getting credentials"));
         } else {
@@ -260,7 +265,7 @@ function getStoredCredentials() {
  */
 
 function getOrganizationVulnerabilityIds(urls, appId) {
-  return getStoredCredentials().then(items => {
+  return getStoredCredentials().then((items) => {
     if (!items) throw new Error("Error retrieving credentials from storage");
     const url = getOrganizationVulnerabilitiesIdsUrl(
       items[TEAMSERVER_URL],
@@ -283,7 +288,7 @@ function getOrganizationVulnerabilityIds(urls, appId) {
  * @return {Promise<Object} A promise containing details about the trace
  */
 function getVulnerabilityShort(traceUuid, appID) {
-  return getStoredCredentials().then(items => {
+  return getStoredCredentials().then((items) => {
     const url = getVulnerabilityShortUrl(
       items[TEAMSERVER_URL],
       items[CONTRAST_ORG_UUID],
@@ -305,7 +310,7 @@ function getVulnerabilityShort(traceUuid, appID) {
  * @return {Promise<Array>} A promise containing a list of applications in an organization
  */
 function getOrgApplications() {
-  return getStoredCredentials().then(items => {
+  return getStoredCredentials().then((items) => {
     const url = getApplicationsUrl(
       items[TEAMSERVER_URL],
       items[CONTRAST_ORG_UUID]
@@ -413,11 +418,11 @@ function isContrastTeamserver(url) {
   const contrast = [
     "/Contrast/api/ng/",
     "/Contrast/s/",
-    "/Contrast/static/ng/index"
+    "/Contrast/static/ng/index",
   ];
 
   // .some acts as an OR
-  return contrast.some(c => url.includes(c));
+  return contrast.some((c) => url.includes(c));
 }
 
 // NOTE: How the loading icon works, since <meta charset="utf-8"> is in index.html using the explicit icon is okay https://stackoverflow.com/questions/44090434/chrome-extension-badge-text-renders-as-%C3%A2%C5%93
@@ -434,12 +439,12 @@ function updateTabBadge(tab, text = "", color = CONTRAST_GREEN) {
   if (!tab) return;
   if (chrome.runtime.lastError) null;
   try {
-    chrome.tabs.get(tab.id, result => {
+    chrome.tabs.get(tab.id, (result) => {
       if (chrome.runtime.lastError) null;
       if (!result) return;
       try {
         if (chrome.runtime.lastError) null;
-        chrome.browserAction.getBadgeText({ tabId: tab.id }, badge => {
+        chrome.browserAction.getBadgeText({ tabId: tab.id }, (badge) => {
           if (badge !== "" && !badge) return;
           if (chrome.runtime.lastError) null;
           if (tab.id >= 0 && !chrome.runtime.lastError) {
@@ -460,12 +465,12 @@ function updateTabBadge(tab, text = "", color = CONTRAST_GREEN) {
 const CONTRAST_ICONS = {
   0: "contrast-on.png",
   1: "contrast-off.png",
-  2: "contrast-not-configured.png"
+  2: "contrast-not-configured.png",
 };
 function updateExtensionIcon(tab, image = 0) {
   const details = {
     tabId: tab.id,
-    path: "/img/" + (typeof image === "number" ? CONTRAST_ICONS[image] : image)
+    path: "/img/" + (typeof image === "number" ? CONTRAST_ICONS[image] : image),
   };
   if (!details.path) {
     throw new Error("update extension icon path is not set", details);
@@ -483,15 +488,18 @@ function updateExtensionIcon(tab, image = 0) {
 function removeLoadingBadge(tab) {
   if (!tab) return;
 
-  chrome.browserAction.getBadgeText({ tabId: tab.id }, result => {
+  chrome.browserAction.getBadgeText({ tabId: tab.id }, (result) => {
     if (result === "↻") {
-      chrome.browserAction.getBadgeBackgroundColor({ tabId: tab.id }, color => {
-        if (!color) {
-          updateTabBadge(tab, "", CONTRAST_GREEN);
-        } else {
-          updateTabBadge(tab, "", color);
+      chrome.browserAction.getBadgeBackgroundColor(
+        { tabId: tab.id },
+        (color) => {
+          if (!color) {
+            updateTabBadge(tab, "", CONTRAST_GREEN);
+          } else {
+            updateTabBadge(tab, "", color);
+          }
         }
-      });
+      );
     }
   });
 }
@@ -507,7 +515,7 @@ function generateTraceURLString(tracePaths) {
 
   // NOTE: Because teamserver saves route params by var name and not by value, need to tell TS to check if there exists a trace for a path that uses a uuid or ID in the route
   let matchRoutePathParams = false;
-  const paths = tracePaths.map(path => {
+  const paths = tracePaths.map((path) => {
     if (!matchRoutePathParams && hasIDorUUID(path)) {
       matchRoutePathParams = true;
     }
@@ -661,5 +669,5 @@ export {
   isHTTP,
   isEmptyObject,
   murmur,
-  updateExtensionIcon
+  updateExtensionIcon,
 };

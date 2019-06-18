@@ -143,7 +143,7 @@ function _scrapeProfileEmail() {
 
 function _initializeContrast(request, sendResponse) {
   const tsIndex = request.url.indexOf(TEAMSERVER_INDEX_PATH_SUFFIX);
-  const teamServerUrl = _dataQuery(2) || request.url.substring(0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX;
+  const teamServerUrl = request.url.substring(0, tsIndex) + TEAMSERVER_API_PATH_SUFFIX || _dataQuery(2);
 
   const apiKey = _scrapeApiKey() || _dataQuery(0);
   const serviceKey = _scrapeServiceKey() || _dataQuery(3);
