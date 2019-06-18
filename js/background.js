@@ -2,7 +2,6 @@
 /*global
 	URL,
 	chrome,
-	module,
 	window,
 */
 
